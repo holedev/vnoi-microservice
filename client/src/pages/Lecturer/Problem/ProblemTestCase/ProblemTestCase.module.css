@@ -1,0 +1,11 @@
+.wrapper {
+    width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.testInp {
+    max-width: 250px;
+}

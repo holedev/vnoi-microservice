@@ -1,0 +1,40 @@
+.wrapper {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    min-height: 300px;
+}
+
+.heading {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    font-weight: 500;
+    padding: 4px 12px;
+    background: var(--white-color);
+}
+
+.markdown,
+.preview {
+    display: flex;
+    position: relative;
+    flex: 1;
+}
+
+.markdownInp {
+    flex: 1;
+    width: 100%;
+    resize: none;
+    outline: none;
+    border: none;
+    padding: 4px 12px;
+    height: 100%;
+}
+
+.reactMarkdown {
+    flex: 1;
+    padding: 4px 12px;
+    background: var(--white-color);
+    height: 100%;
+}
+

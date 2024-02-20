@@ -1,0 +1,25 @@
+.wrapper {
+    
+}
+
+.heading {
+}
+
+.example {
+    background: var(--gray-color);
+    border-radius: 6px;
+    padding: 4px 12px;
+}
+
+.exampleLabel {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.exampleInp,
+.exampleOut {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    gap: 4px;
+}

@@ -1,0 +1,23 @@
+.testcase {
+    display: flex;
+    gap: 4px;
+}
+
+.testcaseBox {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.testcaseList {
+    flex: 1;
+    background-color: #ccc;
+}
+
+.testcaseItem {
+    padding: 4px;
+    white-space: nowrap;
+}
+.testcaseList .testcaseItem:nth-child(2n) {
+    background-color: #bbb;
+}

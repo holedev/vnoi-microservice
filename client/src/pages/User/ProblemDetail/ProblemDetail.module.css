@@ -1,0 +1,40 @@
+.wrapper {
+    height: 100%;
+}
+
+.testDesc {
+    border-radius: 4px;
+    background: var(--white-color);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.code {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    flex: 1;
+}
+
+.editor {
+    flex: 1;
+    display: flex;
+    overflow-y: scroll;
+}
+
+.modalBody {
+    border-radius: 6px;
+    padding: 4px 12px;
+    margin: auto;
+    min-width: 400px;
+    min-height: 200px;
+    width: fit-content;
+    background: #ccc;
+    border: none;
+    outline: none;
+}
+
+.exampleList {
+    margin: 12px 0;
+}
