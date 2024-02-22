@@ -1,7 +1,7 @@
 import amqplib from "amqplib";
 import uuid4 from "uuid4";
 import { _PROCESS_ENV } from "../env/index.js";
-import { InternalServerError } from "../../api/response/errors/InternalServerError.js";
+import { InternalServerError } from "../../api/responses/errors/InternalServerError.js";
 
 const _TIMEOUT_REQUEST = 10000;
 let amqplibConnection = null;
@@ -26,71 +26,67 @@ const publishMessage = (channel, service, msg) => {
 };
 
 const subscribeMessage = async (channel, service) => {
-  await channel.assertExchange(_PROCESS_ENV.RABBITMQ_EXCHANGE_NAME, "direct", { durable: true });
-  const q = await channel.assertQueue(`${_PROCESS_ENV.SERVICE_NAME}::subscribeMessage`, {
-    durable: true
-  });
-  console.log(`Waiting for messages in queue: ${q.queue}`);
-
-  channel.bindQueue(q.queue, _PROCESS_ENV.RABBITMQ_EXCHANGE_NAME, _PROCESS_ENV.SERVICE_NAME);
-
-  channel.consume(
-    q.queue,
-    (msg) => {
-      if (msg.content) {
-        console.log("The message is:", msg.content.toString());
-        service.handleEvent(msg.content.toString());
-      }
-      console.log("[X] received");
-    },
-    {
-      noAck: true
-    }
-  );
-};
-
-const requestData = async (QUEUE_NAME, requestPayload, uuid) => {
   try {
-    const channel = await getChannel();
-    const q = await channel.assertQueue(`${_PROCESS_ENV.SERVICE_NAME}::requestData`, {
+    await channel.assertExchange(_PROCESS_ENV.RABBITMQ_EXCHANGE_NAME, "direct", { durable: true });
+    const q = await channel.assertQueue(_PROCESS_ENV.SERVICE_NAME, {
       durable: true
     });
+    console.log(`Waiting for messages in queue: ${q.queue}`);
 
-    channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(requestPayload)), {
-      replyTo: q.queue,
-      correlationId: uuid,
-      persistent: true
-    });
+    channel.bindQueue(q.queue, _PROCESS_ENV.RABBITMQ_EXCHANGE_NAME, _PROCESS_ENV.SERVICE_NAME);
 
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        channel.close();
-        resolve("API could not fullfil the request!");
-      }, _TIMEOUT_REQUEST);
-
-      channel.consume(
-        q.queue,
-        (msg) => {
-          if (msg.properties.correlationId == uuid) {
-            resolve(JSON.parse(msg.content.toString()));
-            clearTimeout(timeout);
-          } else {
-            reject("Data Not found!");
+    channel.consume(
+      _PROCESS_ENV.SERVICE_NAME,
+      async (msg) => {
+        if (msg.content) {
+          console.log("The message is:", msg.content.toString());
+          if (!msg.properties.replyTo) {
+            console.log("No replyTo property, so it is a log message");
+            service.handleEvent(msg.content.toString());
+            channel.ack(msg);
+            return;
           }
-        },
-        {
-          noAck: true
+          // const response = await service.handleEvent(msg.content.toString());
+          // console.log("RES", response);
+          // channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(response)), {
+          //   correlationId: msg.properties.correlationId
+          // });
+          // console.log("DONE");
+          // channel.ack(msg);
         }
-      );
-    });
+      },
+      {
+        noAck: true
+      }
+    );
   } catch (error) {
     throw new InternalServerError(error.message);
   }
 };
 
-const requestAsync = async (QUEUE_NAME, requestPayload) => {
-  const uuid = uuid4();
-  return await requestData(QUEUE_NAME, requestPayload, uuid);
+const RPCObserver = async (RPC_QUEUE_NAME, service) => {
+  const channel = await getChannel();
+  await channel.assertQueue(RPC_QUEUE_NAME, {
+    durable: false
+  });
+  channel.prefetch(1);
+  channel.consume(
+    RPC_QUEUE_NAME,
+    async (msg) => {
+      if (msg.content) {
+        // DB Operation
+        const payload = JSON.parse(msg.content.toString());
+        const response = await service.handleEvent(payload);
+        channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(response)), {
+          correlationId: msg.properties.correlationId
+        });
+        channel.ack(msg);
+      }
+    },
+    {
+      noAck: false
+    }
+  );
 };
 
-export { createChannel, publishMessage, subscribeMessage, requestAsync };
+export { createChannel, publishMessage, subscribeMessage, RPCObserver };

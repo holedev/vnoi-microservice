@@ -5,6 +5,7 @@ class BadRequestError extends Error {
     super();
     this.statusCode = httpStatusCodes.BAD_REQUEST;
     this.messageObject = message;
+    Error.captureStackTrace(this);
   }
 }
 

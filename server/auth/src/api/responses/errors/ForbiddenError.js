@@ -5,6 +5,7 @@ class ForbiddenError extends Error {
     super();
     this.statusCode = httpStatusCodes.FORBIDDEN;
     this.messageObject = message;
+    Error.captureStackTrace(this);
   }
 }
 

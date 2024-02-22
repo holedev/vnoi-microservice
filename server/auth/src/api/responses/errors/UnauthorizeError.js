@@ -5,6 +5,7 @@ class UnauthorizeError extends Error {
     super();
     this.statusCode = httpStatusCodes.UNAUTHORIZED;
     this.messageObject = message;
+    Error.captureStackTrace(this);
   }
 }
 

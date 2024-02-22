@@ -7,6 +7,12 @@ import helmet from "helmet";
 import { _PROCESS_ENV } from "./src/configs/env/index.js";
 import { _PROXY_CONFIG } from "./src/configs/proxy/index.js";
 import { morganMiddleware } from "../common/src/logging/index.js";
+import { apiFilter } from "./src/api/middlewares/apiFilter.js";
+import { verifyToken } from "./src/api/middlewares/verifyToken.js";
+import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
+import { createChannel } from "./src/configs/rabiitmq/index.js";
+
+await createChannel();
 
 const app = express();
 
@@ -17,6 +23,8 @@ const corsOptions = {
 
 app.use(morganMiddleware);
 
+app.use(verifyToken);
+
 app.use(
   cors(corsOptions),
   helmet(),
@@ -24,6 +32,8 @@ app.use(
   express.urlencoded({ extended: true, limit: "20mb" }),
   compression()
 );
+
+app.use(apiFilter);
 
 _PROXY_CONFIG.forEach(({ path, target }) => {
   app.use(
@@ -34,7 +44,8 @@ _PROXY_CONFIG.forEach(({ path, target }) => {
   );
 });
 
+app.use(ErrorHandler);
 
-const PORT = _PROCESS_ENV.PORT;
+const PORT = _PROCESS_ENV.SERVICE_PORT;
 
 export { app, PORT };

@@ -1,70 +1,41 @@
-import admin from "firebase-admin";
-import { UnauthorizeError } from "../../../../common/src/response/errors/UnauthorizeError.js";
-import { ForbiddenError } from "../../../../common/src/response/errors/ForbiddenError.js";
+import { _ACTION, _SERVICE } from "../../configs/env/index.js";
+import { requestAsync } from "../../configs/rabiitmq/index.js";
+import { UnauthorizeError } from "../responses/errors/UnauthorizeError.js";
 
-const VerifyToken = {
-  verify: async (req, res, next) => {
-    const authHeader = req.headers.authorization;
+const verifyToken = async (req, res, next) => {
+  if (req.method === "OPTIONS") {
+    return next();
+  }
 
-    if (!authHeader) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    throw new UnauthorizeError("Unauthorized!");
+  }
+
+  const token = authHeader.split("Bearer ")[1];
+
+  if (!token) {
+    throw new UnauthorizeError("Unauthorized!");
+  }
+
+  console.log("OK");
+
+  try {
+    const payload = {
+      action: _ACTION.VERIFY_USER,
+      data: token
+    };
+    const data = await requestAsync(_SERVICE.AUTH_SERVICE, payload);
+    if (!data) {
       throw new UnauthorizeError("Unauthorized!");
     }
 
-    const token = authHeader?.split("Bearer ")[1];
-
-    try {
-      const decodedToken = await admin.auth().verifyIdToken(token);
-      req.user = decodedToken;
-      next();
-    } catch (error) {
-      throw new UnauthorizeError("Unauthorized!");
-    }
-  },
-  verifyAdminOrLecturer: async (req, res, next) => {
-    await VerifyToken.verify(req, res, () => {
-      const user = req.user;
-
-      if (!user) {
-        throw new UnauthorizeError("Unauthorized!");
-      }
-
-      if (user.role !== "ADMIN" && user.role !== "LECTURER") {
-        throw new ForbiddenError("Forbidden!");
-      }
-
-      next();
-    });
-  },
-  verifyAdmin: async (req, res, next) => {
-    await VerifyToken.verify(req, res, () => {
-      const user = req.user;
-
-      if (!user) {
-        throw new UnauthorizeError("Unauthorized!");
-      }
-
-      if (user.role !== "ADMIN") {
-        throw new ForbiddenError("Forbidden!");
-      }
-
-      next();
-    });
-  },
-  verifyLecturer: async (req, res, next) => {
-    await VerifyToken.verify(req, res, () => {
-      const user = req.user;
-
-      if (!user) {
-        throw new UnauthorizeError("Unauthorized!");
-      }
-
-      if (user.role !== "LECTURER") {
-        throw new ForbiddenError("Forbidden!");
-      }
-
-      next();
-    });
+    req.user = data;
+    next();
+  } catch (error) {
+    throw new UnauthorizeError("Unauthorized!");
   }
 };
 
-export { VerifyToken };
+export { verifyToken };

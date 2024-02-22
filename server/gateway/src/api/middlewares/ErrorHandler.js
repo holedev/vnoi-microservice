@@ -1,9 +1,7 @@
 import { _PROCESS_ENV } from "../../configs/env/index.js";
-import { sendErrorLog } from "../../../../common/src/logging/index.js";
-import { httpStatusCodes } from "../../../../common/src/response/httpStatusCodes/index.js";
+import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 
-export const ErrorHandler = (err, req, res) => {
-  console.log("OK");
+export const ErrorHandler = (err, req, res, next) => {
   const URL = `${req?.get("host")}${req.originalUrl}`;
   const IP = (req?.headers["x-forwarded-for"] || "").split(",").shift() || req?.ip;
 
@@ -13,9 +11,11 @@ export const ErrorHandler = (err, req, res) => {
     req.method
   } ${URL}\nBODY: ${JSON.stringify(req.body)}\nERROR: ${err.message} ${err.stack}`;
 
-  _PROCESS_ENV.NODE_ENV === "dev"
-    ? console.log(`----------------------------------------\n${errorLog}\n----------------------------------------`)
-    : sendErrorLog(errorLog);
+  console.log(`----------------------------------------\n${errorLog}\n----------------------------------------`);
+
+  // _PROCESS_ENV.NODE_ENV === "dev"
+  //   ? console.log(`----------------------------------------\n${errorLog}\n----------------------------------------`)
+  //   : sendErrorLog(errorLog);
 
   const messageError = err.messageObject || err.message || "Server not response!";
   const statusCode = err.statusCode || httpStatusCodes.INTERNAL_SERVER_ERROR;
@@ -24,8 +24,6 @@ export const ErrorHandler = (err, req, res) => {
     message: messageError,
     request: `${req.method} ${req.originalUrl}`
   };
-
-  console.log(error);
 
   return res.status(statusCode).json(error);
 };

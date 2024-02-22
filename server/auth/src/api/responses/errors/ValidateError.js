@@ -5,6 +5,7 @@ class ValidateError extends Error {
     super();
     this.statusCode = httpStatusCodes.UNPROCESSABLE_ENTITY;
     this.messageObject = message;
+    Error.captureStackTrace(this);
   }
 }
 

@@ -1,5 +1,5 @@
 import { _PROCESS_ENV } from "../../configs/env/index.js";
-import { httpStatusCodes } from "../response/httpStatusCodes/index.js";
+import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 
 export const ErrorHandler = (err, req, res, next) => {
   const URL = `${req?.get("host")}${req.originalUrl}`;

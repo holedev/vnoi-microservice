@@ -1,4 +1,11 @@
 import dotenv from "dotenv";
+import fs from "fs";
+
+// name service message broker
+const _SERVICE = JSON.parse(fs.readFileSync("../SERVICE.json"));
+
+// action call message broker
+const _ACTION = JSON.parse(fs.readFileSync("../ACTION.json"));
 
 // gateway env
 dotenv.config({
@@ -16,4 +23,4 @@ const _PROCESS_ENV = {
   MONGODB_URL: process.env.MONGODB_URL
 };
 
-export { _PROCESS_ENV };
+export { _PROCESS_ENV, _ACTION, _SERVICE };

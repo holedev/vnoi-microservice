@@ -5,6 +5,7 @@ class InternalServerError extends Error {
     super();
     this.statusCode = httpStatusCodes.INTERNAL_SERVER_ERROR;
     this.messageObject = message;
+    Error.captureStackTrace(this);
   }
 }
 

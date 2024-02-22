@@ -5,6 +5,7 @@ class ConflictError extends Error {
     super();
     this.statusCode = httpStatusCodes.CONFLICT;
     this.messageObject = message;
+    Error.captureStackTrace(this);
   }
 }
 
