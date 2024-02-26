@@ -1,40 +1,27 @@
-import { _ACTION, _SERVICE } from "../../configs/env/index.js";
+import admin from "firebase-admin";
+import { _ACTION, _RESPONSE_SERVICE, _SERVICE } from "../../configs/env/index.js";
 import { requestAsync } from "../../configs/rabiitmq/index.js";
 import { UnauthorizeError } from "../responses/errors/UnauthorizeError.js";
 
 const verifyToken = async (req, res, next) => {
-  if (req.method === "OPTIONS") {
-    return next();
-  }
-
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader) {
-    throw new UnauthorizeError("Unauthorized!");
-  }
-
-  const token = authHeader.split("Bearer ")[1];
-
-  if (!token) {
-    throw new UnauthorizeError("Unauthorized!");
-  }
-
-  console.log("OK");
+  if (req.method === "OPTIONS") return next();
 
   try {
-    const payload = {
-      action: _ACTION.VERIFY_USER,
-      data: token
-    };
-    const data = await requestAsync(_SERVICE.AUTH_SERVICE, payload);
-    if (!data) {
-      throw new UnauthorizeError("Unauthorized!");
-    }
+    const authHeader = req.headers?.authorization;
+    const token = authHeader?.split("Bearer ")[1];
 
-    req.user = data;
+    if (!token) throw new UnauthorizeError("Unauthorized");
+
+    const data = await admin.auth().verifyIdToken(token);
+
+    // req.user = data;
+    req.headers["X-User-Id"] = data._id;
+    req.headers["X-User-Role"] = data.role;
+    req.headers["X-User-Uid"] = data.uid;
+
     next();
   } catch (error) {
-    throw new UnauthorizeError("Unauthorized!");
+    throw new UnauthorizeError(error.message || "Unauthorized");
   }
 };
 

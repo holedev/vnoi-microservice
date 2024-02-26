@@ -9,7 +9,7 @@ export const ErrorHandler = (err, req, res, next) => {
     err.statusCode || httpStatusCodes.INTERNAL_SERVER_ERROR
   }: ${new Date().toLocaleString()}\nIP: ${IP}\nREQUEST: ${
     req.method
-  } ${URL}\nBODY: ${JSON.stringify(req.body)}\nERROR: ${err.message} ${err.stack}`;
+  } ${URL}\nBODY: ${JSON.stringify(req.body || err.body)}\nERROR: ${err.message} ${err.stack}`;
 
   console.log(`----------------------------------------\n${errorLog}\n----------------------------------------`);
 

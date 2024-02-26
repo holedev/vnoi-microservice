@@ -7,20 +7,24 @@ const _SERVICE = JSON.parse(fs.readFileSync("../SERVICE.json"));
 // action call message broker
 const _ACTION = JSON.parse(fs.readFileSync("../ACTION.json"));
 
+// response service message broker
+const _RESPONSE_SERVICE = JSON.parse(fs.readFileSync("../RESPONSE.json"));
+
 // gateway env
 dotenv.config({
   path: ".env"
 });
 
 const _PROCESS_ENV = {
-  SERVICE_NAME: process.env.SERVICE_NAME || _SERVICE.GATEWAY_SERVICE,
-  SERVICE_PORT: process.env.PORT || 8000,
   NODE_ENV: process.env.NODE_ENV,
+  SERVICE_NAME: _SERVICE.GATEWAY_SERVICE.NAME,
+  SERVICE_PORT: _SERVICE.GATEWAY_SERVICE.PORT,
   REDIS_HOST: process.env.REDIS_HOST,
   REDIS_PORT: process.env.REDIS_PORT,
   RABBITMQ_URL: process.env.RABBITMQ_URL,
   RABBITMQ_EXCHANGE_NAME: process.env.RABBITMQ_EXCHANGE_NAME,
-  CLIENT_URL: process.env.CLIENT_URL
+  CLIENT_URL: process.env.CLIENT_URL,
+  MONGODB_URL: process.env.MONGODB_URL
 };
 
-export { _PROCESS_ENV, _ACTION, _SERVICE };
+export { _PROCESS_ENV, _ACTION, _SERVICE, _RESPONSE_SERVICE };

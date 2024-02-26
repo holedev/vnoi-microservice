@@ -1,19 +1,13 @@
+import { _SERVICE } from "../env/index.js";
+
 const _PROXY_CONFIG = [
   {
-    path: "/auth",
-    target: "http://localhost:8001"
+    path: _SERVICE.COMMON_SERVICE.PATH,
+    target: "http://localhost:" + _SERVICE.COMMON_SERVICE.PORT
   },
   {
-    path: "/user",
-    target: "http://localhost:8010"
-  },
-  {
-    path: "/compiler",
-    target: "http://localhost:8020"
-  },
-  {
-    path: "/video",
-    target: "http://localhost:8030"
+    path: _SERVICE.USER_SERVICE.PATH,
+    target: "http://localhost:" + _SERVICE.USER_SERVICE.PORT
   }
 ];
 

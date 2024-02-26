@@ -6,22 +6,25 @@ import compression from "compression";
 import helmet from "helmet";
 import { _PROCESS_ENV } from "./src/configs/env/index.js";
 import { _PROXY_CONFIG } from "./src/configs/proxy/index.js";
-import { morganMiddleware } from "../common/src/logging/index.js";
-import { apiFilter } from "./src/api/middlewares/apiFilter.js";
 import { verifyToken } from "./src/api/middlewares/verifyToken.js";
 import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
 import { createChannel } from "./src/configs/rabiitmq/index.js";
-
-await createChannel();
+import { apiFilter } from "./src/api/middlewares/apiFilter.js";
+import { firebaseInit } from "./src/configs/firebase/index.js";
+import { databaseConnection } from "./src/configs/database/index.js";
 
 const app = express();
+const PORT = _PROCESS_ENV.SERVICE_PORT;
+
+firebaseInit();
+await databaseConnection();
+
+await createChannel();
 
 const corsOptions = {
   origin: _PROCESS_ENV.NODE_ENV === "dev" ? "*" : _PROCESS_ENV.CLIENT_URL,
   credentials: true
 };
-
-app.use(morganMiddleware);
 
 app.use(verifyToken);
 
@@ -39,13 +42,13 @@ _PROXY_CONFIG.forEach(({ path, target }) => {
   app.use(
     path,
     proxy(target, {
-      limit: "20mb"
+      proxyErrorHandler: (err, res, next) => {
+        next(err);
+      }
     })
   );
 });
 
 app.use(ErrorHandler);
-
-const PORT = _PROCESS_ENV.SERVICE_PORT;
 
 export { app, PORT };

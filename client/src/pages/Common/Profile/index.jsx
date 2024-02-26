@@ -21,7 +21,6 @@ import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
 import useUserContext from "~/hook/useUserContext";
 import { loadingToast, updateToast } from "~/utils/toast";
-import { cookies } from "~/utils/cookies";
 import useAxiosAPI from "~/hook/useAxiosAPI";
 import { handleValidate, updateSchema } from "./validation";
 

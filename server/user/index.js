@@ -1,18 +1,34 @@
 import express from "express";
 import "express-async-errors";
-import { ErrorHandler } from "../common/src/middleware/ErrorHandler.js";
-import UserRouter from "./src/api/routes/index.js";
-import { sendErrorLog } from "../common/src/logging/index.js";
+import cors from "cors";
+import { _PROCESS_ENV } from "./src/configs/env/index.js";
+import { databaseConnection } from "./src/configs/database/index.js";
+import { createChannel, subscribeMessage } from "./src/configs/rabiitmq/index.js";
+import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
+import { UserRoute } from "./src/api/routes/index.js";
+import { firebaseInit } from "./src/configs/firebase/index.js";
 
 const app = express();
+const PORT = _PROCESS_ENV.SERVICE_PORT;
 
-app.use(express.json());
+await firebaseInit();
+await databaseConnection();
 
-app.use("/", UserRouter);
+// const channel = await createChannel();
+// subscribeMessage(channel, AuthService);
+
+app.use(
+  cors({
+    // client can access this service without gateway
+    origin: "*",
+    credentials: true
+  })
+);
+
+app.use(express.json(), express.urlencoded({ extended: true }));
+
+app.use("/", UserRoute);
 
 app.use(ErrorHandler);
 
-app.listen(8020, () => {
-  console.log("---> USER is running on port 8020 <---");
-  sendErrorLog("USER is running on port 8020");
-});
+export { app, PORT };

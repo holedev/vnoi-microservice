@@ -1,10 +1,12 @@
 import { Router } from "express";
-import { UnauthorizeError } from "../../../../common/src/response/errors/UnauthorizeError.js";
+import { UserService } from "../services/index.js";
 
 const router = Router();
 
-router.get("/", (req, res) => {
-  throw new UnauthorizeError("Fail!");
-});
+router.get("/", UserService.getAllByAdmin);
+router.post("/auth", UserService.auth);
+router.patch("/update/:id", UserService.updateByAdmin);
+router.patch("/update", UserService.update);
+router.delete("/:id", UserService.softDeleteByAdmin);
 
-export default router;
+export { router as UserRoute };
