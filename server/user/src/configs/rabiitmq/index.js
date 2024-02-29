@@ -1,6 +1,5 @@
 import amqplib from "amqplib";
-import uuid4 from "uuid4";
-import { _PROCESS_ENV } from "../env/index.js";
+import { _EXCHANGE, _PROCESS_ENV } from "../env/index.js";
 import { InternalServerError } from "../../api/responses/errors/InternalServerError.js";
 
 const _TIMEOUT_REQUEST = 10000;
@@ -23,37 +22,33 @@ const getChannel = async () => {
   return await amqplibConnection.createChannel();
 };
 
-const publishMessage = (channel, service, msg) => {
-  channel.publish(_PROCESS_ENV.RABBITMQ_EXCHANGE_NAME, service, Buffer.from(msg));
-  console.log("Sent: ", msg);
-};
-
-const subscribeMessage = async (channel, service) => {
+const subscribeMessage = async (service) => {
   try {
+    const channel = await getChannel();
+
+    await channel.assertExchange(_EXCHANGE.CLASS_EXCHANGE, "fanout", { durable: true });
     const q = await channel.assertQueue(_PROCESS_ENV.SERVICE_NAME, {
       durable: true
     });
 
-    channel.prefetch(1);
+    await channel.bindQueue(q.queue, _EXCHANGE.CLASS_EXCHANGE, "");
 
     console.log(`Waiting for messages in queue: ${q.queue}`);
 
     channel.consume(q.queue, async (msg) => {
       if (msg.content) {
-        console.log("The message is:", msg.content.toString());
         if (!msg.properties.replyTo) {
-          console.log("No replyTo property, so it is a log message");
-          service.handleEvent(msg.content.toString());
+          service.handleEvent(JSON.parse(msg.content.toString()));
           channel.ack(msg);
           return;
         }
-        const response = await service.handleEvent(msg.content.toString());
-        console.log("RES", response);
-        channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(response)), {
-          correlationId: msg.properties.correlationId
-        });
-        channel.ack(msg);
-        console.log("DONE");
+        // const response = await service.handleEvent(msg.content.toString());
+        // console.log("RES", response);
+        // channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(response)), {
+        //   correlationId: msg.properties.correlationId
+        // });
+        // channel.ack(msg);
+        // console.log("DONE");
       }
     });
   } catch (error) {
@@ -61,4 +56,4 @@ const subscribeMessage = async (channel, service) => {
   }
 };
 
-export { createChannel, publishMessage, subscribeMessage };
+export { createChannel, subscribeMessage };

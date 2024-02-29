@@ -3,9 +3,9 @@ import exitHook from "async-exit-hook";
 import { _PROCESS_ENV } from "./src/configs/env/index.js";
 
 app.listen(PORT, () => {
-  console.log(`---> ${_PROCESS_ENV.SERVICE_NAME} is running on port ${PORT} <---`);
+  console.log(`${_PROCESS_ENV.SERVICE_NAME} ${PORT} | Running`);
 });
 
 exitHook(() => {
-  console.log(`---> ${_PROCESS_ENV.SERVICE_NAME} ${PORT} is shutting down ... <---`);
+  console.log(`${_PROCESS_ENV.SERVICE_NAME} ${PORT} | Shutting down`);
 });

@@ -20,7 +20,14 @@ module.exports = {
     "no-multiple-empty-lines": 1,
     "space-before-blocks": ["error", "always"],
     "object-curly-spacing": [1, "always"],
-    indent: ["warn", 2],
+    indent: [
+      "warn",
+      2,
+      {
+        SwitchCase: 1,
+        ignoredNodes: ["ConditionalExpression"]
+      }
+    ],
     semi: [1, "always"],
     quotes: ["error", "double"],
     "array-bracket-spacing": 1,
@@ -29,7 +36,6 @@ module.exports = {
     "keyword-spacing": 1,
     "comma-dangle": 1,
     "comma-spacing": 1,
-    "arrow-spacing": 1,
-    
+    "arrow-spacing": 1
   }
 };

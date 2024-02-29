@@ -189,7 +189,6 @@ const UserService = {
     });
   },
   handleEvent: async (payload) => {
-    payload = JSON.parse(payload);
     const { action, data } = payload;
 
     console.log(action, data);

@@ -1,6 +1,5 @@
 import amqplib from "amqplib";
-import uuid4 from "uuid4";
-import { _PROCESS_ENV } from "../env/index.js";
+import { _EXCHANGE, _PROCESS_ENV } from "../env/index.js";
 import { InternalServerError } from "../../api/responses/errors/InternalServerError.js";
 
 const _TIMEOUT_REQUEST = 10000;
@@ -9,6 +8,7 @@ let amqplibConnection = null;
 const createChannel = async () => {
   const connection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
   const channel = await connection.createChannel();
+  await channel.assertExchange(_EXCHANGE.CLASS_EXCHANGE, "fanout", { durable: true });
   return channel;
 };
 
@@ -19,9 +19,9 @@ const getChannel = async () => {
   return await amqplibConnection.createChannel();
 };
 
-const publishMessage = (channel, service, msg) => {
-  channel.publish(_PROCESS_ENV.RABBITMQ_EXCHANGE_NAME, service, Buffer.from(msg));
-  console.log("Sent: ", msg);
+const publishMessage = async (msg) => {
+  const channel = await getChannel();
+  channel.publish(_EXCHANGE.CLASS_EXCHANGE, "", Buffer.from(JSON.stringify(msg)));
 };
 
 const subscribeMessage = async (channel, service) => {

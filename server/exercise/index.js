@@ -4,16 +4,23 @@ import cors from "cors";
 import { _PROCESS_ENV } from "./src/configs/env/index.js";
 import { databaseConnection } from "./src/configs/database/index.js";
 import { createChannel, subscribeMessage } from "./src/configs/rabiitmq/index.js";
-import { AuthService } from "./src/api/services/index.js";
 import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
+import { ProblemRoute } from "./src/api/routes/Problem.js";
+import { SubmissionRoute } from "./src/api/routes/Submission.js";
+import { grpcCompilerClient } from "./src/configs/grpc/index.js";
+import { ExerciseService } from "./src/api/services/index.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
 
 await databaseConnection();
 
-const channel = await createChannel();
-subscribeMessage(channel, AuthService);
+await createChannel();
+subscribeMessage(ExerciseService);
+
+grpcCompilerClient.sayHello({ name: "demo" }, function (err, response) {
+  console.log("Greeting:", response?.message);
+});
 
 app.use(
   cors({
@@ -23,12 +30,14 @@ app.use(
   })
 );
 app.use(express.json(), express.urlencoded({ extended: true }));
+
 app.use(async (req, res, next) => {
   console.log("Receive", req.path);
   next();
 });
 
-app.post("/", AuthService.auth);
+app.use("/problems", ProblemRoute);
+app.use("/submissions", SubmissionRoute);
 
 app.use(ErrorHandler);
 

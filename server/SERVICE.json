@@ -12,5 +12,18 @@
     "NAME": "USER-SERVICE",
     "PORT": 8002,
     "PATH": "/user"
+  },
+  "EXERCISE_SERVICE": {
+    "NAME": "EXERCISE-SERVICE",
+    "PORT": 8003,
+    "PATH": "/exercise"
+  },
+  "COMPILER_SERVICE": {
+    "NAME": "COMPILER-SERVICE",
+    "PORT": 8004,
+    "PATH": "/compiler"
+  },
+  "GRPC": {
+    "SERVER_PORT": 50001
   }
 }

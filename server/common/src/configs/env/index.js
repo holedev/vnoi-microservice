@@ -7,6 +7,9 @@ const _SERVICE = JSON.parse(fs.readFileSync("../SERVICE.json"));
 // action call message broker
 const _ACTION = JSON.parse(fs.readFileSync("../ACTION.json"));
 
+// exchange name message broker
+const _EXCHANGE = JSON.parse(fs.readFileSync("../EXCHANGE.json"));
+
 // response service message broker
 const _RESPONSE_SERVICE = JSON.parse(fs.readFileSync("../RESPONSE.json"));
 
@@ -25,4 +28,4 @@ const _PROCESS_ENV = {
   MONGODB_URL: process.env.MONGODB_URL
 };
 
-export { _PROCESS_ENV, _ACTION, _SERVICE, _RESPONSE_SERVICE };
+export { _PROCESS_ENV, _ACTION, _EXCHANGE, _SERVICE, _RESPONSE_SERVICE };

@@ -1,4 +1,10 @@
 {
   "LOGIN": "login",
-  "VERIFY_USER": "verify_user"
+  "VERIFY_USER": "verify_user",
+  "CLASS_UPDATE": "class_update",
+  "CLASS_DELETE": "class_delete",
+  "PROBLEM_CREATE": "create_problem",
+  "PROBLEM_UPDATE": "update_problem",
+  "PROBLEM_RUN": "run_problem",
+  "PROBLEM_SUBMIT": "submit_problem"
 }

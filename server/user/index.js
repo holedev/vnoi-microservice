@@ -7,6 +7,7 @@ import { createChannel, subscribeMessage } from "./src/configs/rabiitmq/index.js
 import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
 import { UserRoute } from "./src/api/routes/index.js";
 import { firebaseInit } from "./src/configs/firebase/index.js";
+import { UserService } from "./src/api/services/index.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
@@ -15,7 +16,7 @@ await firebaseInit();
 await databaseConnection();
 
 // const channel = await createChannel();
-// subscribeMessage(channel, AuthService);
+subscribeMessage(UserService);
 
 app.use(
   cors({
