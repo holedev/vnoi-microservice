@@ -7,8 +7,9 @@ import { createChannel, subscribeMessage } from "./src/configs/rabiitmq/index.js
 import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
 import { ProblemRoute } from "./src/api/routes/Problem.js";
 import { SubmissionRoute } from "./src/api/routes/Submission.js";
-import { grpcCompilerClient } from "./src/configs/grpc/index.js";
+import { grpCClientCommon } from "./src/configs/grpc/index.js";
 import { ExerciseService } from "./src/api/services/index.js";
+import { gRPCRequest } from "./src/api/services/gRPC.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
@@ -17,10 +18,6 @@ await databaseConnection();
 
 await createChannel();
 subscribeMessage(ExerciseService);
-
-grpcCompilerClient.sayHello({ name: "demo" }, function (err, response) {
-  console.log("Greeting:", response?.message);
-});
 
 app.use(
   cors({

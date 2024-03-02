@@ -6,13 +6,13 @@ const _TIMEOUT_REQUEST = 10000;
 let amqplibConnection = null;
 
 const createChannel = async () => {
-  const connection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
-  connection.on("error", (err) => {
-    console.log("Error", err);
-  });
-  const channel = await connection.createChannel();
-  await channel.assertExchange(_PROCESS_ENV.RABBITMQ_EXCHANGE_NAME, "direct", { durable: true });
-  return channel;
+  try {
+    const connection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
+    const channel = await connection.createChannel();
+    return channel;
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 const getChannel = async () => {
@@ -33,10 +33,10 @@ const subscribeMessage = async (service) => {
 
     await channel.bindQueue(q.queue, _EXCHANGE.CLASS_EXCHANGE, "");
 
-    console.log(`Waiting for messages in queue: ${q.queue}`);
+    console.log(`${_PROCESS_ENV.SERVICE_NAME} ${_PROCESS_ENV.SERVICE_PORT} | QUEUE ${q.queue} waiting`);
 
     channel.consume(q.queue, async (msg) => {
-      if (msg.content) {
+      if (msg?.content) {
         if (!msg.properties.replyTo) {
           service.handleEvent(JSON.parse(msg.content.toString()));
           channel.ack(msg);
@@ -51,8 +51,8 @@ const subscribeMessage = async (service) => {
         // console.log("DONE");
       }
     });
-  } catch (error) {
-    throw new InternalServerError(error.message);
+  } catch (err) {
+    console.log(err);
   }
 };
 

@@ -7,6 +7,9 @@ import { ForbiddenError } from "../responses/errors/ForbiddenError.js";
 import { FormatData } from "../responses/formatData/index.js";
 import uuidv4 from "uuid4";
 import { requestAsync } from "../../configs/rabiitmq/index.js";
+import { grpCClientCommon } from "../../configs/grpc/index.js";
+import { gRPCRequest } from "./gRPC.js";
+import { BadRequestError } from "../../../../compiler/src/api/responses/errors/BadRequestError.js";
 
 const ProblemService = {
   create: async (req, res) => {
@@ -40,18 +43,23 @@ const ProblemService = {
 
     const data = await requestAsync(_SERVICE.COMPILER_SERVICE.NAME, payload);
 
-    if (data.code === _RESPONSE_SERVICE.ERROR) {
+    if (data.code !== _RESPONSE_SERVICE.SUCCESS) {
       return res.status(httpStatusCodes.BAD_REQUEST).json({
         status: "error",
         message: data.message || "Something went wrong!"
       });
     }
 
+    const classCommon = await gRPCRequest.getClassByIdAsync(classCurr);
+    if (!classCommon._id) {
+      throw new ConflictError("Get class fail!");
+    }
+
     const dataCreate = {
       title,
       uuid,
       author: author,
-      class: classCurr,
+      class: classCommon,
       timeStart: alwayOpen ? null : timeStart,
       testTime: alwayOpen ? null : testTime,
       level,
@@ -72,25 +80,6 @@ const ProblemService = {
       status: "success",
       data: problem._doc
     });
-
-    // await createProblemFile(uuid, author, solutionCode, script);
-
-    // const worker = new Worker("./src/utils/workers/create.js", {
-    //   workerData: {
-    //     uuid,
-    //     author,
-    //     solutionCode,
-    //     script
-    //   }
-    // });
-
-    // if (isMainThread) {
-    //   worker.on("message", async (result) => {
-
-    //   worker.on("error", (error) => {
-    //
-    //   });
-    // }
   },
   // runTest: async (req, res) => {
   //   const { _id: user } = req.user;
@@ -126,86 +115,77 @@ const ProblemService = {
   //     });
   //   }
   // },
-  // updateProblemByLecturer: async (req, res) => {
-  //   const { _id: author } = req.user;
-  //   const { slug } = req.params;
-  //   const {
-  //     title,
-  //     classCurr,
-  //     timeStart = null,
-  //     testTime = null,
-  //     level,
-  //     desc,
-  //     initCode,
-  //     solution,
-  //     script,
-  //     uuid,
-  //     alwayOpen
-  //   } = req.body;
+  updateProblemByLecturer: async (req, res) => {
+    const author = req.headers["x-user-id"];
+    const { slug } = req.params;
+    const {
+      title,
+      classCurr,
+      timeStart = null,
+      testTime = null,
+      level,
+      desc,
+      initCode,
+      solution,
+      script,
+      uuid,
+      alwayOpen
+    } = req.body;
 
-  //   let solutionCode = solution.slice(3, -3);
+    let solutionCode = solution.slice(3, -3);
 
-  //   const worker = new Worker("./src/utils/workers/update.js", {
-  //     workerData: {
-  //       uuid,
-  //       author,
-  //       solutionCode,
-  //       script
-  //     }
-  //   });
+    const payload = {
+      action: _ACTION.PROBLEM_UPDATE,
+      data: {
+        uuid,
+        author,
+        solutionCode,
+        script
+      }
+    };
 
-  //   if (isMainThread) {
-  //     worker.on("message", async (result) => {
-  //       const updateData = {
-  //         title,
-  //         author: new mongoose.Types.ObjectId(author),
-  //         class: new mongoose.Types.ObjectId(classCurr),
-  //         timeStart: alwayOpen ? null : timeStart,
-  //         testTime: alwayOpen ? null : testTime,
-  //         level,
-  //         desc,
-  //         initCode,
-  //         solution,
-  //         testcases: {
-  //           generateCode: script.generateCode ? script.generateCode : null,
-  //           quantity: parseInt(script.quantity),
-  //           file: script.file
-  //         },
-  //         alwayOpen
-  //       };
+    const data = await requestAsync(_SERVICE.COMPILER_SERVICE.NAME, payload);
 
-  //       const problem = await ProblemModel.findOneAndUpdate({ slug, isDeleted: false }, updateData, { new: true })
-  //         .populate({
-  //           path: "author",
-  //           select: "_id role email"
-  //         })
-  //         .populate({
-  //           path: "class",
-  //           select: "_id name"
-  //         })
-  //         .select("-createdAt -updatedAt -__v -solution");
+    if (data.code !== _RESPONSE_SERVICE.SUCCESS) {
+      throw new BadRequestError(data.message || "Something went wrong");
+    }
 
-  //       await updateHash(`problems:${slug}`, problem._doc);
-  //       await deleteKeysFromRedis([PROBLEM_ALL, PROBLEM_COMPETITION]);
+    const classCommon = await gRPCRequest.getClassByIdAsync(classCurr);
+    if (!classCommon._id) {
+      throw new ConflictError("Get class fail!");
+    }
 
-  //       if (!problem) {
-  //         throw new ConflictError("Problem not found!");
-  //       }
+    const updateData = {
+      title,
+      author: author,
+      class: classCommon,
+      timeStart: alwayOpen ? null : timeStart,
+      testTime: alwayOpen ? null : testTime,
+      level,
+      desc,
+      initCode,
+      solution,
+      testcases: {
+        generateCode: script.generateCode ? script.generateCode : null,
+        quantity: parseInt(script.quantity),
+        file: script.file
+      },
+      alwayOpen
+    };
 
-  //       return res.status(httpStatusCodes.OK).json({
-  //         status: "success",
-  //         data: {}
-  //       });
-  //     });
+    const problem = await ProblemModel.findOneAndUpdate({ slug, isDeleted: false }, updateData, { new: true })
+      .select("-createdAt -updatedAt -__v -solution")
+      .lean();
 
-  //     worker.on("error", (error) => {
-  //       return res.status(httpStatusCodes.BAD_REQUEST).json({
-  //         status: "error",
-  //         message: error.messageObject || error.message || "Something went wrong!"
-  //       });
-  //     });
-  //   }
-  // },
+    if (!problem) {
+      throw new ConflictError("Problem not found!");
+    }
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: problem
+    });
+  },
   getBySlug: async (req, res) => {
     const user = req.headers["x-user-id"];
     const role = req.headers["x-user-role"];

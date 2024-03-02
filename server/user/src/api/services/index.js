@@ -5,6 +5,7 @@ import { UserModel } from "../models/User.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 import { ConflictError } from "../responses/errors/ConflictError.js";
 import { ForbiddenError } from "../responses/errors/ForbiddenError.js";
+import { gRPCRequest } from "./grpc.js";
 
 const _EMAIL_WHITE_LIST = ["phanleho002@gmail.com"];
 const _DEFAULT_PASSWORD = "Admin@123";
@@ -68,6 +69,10 @@ const UserService = {
       username: user.username
     };
 
+    if (user.classCurr) {
+      data.classCurr = user.classCurr;
+    }
+
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       data: {
@@ -76,25 +81,69 @@ const UserService = {
       }
     });
   },
+  getById: async (req, res) => {
+    const { id } = req.params;
+    const _id = req.headers["x-user-id"];
+
+    if (id !== _id) {
+      throw new ConflictError("Data conflict!");
+    }
+
+    const usr = await UserModel.findById(_id).lean();
+
+    if (!usr) {
+      throw new ConflictError("User not exist!");
+    }
+
+    const data = {
+      _id: usr._id,
+      email: usr.email,
+      fullName: usr.fullName,
+      role: usr.role,
+      avatar: usr.avatar,
+      studentCode: usr.studentCode,
+      username: usr.username
+    };
+
+    if (usr.classCurr) {
+      data.classCurr = usr.classCurr;
+    }
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: data
+    });
+  },
   update: async (req, res) => {
-    const user = req.headers["x-user-id"];
-    const { classCurr, fullName, studentCode } = req.body;
     try {
-      const u = await UserModel.findByIdAndUpdate(
-        user,
-        {
-          classCurr,
-          fullName,
-          studentCode
-        },
+      const _id = req.headers["x-user-id"];
+      const { classCurr, fullName, studentCode } = req.body;
+
+      const classCommon = await gRPCRequest.getClassByIdAsync(classCurr);
+
+      const usr = await UserModel.findByIdAndUpdate(
+        _id,
+        { classCurr: classCommon, fullName, studentCode },
         { new: true }
       );
 
-      const { password, __v, createdAt, updatedAt, ...rest } = u.toObject();
+      const data = {
+        _id: usr._id,
+        email: usr.email,
+        fullName: usr.fullName,
+        role: usr.role,
+        avatar: usr.avatar,
+        studentCode: usr.studentCode,
+        username: usr.username
+      };
+
+      if (usr.classCurr) {
+        data.classCurr = usr.classCurr;
+      }
 
       return res.status(httpStatusCodes.OK).json({
         status: "success",
-        data: rest
+        data: data
       });
     } catch (err) {
       if (err.code === 11000) {
@@ -111,10 +160,6 @@ const UserService = {
     };
 
     let users = await UserModel.find(searchCriteria)
-      .populate({
-        path: "classCurr",
-        select: "name"
-      })
       .sort()
       .select("_id email studentCode fullName classCurr role avatar")
       .lean();
@@ -138,19 +183,19 @@ const UserService = {
   updateByAdmin: async (req, res) => {
     const { id } = req.params;
     const { classCurr, fullName, studentCode, role } = req.body;
+
+    const classCommon = await gRPCRequest.getClassByIdAsync(classCurr);
+
     const u = await UserModel.findByIdAndUpdate(
       id,
       {
-        classCurr,
+        classCurr: classCommon,
         fullName,
         studentCode,
         role
       },
       { new: true }
-    ).populate({
-      path: "classCurr",
-      select: "_id name"
-    });
+    );
 
     const { password, __v, createdAt, updatedAt, ...rest } = u.toObject();
 
@@ -188,10 +233,25 @@ const UserService = {
       data: {}
     });
   },
+  // handle rabbitmq event
+  updateClass: async ({ _id, name }) => {
+    try {
+      await UserModel.updateMany({ "classCurr._id": _id }, { $set: { "classCurr.name": name } });
+    } catch (err) {
+      console.log(err);
+    }
+  },
   handleEvent: async (payload) => {
     const { action, data } = payload;
 
-    console.log(action, data);
+    switch (action) {
+      case _ACTION.CLASS_UPDATE:
+        await UserService.updateClass(data);
+        return;
+
+      default:
+        console.log("NO ACTION MATCH");
+    }
   }
 };
 

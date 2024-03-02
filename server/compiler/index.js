@@ -16,7 +16,7 @@ const PORT = _PROCESS_ENV.SERVICE_PORT;
 const channel = await createChannel();
 subscribeMessage(channel, CompilerService);
 
-await gRPCServerCompiler();
+gRPCServerCompiler();
 
 app.use(
   cors({

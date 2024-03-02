@@ -19,8 +19,15 @@ import slugify from "slugify";
 
 const Problem = new Schema(
   {
-    author: { type: String },
-    class: { type: String },
+    author: {
+      _id: String,
+      email: String,
+      fullName: String
+    },
+    class: {
+      _id: String,
+      name: String
+    },
     submitList: {
       type: [
         {

@@ -2,10 +2,11 @@ import { parentPort, workerData } from "worker_threads";
 import fs from "fs";
 import fsExtra from "fs-extra";
 import { getDockerSolutionCommand, getFiles, processSolution } from "../file.js";
-import InternalServerError from "../../api/response/errors/InternalServerError.js";
-import BadRequestError from "../../api/response/errors/BadRequestError.js";
+import { InternalServerError } from "../../api/responses/errors/InternalServerError.js";
+import { BadRequestError } from "../../api/responses/errors/BadRequestError.js";
 import { handleCodeFromClient } from "../code/C++/index.js";
 import { execSync } from "child_process";
+import { ConflictError } from "../../api/responses/errors/ConflictError.js";
 
 const { uuid, author, solutionCode, script } = workerData;
 
@@ -14,7 +15,13 @@ const folderPath = `../store/problems/${author}_${uuid}`;
 
 const { solutionFile, outFile, inputFile } = getFiles(folderPath);
 
-const prevSolutionFile = fs.readFileSync(solutionFile, "utf-8");
+let prevSolutionFile = null;
+try {
+  prevSolutionFile = fs.readFileSync(solutionFile, "utf-8");
+} catch (err) {
+  throw new ConflictError("Solution file not exist!!!");
+}
+
 fs.writeFileSync(solutionFile, handleCodeFromClient(solutionCode));
 
 try {
@@ -41,6 +48,7 @@ fs.writeFileSync(solutionFile, solutionCode);
 try {
   await fsExtra.remove(`${outFile}`);
 } catch (err) {
+  console.log("FAIL HERE");
   throw new InternalServerError("Error deleting directory!");
 }
 

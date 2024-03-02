@@ -7,6 +7,7 @@ router.get("/get-total-student-of-class/:id", CommonService.getTotalStudentOfCla
 router.get("/get-classes-without-olympic", CommonService.getClassesWithoutOLYMPIC);
 router.get("/", CommonService.getAllClass);
 router.post("/", CommonService.create);
+router.patch("/:id", CommonService.update);
 router.delete("/:id", CommonService.deleteClassByAdmin);
 
 export { router as ClassRoute };

@@ -6,24 +6,29 @@
   "COMMON_SERVICE": {
     "NAME": "COMMON-SERVICE",
     "PORT": 8001,
-    "PATH": "/common"
+    "PATH": "/common",
+    "GRPC_PROTO_PATH": "../protos/common.proto",
+    "GRPC_SERVICE_NAME": "Common",
+    "GRPC_PORT": 50001
   },
   "USER_SERVICE": {
     "NAME": "USER-SERVICE",
     "PORT": 8002,
-    "PATH": "/user"
+    "PATH": "/user",
+    "GRPC_PORT": 50002
   },
   "EXERCISE_SERVICE": {
     "NAME": "EXERCISE-SERVICE",
     "PORT": 8003,
-    "PATH": "/exercise"
+    "PATH": "/exercise",
+    "GRPC_PORT": 50003
   },
   "COMPILER_SERVICE": {
     "NAME": "COMPILER-SERVICE",
     "PORT": 8004,
-    "PATH": "/compiler"
-  },
-  "GRPC": {
-    "SERVER_PORT": 50001
+    "PATH": "/compiler",
+    "GRPC_PROTO_PATH": "../protos/compiler.proto",
+    "GRPC_SERVICE_NAME": "Compiler",
+    "GRPC_PORT": 50004
   }
 }

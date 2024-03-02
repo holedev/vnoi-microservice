@@ -38,8 +38,7 @@ const User = new Schema(
     },
     classCurr: {
       _id: { type: String },
-      name: { type: String },
-      totalStudent: { type: Number, default: 0 }
+      name: { type: String }
     },
     avatar: {
       type: String

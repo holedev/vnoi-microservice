@@ -1,21 +1,17 @@
 import amqplib from "amqplib";
-import uuid4 from "uuid4";
 import { _PROCESS_ENV } from "../env/index.js";
-import { InternalServerError } from "../../api/responses/errors/InternalServerError.js";
 
 const _TIMEOUT_REQUEST = 10000;
 let amqplibConnection = null;
 
 const createChannel = async () => {
-  const connection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
-  connection.on("error", (err) => {
-    console.log("Error connection: ", err);
-  });
-  const channel = await connection.createChannel();
-  channel.on("error", (err) => {
-    console.log("Error channel: ", err);
-  });
-  return channel;
+  try {
+    const connection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
+    const channel = await connection.createChannel();
+    return channel;
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 const getChannel = async () => {
@@ -30,19 +26,22 @@ const subscribeMessage = async (channel, service) => {
     durable: true
   });
 
+  // ordering
   channel.prefetch(1);
+
   console.log(`${_PROCESS_ENV.SERVICE_NAME} ${_PROCESS_ENV.SERVICE_PORT} | QUEUE ${q.queue} waiting`);
+
   channel.consume(
     q.queue,
     async (msg) => {
       if (msg.content) {
-        if (!msg.properties.replyTo) {
-          service.handleEvent(msg.content.toString());
-          channel.ack(msg);
-          return;
-        }
         try {
-          const response = await service.handleEvent(msg.content.toString());
+          if (!msg.properties.replyTo) {
+            service.handleEvent(JSON.parse(msg.content.toString()));
+            channel.ack(msg);
+            return;
+          }
+          const response = await service.handleEvent(JSON.parse(msg.content.toString()));
           channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(response)), {
             correlationId: msg.properties.correlationId
           });
@@ -52,9 +51,7 @@ const subscribeMessage = async (channel, service) => {
         }
       }
     },
-    {
-      noAck: false
-    }
+    { noAck: false }
   );
 };
 

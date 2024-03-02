@@ -2,20 +2,19 @@ import amqplib from "amqplib";
 import uuid4 from "uuid4";
 import { _EXCHANGE, _PROCESS_ENV } from "../env/index.js";
 import { InternalServerError } from "../../api/responses/errors/InternalServerError.js";
+import { FormatData } from "../../api/responses/formatData/index.js";
 
-const _TIMEOUT_REQUEST = 10000;
+const _TIMEOUT_REQUEST = 30000;
 let amqplibConnection = null;
 
 const createChannel = async () => {
-  const connection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
-  connection.on("error", (err) => {
-    console.log("Error connection: ", err);
-  });
-  const channel = await connection.createChannel();
-  channel.on("error", (err) => {
-    console.log("Error channel: ", err);
-  });
-  return channel;
+  try {
+    const connection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
+    const channel = await connection.createChannel();
+    return channel;
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 const getChannel = async () => {
@@ -34,7 +33,7 @@ const subscribeMessage = async (service) => {
     });
 
     await channel.bindQueue(q.queue, _EXCHANGE.CLASS_EXCHANGE, "");
-    console.log(`Waiting for messages in queue: ${q.queue}`);
+    console.log(`${_PROCESS_ENV.SERVICE_NAME} ${_PROCESS_ENV.SERVICE_PORT} | QUEUE ${q.queue} waiting`);
 
     channel.consume(q.queue, async (msg) => {
       if (msg.content) {
@@ -58,9 +57,8 @@ const subscribeMessage = async (service) => {
 };
 
 const requestData = async (QUEUE_NAME, requestPayload, uuid) => {
-  const channel = await getChannel();
-
   try {
+    const channel = await getChannel();
     const q = await channel.assertQueue(`${_PROCESS_ENV.SERVICE_NAME}::REQUEST-ASYNC`, {
       durable: false
     });
@@ -73,7 +71,7 @@ const requestData = async (QUEUE_NAME, requestPayload, uuid) => {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         channel.close();
-        resolve("TIMEOUT | API could not fullfil the request!");
+        resolve(FormatData.warning("TIMEOUT | API could not fullfil the request!"));
       }, _TIMEOUT_REQUEST);
 
       channel.consume(
@@ -88,9 +86,7 @@ const requestData = async (QUEUE_NAME, requestPayload, uuid) => {
           channel.ack(msg);
           channel.cancel(msg.fields.consumerTag);
         },
-        {
-          noAck: false
-        }
+        { noAck: false }
       );
     });
   } catch (err) {

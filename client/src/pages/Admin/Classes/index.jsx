@@ -26,9 +26,12 @@ export default function Classes() {
 
   const [data, setData] = useState([]);
   const [modal, setModal] = useState(false);
-  const [newClass, setNewClass] = useState("");
+  const [newClass, setNewClass] = useState({
+    name: "",
+    _id: null,
+  });
   const [search, setSearch] = useState(searchParams.get("search") || "");
-  const [filter, setFiliter] = useState({
+  const [filter, setFilter] = useState({
     limit: parseInt(searchParams.get("limit")) || 8,
     page: parseInt(searchParams.get("page")) || 1,
   });
@@ -43,7 +46,7 @@ export default function Classes() {
       .get(endpoints.classes + "?" + params.toString())
       .then((res) => {
         setData(res.data.data);
-        setFiliter((prev) => {
+        setFilter((prev) => {
           const currentPage =
             res.data.currentPage > res.data.totalPage
               ? 1
@@ -60,7 +63,7 @@ export default function Classes() {
 
   const handleFilter = (value, type) => {
     if (type === "page") {
-      setFiliter((prev) => {
+      setFilter((prev) => {
         return {
           ...prev,
           [type]: value,
@@ -74,25 +77,59 @@ export default function Classes() {
     });
   };
 
-  const handleCreateClass = async () => {
-    if (!newClass.trim()) {
+  const handleSubmitClass = async () => {
+    if (!newClass.name?.trim()) {
       toast.error("Class name is required");
       return;
     }
 
+    if (!newClass._id) {
+      await axiosAPI
+        .post(endpoints.classes, {
+          name: newClass.name,
+        })
+        .then((res) => {
+          toast.success("Create class successfully");
+          setModal(false);
+          setNewClass("");
+          setData((prev) => [...prev, res.data.data]);
+        })
+        .catch((err) => {
+          err.response.status === 409 && toast.error(err.response.data.message);
+        });
+      return;
+    }
+
     await axiosAPI
-      .post(endpoints.classes, {
-        name: newClass,
+      .patch(endpoints.classes + "/" + newClass._id, {
+        name: newClass.name,
       })
       .then((res) => {
-        toast.success("Create class successfully");
+        toast.success("Update class successfully");
         setModal(false);
-        setNewClass("");
-        setData((prev) => [...prev, res.data.data]);
+        setNewClass({
+          name: "",
+          _id: null,
+        });
+        const data = res.data.data;
+        setData((prev) => {
+          const idx = prev.findIndex((c) => c._id === data._id);
+          prev[idx] = data;
+          return [...prev];
+        });
       })
       .catch((err) => {
         err.response.status === 409 && toast.error(err.response.data.message);
       });
+    return;
+  };
+
+  const handleUpdateClass = async (data) => {
+    setNewClass({
+      _id: data._id,
+      name: data.name,
+    });
+    setModal(true);
   };
 
   const handleDeleteClass = async (id) => {
@@ -150,7 +187,14 @@ export default function Classes() {
               gap: "4px",
             }}
           >
-            <Fab onClick={() => setModal(true)} color="primary" size="small">
+            <Fab
+              onClick={() => {
+                setModal(true);
+                setIsUpdate(false);
+              }}
+              color="primary"
+              size="small"
+            >
               +
             </Fab>
             <SearchDebounce
@@ -182,10 +226,14 @@ export default function Classes() {
               {data?.length > 0 ? (
                 data.map((row) => (
                   <TableRow
+                    onDoubleClick={() => handleUpdateClass(row)}
                     key={row._id}
                     sx={{
                       "&:last-child td, &:last-child th": {
                         border: 0,
+                      },
+                      "&:hover": {
+                        cursor: "pointer",
                       },
                     }}
                   >
@@ -224,7 +272,10 @@ export default function Classes() {
         open={modal}
         onClose={() => {
           setModal(false);
-          setNewClass("");
+          setNewClass({
+            name: "",
+            _id: null,
+          });
         }}
       >
         <ModalDialog
@@ -239,8 +290,15 @@ export default function Classes() {
               }}
             >
               <TextField
-                value={newClass}
-                onChange={(e) => setNewClass(e.target.value)}
+                value={newClass.name}
+                onChange={(e) =>
+                  setNewClass((prev) => {
+                    return {
+                      ...prev,
+                      name: e.target.value,
+                    };
+                  })
+                }
                 fullWidth
                 placeholder="Class name here ..."
                 size="small"
@@ -248,8 +306,8 @@ export default function Classes() {
             </Box>
           </DialogContent>
 
-          <Button onClick={handleCreateClass} autoFocus>
-            Create
+          <Button onClick={handleSubmitClass} autoFocus>
+            {newClass?._id ? "Update" : "Create"}
           </Button>
         </ModalDialog>
       </Modal>

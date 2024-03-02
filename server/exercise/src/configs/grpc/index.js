@@ -1,11 +1,8 @@
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
-import { _PROCESS_ENV } from "../env/index.js";
+import { _PROCESS_ENV, _SERVICE } from "../env/index.js";
 
-const _COMPILER_PROTO_PATH = "../protos/compiler.proto";
-const _COMPILER_SERVICE_NAME = "Compiler";
-
-const gRPCCreateClient = (protoPath, serviceName) => {
+const gRPCCreateClient = (protoPath, serviceName, servicePort) => {
   try {
     const packageDefinition = protoLoader.loadSync(protoPath, {
       keepCase: true,
@@ -16,17 +13,26 @@ const gRPCCreateClient = (protoPath, serviceName) => {
     });
     const packageDefine = grpc.loadPackageDefinition(packageDefinition)[serviceName.toLowerCase()];
 
-    const client = new packageDefine[serviceName](
-      "127.0.0.1:" + _PROCESS_ENV.GRPC_SERVER_PORT,
-      grpc.credentials.createInsecure()
+    const client = new packageDefine[serviceName]("localhost:" + servicePort, grpc.credentials.createInsecure());
+    console.log(
+      `${_PROCESS_ENV.SERVICE_NAME} ${_PROCESS_ENV.SERVICE_PORT} | GRPC ${serviceName.toUpperCase()} client is running`
     );
-
     return client;
   } catch (err) {
     console.log(err);
   }
 };
 
-const grpcCompilerClient = gRPCCreateClient(_COMPILER_PROTO_PATH, _COMPILER_SERVICE_NAME);
+const grpcClientCompiler = gRPCCreateClient(
+  _SERVICE.COMPILER_SERVICE.GRPC_PROTO_PATH,
+  _SERVICE.COMPILER_SERVICE.GRPC_SERVICE_NAME,
+  _SERVICE.COMPILER_SERVICE.GRPC_PORT
+);
 
-export { grpcCompilerClient };
+const grpCClientCommon = gRPCCreateClient(
+  _SERVICE.COMMON_SERVICE.GRPC_PROTO_PATH,
+  _SERVICE.COMMON_SERVICE.GRPC_SERVICE_NAME,
+  _SERVICE.COMMON_SERVICE.GRPC_PORT
+);
+
+export { grpCClientCommon, grpcClientCompiler };

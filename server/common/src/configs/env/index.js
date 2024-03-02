@@ -25,6 +25,7 @@ const _PROCESS_ENV = {
   REDIS_HOST: process.env.REDIS_HOST,
   REDIS_PORT: process.env.REDIS_PORT,
   RABBITMQ_URL: process.env.RABBITMQ_URL,
+  PAGE_SIZE: process.env.PAGE_SIZE || 9,
   MONGODB_URL: process.env.MONGODB_URL
 };
 
