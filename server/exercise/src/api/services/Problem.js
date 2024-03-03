@@ -4,16 +4,17 @@ import { SubmissionModel } from "../models/Submission.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 import { ConflictError } from "../responses/errors/ConflictError.js";
 import { ForbiddenError } from "../responses/errors/ForbiddenError.js";
-import { FormatData } from "../responses/formatData/index.js";
 import uuidv4 from "uuid4";
 import { requestAsync } from "../../configs/rabiitmq/index.js";
-import { grpCClientCommon } from "../../configs/grpc/index.js";
 import { gRPCRequest } from "./gRPC.js";
-import { BadRequestError } from "../../../../compiler/src/api/responses/errors/BadRequestError.js";
+import { BadRequestError } from "../responses/errors/BadRequestError.js";
+import { handleTime } from "../../utils/index.js";
+
+const _COMPETITION_CLASS_NAME = "COMPETITION";
 
 const ProblemService = {
   create: async (req, res) => {
-    const author = req.headers["x-user-id"];
+    const _id = req.headers["x-user-id"];
 
     const {
       title,
@@ -35,7 +36,7 @@ const ProblemService = {
       action: _ACTION.PROBLEM_CREATE,
       data: {
         uuid,
-        author,
+        author: _id,
         solutionCode,
         script
       }
@@ -44,22 +45,24 @@ const ProblemService = {
     const data = await requestAsync(_SERVICE.COMPILER_SERVICE.NAME, payload);
 
     if (data.code !== _RESPONSE_SERVICE.SUCCESS) {
-      return res.status(httpStatusCodes.BAD_REQUEST).json({
-        status: "error",
-        message: data.message || "Something went wrong!"
-      });
+      throw new BadRequestError(data.message || "Something went wrong!");
     }
 
-    const classCommon = await gRPCRequest.getClassByIdAsync(classCurr);
-    if (!classCommon._id) {
+    const classGRPC = await gRPCRequest.getClassByIdAsync(classCurr);
+    if (!classGRPC._id) {
       throw new ConflictError("Get class fail!");
+    }
+
+    const userGRPC = await gRPCRequest.getUserByIdAsync(_id);
+    if (!userGRPC._id) {
+      throw new ConflictError("Get user fail!");
     }
 
     const dataCreate = {
       title,
       uuid,
-      author: author,
-      class: classCommon,
+      author: userGRPC,
+      class: classGRPC,
       timeStart: alwayOpen ? null : timeStart,
       testTime: alwayOpen ? null : testTime,
       level,
@@ -81,42 +84,35 @@ const ProblemService = {
       data: problem._doc
     });
   },
-  // runTest: async (req, res) => {
-  //   const { _id: user } = req.user;
-  //   const { problem, code, testcases } = req.body;
-  //   const uuid = uuidv4();
+  runTest: async (req, res) => {
+    const _id = req.headers["x-user-id"];
+    const { problem, code, testcases } = req.body;
+    const uuid = uuidv4();
 
-  //   // const results = await handleRunFile(uuid, user, problem, code, testcases);
+    const payload = {
+      action: _ACTION.PROBLEM_RUN,
+      data: {
+        uuid,
+        user: _id,
+        problem,
+        code,
+        testcases
+      }
+    };
 
-  //   const worker = new Worker("./src/utils/workers/run.js", {
-  //     workerData: {
-  //       uuid,
-  //       user,
-  //       problem,
-  //       code: handleCodeFromClient(code),
-  //       testcases
-  //     }
-  //   });
+    const data = await requestAsync(_SERVICE.COMPILER_SERVICE.NAME, payload);
 
-  //   if (isMainThread) {
-  //     worker.on("message", (message) => {
-  //       return res.status(httpStatusCodes.OK).json({
-  //         status: "success",
-  //         data: message
-  //       });
-  //     });
+    if (data.code !== _RESPONSE_SERVICE.SUCCESS) {
+      throw new BadRequestError(data.message || "Something went wrong!");
+    }
 
-  //     worker.on("error", (error) => {
-  //       console.log(error);
-  //       return res.status(httpStatusCodes.BAD_REQUEST).json({
-  //         status: "error",
-  //         message: error.messageObject || error.message || "Something went wrong!"
-  //       });
-  //     });
-  //   }
-  // },
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: data.message
+    });
+  },
   updateProblemByLecturer: async (req, res) => {
-    const author = req.headers["x-user-id"];
+    const _id = req.headers["x-user-id"];
     const { slug } = req.params;
     const {
       title,
@@ -138,7 +134,7 @@ const ProblemService = {
       action: _ACTION.PROBLEM_UPDATE,
       data: {
         uuid,
-        author,
+        author: _id,
         solutionCode,
         script
       }
@@ -150,15 +146,20 @@ const ProblemService = {
       throw new BadRequestError(data.message || "Something went wrong");
     }
 
-    const classCommon = await gRPCRequest.getClassByIdAsync(classCurr);
-    if (!classCommon._id) {
+    const classGRPC = await gRPCRequest.getClassByIdAsync(classCurr);
+    if (!classGRPC._id) {
       throw new ConflictError("Get class fail!");
+    }
+
+    const userGRPC = await gRPCRequest.getUserByIdAsync(_id);
+    if (!userGRPC._id) {
+      throw new ConflictError("Get user fail!");
     }
 
     const updateData = {
       title,
-      author: author,
-      class: classCommon,
+      author: userGRPC,
+      class: classGRPC,
       timeStart: alwayOpen ? null : timeStart,
       testTime: alwayOpen ? null : testTime,
       level,
@@ -187,7 +188,7 @@ const ProblemService = {
     });
   },
   getBySlug: async (req, res) => {
-    const user = req.headers["x-user-id"];
+    const _id = req.headers["x-user-id"];
     const role = req.headers["x-user-role"];
 
     const { slug } = req.params;
@@ -196,14 +197,6 @@ const ProblemService = {
       slug,
       isDeleted: false
     })
-      .populate({
-        path: "author",
-        select: "_id role email"
-      })
-      .populate({
-        path: "class",
-        select: "_id name"
-      })
       .lean()
       .select("-createdAt -updatedAt -__v -solution");
 
@@ -215,12 +208,11 @@ const ProblemService = {
       const currentTime = new Date();
       const timeStart = new Date(problem.timeStart);
       if (currentTime < timeStart) {
-        throw new ConflictError(`Problem is available from ${timeStart}!`);
-        // throw new ConflictError(`Problem is available from ${handleDatetime(timeStart)}!`);
+        throw new ConflictError(`Problem is available from ${handleTime(timeStart)}!`);
       }
     }
 
-    const quantitySubmit = problem.submitList?.find((s) => s.userId?.toString() === user)?.submissionTotal;
+    const quantitySubmit = problem.submitList?.find((s) => s.userId?.toString() === _id)?.submissionTotal;
 
     const submitRemain = Number(
       quantitySubmit ? _PROCESS_ENV.MAX_SUBMISSION - quantitySubmit : _PROCESS_ENV.MAX_SUBMISSION
@@ -228,7 +220,7 @@ const ProblemService = {
 
     const { submitList, ...rest } = problem;
 
-    // const testcases = await getTestcaseFromFile(problem.uuid, problem.author?._id);
+    const { testcases } = await gRPCRequest.getTestcasesOfProblemAsync(problem.uuid, problem.author._id);
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",
@@ -236,40 +228,29 @@ const ProblemService = {
         problem: {
           ...rest,
           submitRemain
-        }
-        // testcases
+        },
+        testcases: JSON.parse(testcases)
       }
     });
   },
   getAllProblem: async (req, res) => {
-    const user = req.headers["x-user-id"];
+    const _id = req.headers["x-user-id"];
     const { search, class: classCurr, status, time, page = 1, limit = _PROCESS_ENV.PAGE_SIZE } = req.query;
 
     let problems = await ProblemModel.find({
+      "class.name": {
+        $ne: _COMPETITION_CLASS_NAME
+      },
       isDeleted: false
     })
-      .populate({
-        path: "author",
-        select: "_id email"
-      })
-      .populate({
-        path: "class",
-        select: "_id name",
-        match: {
-          name: {
-            $ne: "OLYMPIC"
-          }
-        }
-      })
       .sort({
         timeStart: -1
       })
       .lean()
       .select("title author class timeStart testTime timeEnd level slug submitList");
 
-    problems = problems.filter((p) => p.class);
     problems = problems.map((p) => {
-      const isSubmit = !!p.submitList?.find((s) => s.userId?.toString() === user);
+      const isSubmit = !!p.submitList?.find((s) => s.userId === _id);
       const { submitList, ...rest } = p;
       return {
         ...rest,
@@ -333,32 +314,22 @@ const ProblemService = {
     });
   },
   getCompetitionProblem: async (req, res) => {
-    const user = req.headers["x-user-id"];
+    const _id = req.headers["x-user-id"];
 
     let data = await ProblemModel.find({
+      "class.name": _COMPETITION_CLASS_NAME,
       isDeleted: false
     })
-      .populate({
-        path: "author",
-        select: "_id role email"
-      })
-      .populate({
-        path: "class",
-        select: "_id name",
-        match: {
-          name: "OLYMPIC"
-        }
-      })
       .sort({
         timeStart: -1,
         title: 1
       })
       .lean()
       .select("_id title author class timeStart testTime timeEnd level slug submitList");
-    data = data.filter((p) => p.class);
+
     data = data.map((p) => {
-      const isSubmit = !!p.submitList?.find((s) => s.userId?.toString() === user);
-      const score = p.submitList?.find((s) => s.userId?.toString() === user)?.maxScore;
+      const isSubmit = !!p.submitList?.find((s) => s.userId?.toString() === _id);
+      const score = p.submitList?.find((s) => s.userId?.toString() === _id)?.maxScore;
       const { submitList, ...rest } = p;
       return {
         ...rest,
@@ -374,13 +345,9 @@ const ProblemService = {
   },
   getRankCompetition: async (req, res) => {
     let problems = await ProblemModel.find({
+      "class.name": _COMPETITION_CLASS_NAME,
       isDeleted: false
     })
-      .populate({
-        path: "class",
-        select: " name",
-        match: { name: "OLYMPIC" }
-      })
       .populate({
         path: "submitList.submissionId",
         select: "-createdAt -updatedAt -__v -author -problem"
@@ -396,8 +363,6 @@ const ProblemService = {
       .lean()
       .select("_id title submitList");
 
-    problems = problems.filter((p) => p.class);
-
     const problemListName = problems.map((p) => p.title);
 
     let results = {};
@@ -409,15 +374,18 @@ const ProblemService = {
       }
 
       for (const submission of p.submitList) {
-        const userId = submission.userId?._id;
+        const userId = submission.userId;
         if (!userId) {
           continue;
         }
         if (!results[userId]) {
+          const userGRPC = await gRPCRequest.getUserByIdAsync(userId);
+          if (!userGRPC._id) continue;
+
           results[userId] = {
             user: {
-              email: submission.userId.email,
-              fullName: submission.userId.fullName
+              email: userGRPC.email,
+              fullName: userGRPC.fullName
             },
             data: {}
           };
@@ -453,7 +421,7 @@ const ProblemService = {
     });
   },
   getProblemByLecturer: async (req, res) => {
-    const author = req.headers["x-user-id"];
+    const _id = req.headers["x-user-id"];
     const { slug } = req.params;
 
     const problem = await ProblemModel.findOne({
@@ -467,7 +435,7 @@ const ProblemService = {
       throw new ConflictError("Problem not found!");
     }
 
-    if (problem.author.toString() !== author) {
+    if (problem.author?._id !== _id) {
       throw new ForbiddenError("Forbidden!");
     }
 
@@ -477,11 +445,11 @@ const ProblemService = {
     });
   },
   getAllProblemByLecturer: async (req, res) => {
-    const { search, class: classCurr, status, page = 1, limit = _PROCESS_ENV.PAGE_SIZE } = req.query;
     const _id = req.headers["x-user-id"];
+    const { search, class: classCurr, status, page = 1, limit = _PROCESS_ENV.PAGE_SIZE } = req.query;
 
     let problems = await ProblemModel.find({
-      author: _id,
+      "author._id": _id,
       isDeleted: false
     })
 
@@ -502,7 +470,7 @@ const ProblemService = {
 
     if (search?.trim()) problems = problems.filter((p) => p.title.toLowerCase().includes(search.toLowerCase()));
 
-    if (classCurr && classCurr !== "all") problems = problems.filter((p) => p.class == classCurr);
+    if (classCurr && classCurr !== "all") problems = problems.filter((p) => p.class?._id == classCurr);
 
     if (status && status !== "all") {
       const currentTime = new Date();
@@ -558,7 +526,9 @@ const ProblemService = {
     let problems = await ProblemModel.find().sort({ title: 1 }).select("-createdAt -updatedAt -__v").lean();
 
     if (search?.trim())
-      problems = problems.filter((p) => p._id?.toString() === search.trim() || p.author?.toString() === search.trim());
+      problems = problems.filter(
+        (p) => p._id?.toString() === search.trim() || p.author?._id.toString() === search.trim()
+      );
 
     const skip = (Number(page) - 1) * Number(limit);
     const totalPage = Math.ceil(problems.length / Number(limit));
@@ -572,117 +542,113 @@ const ProblemService = {
       totalPage
     });
   },
-  // getResultByLecturer: async (req, res) => {
-  //   const { id: problemId } = req.params;
-  //   const { _id: author } = req.user;
+  getResultByLecturer: async (req, res) => {
+    const _id = req.headers["x-user-id"];
+    const { id: problemId } = req.params;
 
-  //   const problem = await ProblemModel.findOne({
-  //     _id: problemId,
-  //     isDeleted: false
-  //   })
-  //     .lean()
-  //     .select("author");
+    const problem = await ProblemModel.findOne({
+      _id: problemId,
+      isDeleted: false
+    })
+      .lean()
+      .select("author");
 
-  //   if (!problem) {
-  //     throw new ConflictError("Problem not found!");
-  //   }
+    console.log(problem);
 
-  //   if (problem?.author?.toString() !== author) {
-  //     throw new ForbiddenError("Forbidden!");
-  //   }
+    if (!problem) {
+      throw new ConflictError("Problem not found!");
+    }
 
-  //   const data = await SubmissionModel.find({
-  //     problem: problemId,
-  //     requestReceivedAt: { $exists: true }
-  //   })
-  //     .populate({
-  //       path: "author",
-  //       select: "_id role email fullName",
-  //       match: {
-  //         role: "STUDENT"
-  //       }
-  //     })
-  //     .sort({
-  //       score: -1,
-  //       requestReceivedAt: 1
-  //     })
-  //     .lean()
-  //     .select("_id score requestReceivedAt author problem solution");
+    if (problem.author?._id !== _id) {
+      throw new ForbiddenError("Forbidden!");
+    }
 
-  //   if (data.length === 0) {
-  //     return res.status(httpStatusCodes.OK).json({
-  //       status: "success",
-  //       data: []
-  //     });
-  //   }
+    const _STUDENT_ROLE = "STUDENT";
 
-  //   const authorSet = new Set();
-  //   const results = data.filter((submission) => {
-  //     if (!submission.author) {
-  //       return false;
-  //     }
-  //     const authorId = submission.author._id;
-  //     if (authorSet.has(authorId)) {
-  //       return false;
-  //     }
-  //     authorSet.add(authorId);
-  //     return true;
-  //   });
+    const data = await SubmissionModel.find({
+      problem: problemId,
+      requestReceivedAt: { $exists: true },
+      "author.role": _STUDENT_ROLE
+    })
+      .sort({
+        score: -1,
+        requestReceivedAt: 1
+      })
+      .lean()
+      .select("_id score requestReceivedAt author problem solution");
 
-  //   return res.status(httpStatusCodes.OK).json({
-  //     status: "success",
-  //     data: results
-  //   });
-  // },
-  // getFolderInvalid: async (req, res) => {
-  //   let problems = await ProblemModel.find().lean().select("uuid");
-  //   let users = await UserModel.find().lean().select("_id");
+    if (data.length === 0) {
+      return res.status(httpStatusCodes.OK).json({
+        status: "success",
+        data: []
+      });
+    }
 
-  //   problems = problems.map((p) => p.uuid);
-  //   users = users.map((u) => u._id.toString());
+    const authorSet = new Set();
+    const results = data.filter((submission) => {
+      if (!submission.author) {
+        return false;
+      }
+      const authorId = submission.author._id;
+      if (authorSet.has(authorId)) {
+        return false;
+      }
+      authorSet.add(authorId);
+      return true;
+    });
 
-  //   const [count, total] = await countFolder("problems", problems, users);
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: results
+    });
+  },
+  getFolderInvalid: async (req, res) => {
+    const folder = "problems";
+    let problems = await ProblemModel.find().lean().select("uuid");
+    const { users } = await gRPCRequest.getUsersAvailableAsync();
+    const usersList = JSON.parse(users).map((item) => item._id);
 
-  //   return res.status(httpStatusCodes.OK).json({
-  //     status: "success",
-  //     data: {
-  //       count,
-  //       total
-  //     }
-  //   });
-  // }
-  // getProblemsWithoutAuthor: async (req, res) => {
-  //   let problems = await ProblemModel.find().populate({
-  //     path: "author"
-  //   });
+    problems = problems.map((p) => p.uuid);
 
-  //   const total = problems.length;
-  //   problems = problems.filter((p) => !p.author);
-  //   const count = problems.length;
+    const { count, total } = await gRPCRequest.getCountFolderAsync(folder, problems, usersList);
 
-  //   return res.status(httpStatusCodes.OK).json({
-  //     status: "success",
-  //     data: {
-  //       count,
-  //       total
-  //     }
-  //   });
-  // },
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: {
+        count,
+        total
+      }
+    });
+  },
+  getProblemsWithoutAuthor: async (req, res) => {
+    let problems = await ProblemModel.find();
+    const { users } = await gRPCRequest.getUsersAvailableAsync();
+    const usersList = JSON.parse(users).map((item) => item._id);
+
+    const total = problems.length;
+    problems = problems.filter((p) => !usersList.includes(p.author?._id));
+    const count = problems.length;
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: {
+        count,
+        total
+      }
+    });
+  },
   softDelete: async (req, res) => {
-    const author = req.headers["x-user-id"];
+    const _id = req.headers["x-user-id"];
     const role = req.headers["x-user-role"];
     const { slug } = req.params;
 
     const condition = { slug };
 
     if (role === "LECTURER") {
-      condition.author = author;
+      condition.author = _id;
     }
 
-    const problem = await ProblemModel.findOne(condition).populate({
-      path: "class",
-      select: "name"
-    });
+    const problem = await ProblemModel.findOne(condition);
 
     if (!problem) {
       throw new ConflictError("Problem not found!");
@@ -711,44 +677,38 @@ const ProblemService = {
     return res.status(httpStatusCodes.NO_CONTENT).json();
   },
   deleteProblemWithoutAuthor: async (req, res) => {
-    let problems = await ProblemModel.find().populate({
-      path: "author"
-    });
+    let problems = await ProblemModel.find();
+    const { users } = await gRPCRequest.getUsersAvailableAsync();
+    const usersList = JSON.parse(users).map((item) => item._id);
 
-    problems = problems.filter((p) => !p.author);
+    problems = problems.filter((p) => !usersList.includes(p.author?._id));
 
     for await (const problem of problems) {
       await ProblemModel.findByIdAndRemove(problem._id);
       // await deleteSubmissionFolderByProblem(problem.uuid);
       // await deleteProblemFolderByUUID(problem.uuid);
-      // await deleteKeysFromRedis(`problems:${problem.slug}`);
     }
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       length: problems.length
     });
+  },
+  clearFolderNoAuthorAndProblemUUID: async (req, res) => {
+    const folder = "problems";
+    let problems = await ProblemModel.find().lean().select("uuid");
+    const { users } = await gRPCRequest.getUsersAvailableAsync();
+    const usersList = JSON.parse(users).map((item) => item._id);
+
+    problems = problems.map((p) => p.uuid);
+
+    const length = await gRPCRequest.clearFolderAsync(folder, problems, usersList);
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      length: length
+    });
   }
-  // clearFolderNoAuthorAndProblemUUID: async (req, res) => {
-  //   let problems = await ProblemModel.find().lean().select("uuid");
-  //   let users = await UserModel.find().lean().select("_id");
-
-  //   problems = problems.map((p) => p.uuid);
-  //   users = users.map((u) => u._id.toString());
-
-  //   const length = await clearFolder("problems", problems, users);
-
-  //   return res.status(httpStatusCodes.OK).json({
-  //     status: "success",
-  //     length: length
-  //   });
-  // },
-  // handleEvent: async (payload) => {
-  //   payload = JSON.parse(payload);
-  //   const { action, data } = payload;
-
-  //   console.log(action, data);
-  // }
 };
 
 export { ProblemService };

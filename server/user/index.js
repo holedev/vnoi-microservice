@@ -8,6 +8,7 @@ import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
 import { UserRoute } from "./src/api/routes/index.js";
 import { firebaseInit } from "./src/configs/firebase/index.js";
 import { UserService } from "./src/api/services/index.js";
+import { gRPCServerUser } from "./src/configs/grpc/index.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
@@ -15,8 +16,10 @@ const PORT = _PROCESS_ENV.SERVICE_PORT;
 await firebaseInit();
 await databaseConnection();
 
-// const channel = await createChannel();
+await createChannel();
 subscribeMessage(UserService);
+
+gRPCServerUser();
 
 app.use(
   cors({

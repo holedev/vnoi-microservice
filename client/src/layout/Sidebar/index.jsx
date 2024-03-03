@@ -158,7 +158,7 @@ export default function Sidebar() {
             <ListItemText primary="Dashboard" />
           </ListItemButton>
         )}
-        {import.meta.env.VITE_MODE === "development" && (
+        {import.meta.env.VITE_MODE === "dev" && (
           <ListItemButton onClick={() => nav("/problems")}>
             <ListItemIcon>
               <BugReport />

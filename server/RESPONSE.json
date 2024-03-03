@@ -1,5 +1,5 @@
 {
   "SUCCESS": "0000",
-  "WARNING": "0001",
-  "ERROR": "0002"
+  "ERROR": "0001",
+  "WARNING": "0002"
 }

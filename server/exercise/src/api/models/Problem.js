@@ -1,28 +1,13 @@
 import { Schema, model } from "mongoose";
 import slugify from "slugify";
 
-// const User = new Schema({
-//   _id: { type: Schema.Types.ObjectId },
-//   username: { type: String },
-//   email: { type: String },
-//   fullName: { type: String },
-//   role: { type: String },
-//   studentCode: { type: String },
-//   classCurr: {
-//     _id: { type: String },
-//     name: { type: String },
-//     totalStudent: { type: Number }
-//   },
-//   avatar: { type: String },
-//   isDeleted: { type: Boolean }
-// });
-
 const Problem = new Schema(
   {
     author: {
       _id: String,
       email: String,
-      fullName: String
+      fullName: String,
+      role: String
     },
     class: {
       _id: String,
@@ -31,7 +16,8 @@ const Problem = new Schema(
     submitList: {
       type: [
         {
-          user: { type: String },
+          _id: false,
+          userId: { type: String },
           submissionId: {
             type: Schema.Types.ObjectId,
             ref: "Submission"

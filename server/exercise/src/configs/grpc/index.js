@@ -23,16 +23,22 @@ const gRPCCreateClient = (protoPath, serviceName, servicePort) => {
   }
 };
 
-const grpcClientCompiler = gRPCCreateClient(
-  _SERVICE.COMPILER_SERVICE.GRPC_PROTO_PATH,
-  _SERVICE.COMPILER_SERVICE.GRPC_SERVICE_NAME,
-  _SERVICE.COMPILER_SERVICE.GRPC_PORT
-);
-
 const grpCClientCommon = gRPCCreateClient(
   _SERVICE.COMMON_SERVICE.GRPC_PROTO_PATH,
   _SERVICE.COMMON_SERVICE.GRPC_SERVICE_NAME,
   _SERVICE.COMMON_SERVICE.GRPC_PORT
 );
 
-export { grpCClientCommon, grpcClientCompiler };
+const grpCClientUser = gRPCCreateClient(
+  _SERVICE.USER_SERVICE.GRPC_PROTO_PATH,
+  _SERVICE.USER_SERVICE.GRPC_SERVICE_NAME,
+  _SERVICE.USER_SERVICE.GRPC_PORT
+);
+
+const grpcClientCompiler = gRPCCreateClient(
+  _SERVICE.COMPILER_SERVICE.GRPC_PROTO_PATH,
+  _SERVICE.COMPILER_SERVICE.GRPC_SERVICE_NAME,
+  _SERVICE.COMPILER_SERVICE.GRPC_PORT
+);
+
+export { grpCClientCommon, grpCClientUser, grpcClientCompiler };

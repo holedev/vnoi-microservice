@@ -1,7 +1,7 @@
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
 import { _PROCESS_ENV, _SERVICE } from "../env/index.js";
-import { CompilerService } from "../../api/services/index.js";
+import { gRPCHandle } from "../../api/services/gRPC.js";
 
 const gRPCCreateServer = (protoPath, serviceName, servicePort, serviceHandle) => {
   try {
@@ -31,7 +31,7 @@ const gRPCServerCompiler = () =>
     _SERVICE.COMPILER_SERVICE.GRPC_PROTO_PATH,
     _SERVICE.COMPILER_SERVICE.GRPC_SERVICE_NAME,
     _SERVICE.COMPILER_SERVICE.GRPC_PORT,
-    CompilerService.handleGRPC
+    gRPCHandle
   );
 
 const gRPCCreateClient = async () => {};

@@ -2,10 +2,15 @@ import { parentPort, workerData } from "worker_threads";
 import fs from "fs";
 import fsExtra from "fs-extra";
 import { createFolderPath, createSolutionExecutable, getFiles, processSolution } from "../file.js";
-import InternalServerError from "../../api/response/errors/InternalServerError.js";
-import { MY_ENV } from "../../configs/env/index.js";
+import { InternalServerError } from "../../api/responses/errors/InternalServerError.js";
+import { _PROCESS_ENV } from "../../configs/env/index.js";
+import { handleCodeFromClient } from "../code/C++/index.js";
 
 const { uuid, user, problem, code, testcases } = workerData;
+
+console.log(workerData);
+
+const codeHandle = handleCodeFromClient(code);
 
 const folderPath = `../store/run/${user}_${uuid}`;
 const runPath = await createFolderPath(folderPath);
@@ -14,7 +19,7 @@ const problemPath = `../store/problems/${problem.author}_${problem.uuid}`;
 const { solutionFile: runSolutionFile, inputFile: runInputFile, outputFile: runOutputFile } = getFiles(runPath);
 const { solutionFile } = getFiles(problemPath);
 
-fs.writeFileSync(runSolutionFile, code);
+fs.writeFileSync(runSolutionFile, codeHandle);
 
 await createSolutionExecutable(runPath, true);
 
@@ -33,7 +38,7 @@ await processSolution(runPath);
 
 const duration = Date.now() - start;
 let outValues = fs.readFileSync(runOutputFile, "utf-8");
-outValues = outValues.split(MY_ENV.STRING_SPLIT_TESTCASE);
+outValues = outValues.split(_PROCESS_ENV.STRING_SPLIT_TESTCASE);
 outValues.pop();
 
 let passQuantity = 0;

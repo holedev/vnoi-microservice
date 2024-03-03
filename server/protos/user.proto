@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package user;
+
+service User {
+    rpc getUsersAvailable(Emtpy) returns (getUsersAvailableRes) {};
+    rpc getUserById(getUserByIdReq) returns (getUserByIdRes) {};
+}
+
+message Emtpy {}
+
+message getUserByIdReq {
+    string _id = 1;
+}
+
+message getUserByIdRes {
+    string _id = 1;
+    string email = 2;
+    string fullName = 3;
+    string role = 4;
+}
+
+message getUsersAvailableRes {
+    string users = 1;
+}
+

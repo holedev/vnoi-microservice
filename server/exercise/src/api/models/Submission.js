@@ -2,7 +2,12 @@ import { Schema, model } from "mongoose";
 
 const Submission = new Schema(
   {
-    author: { type: String },
+    author: {
+      _id: String,
+      email: String,
+      fullName: String,
+      role: String
+    },
     problem: {
       type: Schema.Types.ObjectId,
       ref: "Problem",

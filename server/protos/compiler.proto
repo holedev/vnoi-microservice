@@ -3,14 +3,38 @@ syntax = "proto3";
 package compiler;
 
 service Compiler {
-    rpc SayHello (HelloRequest) returns (HelloReply) {}
+    rpc getCountFolder (getCountFolderReq) returns (getCountFolderRes) {};
+    rpc clearFolder (getCountFolderReq) returns (clearFolderRes) {};
+    rpc getTestcasesOfProblem (getTestcasesOfProblemReq) returns (getTestcasesOfProblemRes) {};
+    rpc deleteSubmissionFolderByUUID (deleteSubmissionFolderByUUIDReq) returns (Empty) {};
+}
+
+message Empty {}
+  
+message getTestcasesOfProblemReq {
+    string problemUuid = 1;
+    string problemAuthorId = 2;
 }
   
-message HelloRequest {
-    string name = 1;
+message getTestcasesOfProblemRes {
+    string testcases = 1;
 }
-  
-  
-message HelloReply {
-    string message = 1;
+
+message getCountFolderReq {
+    string folder = 1;
+    string dataArr = 2;
+    string dataUser = 3;
+}
+
+message getCountFolderRes {
+    int32 count = 1;
+    int32 total = 2;
+}
+
+message deleteSubmissionFolderByUUIDReq {
+    string uuid = 1;
+}
+
+message clearFolderRes {
+    int32 length = 1;
 }

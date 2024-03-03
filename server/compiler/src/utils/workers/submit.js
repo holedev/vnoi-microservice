@@ -2,9 +2,9 @@ import { parentPort, workerData } from "worker_threads";
 import fs from "fs";
 import fsExtra from "fs-extra";
 import { createFolderPath, createSolutionExecutable, getFiles, processSolution } from "../file.js";
-import InternalServerError from "../../api/response/errors/InternalServerError.js";
+import { InternalServerError } from "../../api/responses/errors/InternalServerError.js";
 import { handleCodeFromClient } from "../code/C++/index.js";
-import { MY_ENV } from "../../configs/env/index.js";
+import { _PROCESS_ENV } from "../../configs/env/index.js";
 
 const { uuid, user, problem, code } = workerData;
 
@@ -29,10 +29,10 @@ const start = Date.now();
 await processSolution(submissionPath);
 const duration = Date.now() - start;
 
-const expectData = fs.readFileSync(problemOutFile, "utf-8").split(MY_ENV.STRING_SPLIT_TESTCASE);
+const expectData = fs.readFileSync(problemOutFile, "utf-8").split(_PROCESS_ENV.STRING_SPLIT_TESTCASE);
 expectData.pop();
 
-const outData = fs.readFileSync(submissionOutputFile, "utf-8").split(MY_ENV.STRING_SPLIT_TESTCASE);
+const outData = fs.readFileSync(submissionOutputFile, "utf-8").split(_PROCESS_ENV.STRING_SPLIT_TESTCASE);
 outData.pop();
 
 let passQuantity = 0;

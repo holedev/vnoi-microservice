@@ -49,8 +49,56 @@ const CompilerService = {
       }
     });
   },
-  run: () => {},
-  submit: () => {},
+  run: (data) => {
+    return new Promise((resolve, reject) => {
+      const { uuid, user, problem, code, testcases } = data;
+      console.log(data);
+      const worker = new Worker("./src/utils/workers/run.js", {
+        workerData: {
+          uuid,
+          user,
+          problem,
+          code,
+          testcases
+        }
+      });
+
+      if (isMainThread) {
+        worker.on("message", async (result) => {
+          resolve(FormatData.success(result));
+        });
+
+        worker.on("error", (error) => {
+          resolve(FormatData.error(error.messageObject || error));
+        });
+      }
+    });
+  },
+  submit: (data) => {
+    return new Promise((resolve, reject) => {
+      const { uuid, user, problem, code } = data;
+      console.log(data);
+      const worker = new Worker("./src/utils/workers/submit.js", {
+        workerData: {
+          uuid,
+          user,
+          problem,
+          code
+        }
+      });
+
+      if (isMainThread) {
+        worker.on("message", async (result) => {
+          resolve(FormatData.success(result));
+        });
+
+        worker.on("error", (error) => {
+          console.log(error);
+          resolve(FormatData.error(error.messageObject || error));
+        });
+      }
+    });
+  },
   // rabbitmq
   handleEvent: async (payload) => {
     const { action, data } = payload;
@@ -62,13 +110,14 @@ const CompilerService = {
       case _ACTION.PROBLEM_UPDATE:
         return CompilerService.update(data);
 
+      case _ACTION.PROBLEM_RUN:
+        return CompilerService.run(data);
+
+      case _ACTION.PROBLEM_SUBMIT:
+        return CompilerService.submit(data);
+
       default:
         console.log("ACTION NOT MATCH!");
-    }
-  },
-  handleGRPC: {
-    sayHello: (call, callback) => {
-      callback(null, { message: "Hello " + call.request.name });
     }
   }
 };

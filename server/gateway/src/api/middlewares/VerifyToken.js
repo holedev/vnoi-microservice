@@ -15,6 +15,8 @@ const verifyToken = async (req, res, next) => {
     const data = await admin.auth().verifyIdToken(token);
 
     // req.user = data;
+    if (req.path === "/api/user/auth") return next();
+
     req.headers["X-User-Id"] = data._id;
     req.headers["X-User-Role"] = data.role;
     req.headers["X-User-Uid"] = data.uid;

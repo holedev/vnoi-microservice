@@ -1,6 +1,5 @@
 import amqplib from "amqplib";
 import { _EXCHANGE, _PROCESS_ENV } from "../env/index.js";
-import { InternalServerError } from "../../api/responses/errors/InternalServerError.js";
 
 const _TIMEOUT_REQUEST = 10000;
 let amqplibConnection = null;

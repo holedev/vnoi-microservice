@@ -252,7 +252,9 @@ export default function Problems() {
                   <TableCell component="th" scope="row">
                     {row._id || "---"}
                   </TableCell>
-                  <TableCell align="center">{row.author || "---"}</TableCell>
+                  <TableCell align="center">
+                    {row.author?._id || "---"}
+                  </TableCell>
                   <TableCell align="center">{row.title || "---"}</TableCell>
                   <TableCell align="center">{row.slug || "---"}</TableCell>
                   <TableCell align="center">{row.uuid || "---"}</TableCell>
