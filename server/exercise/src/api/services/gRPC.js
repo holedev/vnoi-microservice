@@ -81,6 +81,20 @@ const gRPCRequest = {
         console.log(err);
       }
     });
+  },
+  deleteSubmissionFolderByProblemUUIDAsync: async (uuid) => {
+    grpcClientCompiler.deleteSubmissionFolderByProblemUUID({ uuid }, (err, res) => {
+      if (err) {
+        console.log(err);
+      }
+    });
+  },
+  deleteProblemFolderByUUIDAsync: async (uuid) => {
+    grpcClientCompiler.deleteProblemFolderByUUID({ uuid }, (err, res) => {
+      if (err) {
+        console.log(err);
+      }
+    });
   }
 };
 

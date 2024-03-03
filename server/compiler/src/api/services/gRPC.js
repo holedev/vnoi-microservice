@@ -1,4 +1,11 @@
-import { clearFolder, countFolder, deleteSubmissionFolderByUUID, getTestcaseFromFile } from "../../utils/file.js";
+import {
+  clearFolder,
+  countFolder,
+  deleteProblemFolderByUUID,
+  deleteSubmissionFolderByProblemUUID,
+  deleteSubmissionFolderByUUID,
+  getTestcaseFromFile
+} from "../../utils/file.js";
 
 const gRPCHandle = {
   getTestcasesOfProblem: async (call, callback) => {
@@ -40,7 +47,27 @@ const gRPCHandle = {
       console.log(err);
       callback(err, null);
     }
-  }
+  },
+  deleteSubmissionFolderByProblemUUID: async (call, callback) => {
+    try {
+      const { uuid } = call.request;
+      await deleteSubmissionFolderByProblemUUID(uuid);
+      callback(null, {});
+    } catch (error) {
+      console.log(error);
+      callback(error, null);
+    }
+  },
+  deleteProblemFolderByUUID: async (call, callback) => {
+    try {
+      const { uuid } = call.request;
+      await deleteProblemFolderByUUID(uuid);
+      callback(null, {});
+    } catch (error) {
+      console.log(error);
+      callback(error, null);
+    }
+  },
 };
 
 export { gRPCHandle };

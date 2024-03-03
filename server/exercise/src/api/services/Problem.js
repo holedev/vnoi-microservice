@@ -685,8 +685,8 @@ const ProblemService = {
 
     for await (const problem of problems) {
       await ProblemModel.findByIdAndRemove(problem._id);
-      // await deleteSubmissionFolderByProblem(problem.uuid);
-      // await deleteProblemFolderByUUID(problem.uuid);
+      await gRPCRequest.deleteSubmissionFolderByProblemUUIDAsync(problem.uuid);
+      await gRPCRequest.deleteProblemFolderByUUIDAsync(problem.uuid);
     }
 
     return res.status(httpStatusCodes.OK).json({

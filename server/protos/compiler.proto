@@ -6,7 +6,9 @@ service Compiler {
     rpc getCountFolder (getCountFolderReq) returns (getCountFolderRes) {};
     rpc clearFolder (getCountFolderReq) returns (clearFolderRes) {};
     rpc getTestcasesOfProblem (getTestcasesOfProblemReq) returns (getTestcasesOfProblemRes) {};
-    rpc deleteSubmissionFolderByUUID (deleteSubmissionFolderByUUIDReq) returns (Empty) {};
+    rpc deleteSubmissionFolderByUUID (deleteUUIDReq) returns (Empty) {};
+    rpc deleteSubmissionFolderByProblemUUID (deleteUUIDReq) returns (Empty) {};
+    rpc deleteProblemFolderByUUID (deleteUUIDReq) returns (Empty) {};
 }
 
 message Empty {}
@@ -31,7 +33,7 @@ message getCountFolderRes {
     int32 total = 2;
 }
 
-message deleteSubmissionFolderByUUIDReq {
+message deleteUUIDReq {
     string uuid = 1;
 }
 

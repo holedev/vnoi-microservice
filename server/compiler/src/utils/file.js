@@ -64,7 +64,7 @@ const deleteFolderPath = async (folderPath) => {
   }
 };
 
-const deleteSubmissionFolderByProblem = async (problemUUID) => {
+const deleteSubmissionFolderByProblemUUID = async (problemUUID) => {
   const pattern = `../store/submissions/**_**_${problemUUID}/`;
   const folderPath = await glob(pattern);
   for await (const path of folderPath) {
@@ -185,7 +185,7 @@ export {
   countFolder,
   deleteFolderPath,
   deleteProblemFolderByUUID,
-  deleteSubmissionFolderByProblem,
+  deleteSubmissionFolderByProblemUUID,
   deleteSubmissionFolderByUUID,
   clearFolder,
   clearSubmissionsFolder
