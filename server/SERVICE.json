@@ -9,6 +9,7 @@
     "PATH": "/common",
     "GRPC_PROTO_PATH": "../protos/common.proto",
     "GRPC_SERVICE_NAME": "Common",
+    "GRPC_HOST": "localhost",
     "GRPC_PORT": 50001
   },
   "USER_SERVICE": {
@@ -17,12 +18,14 @@
     "PATH": "/user",
     "GRPC_PROTO_PATH": "../protos/user.proto",
     "GRPC_SERVICE_NAME": "User",
+    "GRPC_HOST": "localhost",
     "GRPC_PORT": 50002
   },
   "EXERCISE_SERVICE": {
     "NAME": "EXERCISE-SERVICE",
     "PORT": 8003,
     "PATH": "/exercise",
+    "GRPC_HOST": "localhost",
     "GRPC_PORT": 50003
   },
   "COMPILER_SERVICE": {
@@ -31,6 +34,7 @@
     "PATH": "/compiler",
     "GRPC_PROTO_PATH": "../protos/compiler.proto",
     "GRPC_SERVICE_NAME": "Compiler",
+    "GRPC_HOST": "localhost",
     "GRPC_PORT": 50004
   }
 }

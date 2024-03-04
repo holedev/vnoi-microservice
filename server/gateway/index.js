@@ -8,18 +8,13 @@ import { _PROCESS_ENV } from "./src/configs/env/index.js";
 import { _PROXY_CONFIG } from "./src/configs/proxy/index.js";
 import { verifyToken } from "./src/api/middlewares/verifyToken.js";
 import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
-import { createChannel } from "./src/configs/rabiitmq/index.js";
 import { apiFilter } from "./src/api/middlewares/apiFilter.js";
 import { firebaseInit } from "./src/configs/firebase/index.js";
-import { databaseConnection } from "./src/configs/database/index.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
 
 firebaseInit();
-await databaseConnection();
-
-await createChannel();
 
 const corsOptions = {
   origin: _PROCESS_ENV.NODE_ENV === "dev" ? "*" : _PROCESS_ENV.CLIENT_URL,

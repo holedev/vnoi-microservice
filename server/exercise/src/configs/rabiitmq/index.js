@@ -1,7 +1,6 @@
 import amqplib from "amqplib";
 import uuid4 from "uuid4";
 import { _EXCHANGE, _PROCESS_ENV } from "../env/index.js";
-import { InternalServerError } from "../../api/responses/errors/InternalServerError.js";
 import { FormatData } from "../../api/responses/formatData/index.js";
 
 const _TIMEOUT_REQUEST = 30000;
@@ -42,17 +41,10 @@ const subscribeMessage = async (service) => {
           channel.ack(msg);
           return;
         }
-        // const response = await service.handleEvent(msg.content.toString());
-        // console.log("RES", response);
-        // channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(response)), {
-        //   correlationId: msg.properties.correlationId
-        // });
-        // channel.ack(msg);
-        // console.log("DONE");
       }
     });
   } catch (error) {
-    throw new InternalServerError(error.message);
+    console.log(error.message || error);
   }
 };
 

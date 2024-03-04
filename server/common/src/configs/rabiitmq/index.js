@@ -49,7 +49,6 @@ const subscribeMessage = async (channel, service) => {
           return;
         }
         const response = await service.handleEvent(msg.content.toString());
-        console.log("RES", response);
         channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(response)), {
           correlationId: msg.properties.correlationId
         });

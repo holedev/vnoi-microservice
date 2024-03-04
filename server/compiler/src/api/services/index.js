@@ -52,7 +52,6 @@ const CompilerService = {
   run: (data) => {
     return new Promise((resolve, reject) => {
       const { uuid, user, problem, code, testcases } = data;
-      console.log(data);
       const worker = new Worker("./src/utils/workers/run.js", {
         workerData: {
           uuid,
@@ -77,7 +76,6 @@ const CompilerService = {
   submit: (data) => {
     return new Promise((resolve, reject) => {
       const { uuid, user, problem, code } = data;
-      console.log(data);
       const worker = new Worker("./src/utils/workers/submit.js", {
         workerData: {
           uuid,

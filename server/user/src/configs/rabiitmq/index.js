@@ -1,7 +1,6 @@
 import amqplib from "amqplib";
 import { _EXCHANGE, _PROCESS_ENV } from "../env/index.js";
 
-const _TIMEOUT_REQUEST = 10000;
 let amqplibConnection = null;
 
 const createChannel = async () => {
@@ -41,13 +40,6 @@ const subscribeMessage = async (service) => {
           channel.ack(msg);
           return;
         }
-        // const response = await service.handleEvent(msg.content.toString());
-        // console.log("RES", response);
-        // channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(response)), {
-        //   correlationId: msg.properties.correlationId
-        // });
-        // channel.ack(msg);
-        // console.log("DONE");
       }
     });
   } catch (err) {

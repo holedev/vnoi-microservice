@@ -1,7 +1,6 @@
 import amqplib from "amqplib";
 import { _PROCESS_ENV } from "../env/index.js";
 
-const _TIMEOUT_REQUEST = 10000;
 let amqplibConnection = null;
 
 const createChannel = async () => {
@@ -22,37 +21,38 @@ const getChannel = async () => {
 };
 
 const subscribeMessage = async (channel, service) => {
-  const q = await channel.assertQueue(_PROCESS_ENV.SERVICE_NAME, {
-    durable: true
-  });
+  try {
+    const q = await channel.assertQueue(_PROCESS_ENV.SERVICE_NAME, {
+      durable: true
+    });
 
-  // ordering
-  channel.prefetch(1);
+    console.log(`${_PROCESS_ENV.SERVICE_NAME} ${_PROCESS_ENV.SERVICE_PORT} | QUEUE ${q.queue} waiting`);
 
-  console.log(`${_PROCESS_ENV.SERVICE_NAME} ${_PROCESS_ENV.SERVICE_PORT} | QUEUE ${q.queue} waiting`);
-
-  channel.consume(
-    q.queue,
-    async (msg) => {
-      if (msg.content) {
-        try {
-          if (!msg.properties.replyTo) {
-            service.handleEvent(JSON.parse(msg.content.toString()));
+    channel.consume(
+      q.queue,
+      async (msg) => {
+        if (msg.content) {
+          try {
+            if (!msg.properties.replyTo) {
+              service.handleEvent(JSON.parse(msg.content.toString()));
+              channel.ack(msg);
+              return;
+            }
+            const response = await service.handleEvent(JSON.parse(msg.content.toString()));
+            channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(response)), {
+              correlationId: msg.properties.correlationId
+            });
             channel.ack(msg);
-            return;
+          } catch (err) {
+            console.log(err);
           }
-          const response = await service.handleEvent(JSON.parse(msg.content.toString()));
-          channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(response)), {
-            correlationId: msg.properties.correlationId
-          });
-          channel.ack(msg);
-        } catch (err) {
-          console.log(err);
         }
-      }
-    },
-    { noAck: false }
-  );
+      },
+      { noAck: false }
+    );
+  } catch (err) {
+    console.log(err.message || err);
+  }
 };
 
 export { createChannel, subscribeMessage };

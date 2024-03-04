@@ -1,5 +1,7 @@
 import { _SERVICE } from "../env/index.js";
 
+// gateway accessible
+
 const _PROXY_CONFIG = [
   {
     path: _SERVICE.COMMON_SERVICE.PATH,

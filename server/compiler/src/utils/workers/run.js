@@ -8,8 +8,6 @@ import { handleCodeFromClient } from "../code/C++/index.js";
 
 const { uuid, user, problem, code, testcases } = workerData;
 
-console.log(workerData);
-
 const codeHandle = handleCodeFromClient(code);
 
 const folderPath = `../store/run/${user}_${uuid}`;

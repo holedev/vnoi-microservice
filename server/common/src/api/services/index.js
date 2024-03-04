@@ -114,26 +114,13 @@ const CommonService = {
       data: null
     });
   },
+  // rabbitmq
   handleEvent: async (payload) => {
     const { action, data } = payload;
 
     switch (action) {
-      case _ACTION.CLASS_UPDATE:
-        console.log(data);
-        return;
       default:
-        console.log("NO ACTION MATCH!");
-    }
-  },
-  handleGRPC: {
-    getClassById: async (call, callback) => {
-      try {
-        const _id = call.request?._id;
-        const result = await ClassModel.findById(_id).lean();
-        callback(null, result);
-      } catch (error) {
-        callback(error, null);
-      }
+        console.log("ACTION NOT MATCH!");
     }
   }
 };

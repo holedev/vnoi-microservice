@@ -3,8 +3,7 @@ import "express-async-errors";
 import cors from "cors";
 import { _PROCESS_ENV } from "./src/configs/env/index.js";
 import { databaseConnection } from "./src/configs/database/index.js";
-import { createChannel, publishMessage, subscribeMessage } from "./src/configs/rabiitmq/index.js";
-import { CommonService } from "./src/api/services/index.js";
+import { createChannel } from "./src/configs/rabiitmq/index.js";
 import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
 import { ClassRoute } from "./src/api/routes/index.js";
 import { gRPCServerCommon } from "./src/configs/grpc/index.js";
@@ -14,8 +13,7 @@ const PORT = _PROCESS_ENV.SERVICE_PORT;
 
 await databaseConnection();
 
-const channel = await createChannel();
-// subscribeMessage(channel, CommonService);
+await createChannel();
 
 gRPCServerCommon();
 

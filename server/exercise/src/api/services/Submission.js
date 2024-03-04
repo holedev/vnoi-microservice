@@ -1,7 +1,6 @@
 import { ProblemModel } from "../models/Problem.js";
 import { SubmissionModel } from "../models/Submission.js";
 import uuidv4 from "uuid4";
-import mongoose from "mongoose";
 import { _ACTION, _PROCESS_ENV, _RESPONSE_SERVICE, _SERVICE } from "../../configs/env/index.js";
 import { requestAsync } from "../../configs/rabiitmq/index.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
@@ -15,8 +14,6 @@ async function getBestSubmission(userId, problemId, withoutSubmissionId) {
     "author._id": userId,
     problem: problemId
   }).lean();
-
-  console.log(submissions);
 
   let bestSubmission = null;
 
@@ -58,7 +55,6 @@ async function deleteByAdmin(submission) {
           problem.submitList.splice(idx, 1);
         } else {
           const bestSubmission = await getBestSubmission(submission.author?._id, submission.problem, submission._id);
-          console.log(bestSubmission);
           si.submissionId = bestSubmission._id;
           si.maxScore = bestSubmission.score;
         }
@@ -298,8 +294,6 @@ const SubmissionService = {
     const usersList = JSON.parse(users).map((item) => item._id);
 
     submissions = submissions.map((s) => s.uuid);
-
-    console.log(usersList, submissions);
 
     const length = await gRPCRequest.clearFolderAsync(folder, submissions, usersList);
 

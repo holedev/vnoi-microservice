@@ -16,7 +16,7 @@ const ExerciseService = {
     switch (action) {
       case _ACTION.CLASS_UPDATE:
         await ExerciseService.updateClass(data);
-        return;
+        break;
 
       default:
         console.log("NO ACTION MATCH");

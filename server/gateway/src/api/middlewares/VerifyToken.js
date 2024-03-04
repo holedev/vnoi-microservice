@@ -1,6 +1,5 @@
 import admin from "firebase-admin";
-import { _ACTION, _RESPONSE_SERVICE, _SERVICE } from "../../configs/env/index.js";
-import { requestAsync } from "../../configs/rabiitmq/index.js";
+import uuidv4 from "uuid4";
 import { UnauthorizeError } from "../responses/errors/UnauthorizeError.js";
 
 const verifyToken = async (req, res, next) => {
@@ -14,7 +13,9 @@ const verifyToken = async (req, res, next) => {
 
     const data = await admin.auth().verifyIdToken(token);
 
-    // req.user = data;
+    req.headers["X-Trace-Id"] = uuidv4();
+
+    // login will ignore
     if (req.path === "/api/user/auth") return next();
 
     req.headers["X-User-Id"] = data._id;
