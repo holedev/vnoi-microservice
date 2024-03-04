@@ -1,7 +1,6 @@
 import amqplib from "amqplib";
 import { _PROCESS_ENV } from "../env/index.js";
-
-let amqplibConnection = null;
+import { sendLogTelegram } from "../../utils/telegram.js";
 
 const createChannel = async () => {
   try {
@@ -9,15 +8,8 @@ const createChannel = async () => {
     const channel = await connection.createChannel();
     return channel;
   } catch (err) {
-    console.log(err);
+    sendLogTelegram("RABBITMQ::CREATE\n" + err);
   }
-};
-
-const getChannel = async () => {
-  if (amqplibConnection === null) {
-    amqplibConnection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
-  }
-  return await amqplibConnection.createChannel();
 };
 
 const subscribeMessage = async (channel, service) => {
@@ -51,7 +43,7 @@ const subscribeMessage = async (channel, service) => {
       { noAck: false }
     );
   } catch (err) {
-    console.log(err.message || err);
+    sendLogTelegram("RABBITMQ::SUBSCRIBE\n" + err);
   }
 };
 

@@ -2,6 +2,7 @@ import amqplib from "amqplib";
 import uuid4 from "uuid4";
 import { _EXCHANGE, _PROCESS_ENV } from "../env/index.js";
 import { FormatData } from "../../api/responses/formatData/index.js";
+import { sendLogTelegram } from "../../utils/telegram.js";
 
 const _TIMEOUT_REQUEST = 30000;
 let amqplibConnection = null;
@@ -12,7 +13,7 @@ const createChannel = async () => {
     const channel = await connection.createChannel();
     return channel;
   } catch (err) {
-    console.log(err);
+    sendLogTelegram("RABBITMQ::CREATE\n" + err);
   }
 };
 
@@ -46,8 +47,8 @@ const subscribeMessage = async (service) => {
         }
       }
     });
-  } catch (error) {
-    console.log(error.message || error);
+  } catch (err) {
+    sendLogTelegram("RABBITMQ::SUBSCRIBE\n" + err);
   }
 };
 
@@ -85,7 +86,7 @@ const requestData = async (QUEUE_NAME, requestPayload, uuid) => {
       );
     });
   } catch (err) {
-    console.log(err);
+    sendLogTelegram("RABBITMQ::REQUEST-ASYNC\n" + err);
   }
 };
 

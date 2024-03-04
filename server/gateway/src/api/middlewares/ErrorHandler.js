@@ -1,26 +1,13 @@
-import { _PROCESS_ENV } from "../../configs/env/index.js";
 import { logError } from "../../configs/rabiitmq/index.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 
 export const ErrorHandler = (err, req, res, next) => {
+
   logError(req, {
-    status: err.statusCode || httpStatusCodes.INTERNAL_SERVER_ERROR,
-    errMessage: err.messageObject || err.message || "Server not response!"
+    errStatus: err.statusCode || httpStatusCodes.INTERNAL_SERVER_ERROR,
+    errMessage: err.messageObject || err.message || "Server not response!",
+    errStack: err.stack
   });
-  const path = `${req?.get("host")}${req.originalUrl}`;
-  const IP = (req?.headers["x-forwarded-for"] || "").split(",").shift() || req?.ip;
-
-  const errorLog = `${
-    err.statusCode || httpStatusCodes.INTERNAL_SERVER_ERROR
-  }: ${new Date().toLocaleString()}\nIP: ${IP}\nREQUEST: ${
-    req.method
-  } ${URL}\nBODY: ${JSON.stringify(req.body || err.body)}\nERROR: ${err.message} ${err.stack}`;
-
-  // console.log(`----------------------------------------\n${errorLog}\n----------------------------------------`);
-
-  // _PROCESS_ENV.NODE_ENV === "dev"
-  //   ? console.log(`----------------------------------------\n${errorLog}\n----------------------------------------`)
-  //   : sendErrorLog(errorLog);
 
   const messageError = err.messageObject || err.message || "Server not response!";
   const statusCode = err.statusCode || httpStatusCodes.INTERNAL_SERVER_ERROR;

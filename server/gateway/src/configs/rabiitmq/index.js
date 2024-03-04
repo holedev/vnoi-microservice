@@ -1,7 +1,6 @@
 import amqplib from "amqplib";
 import { _ACTION, _PROCESS_ENV, _SERVICE } from "../env/index.js";
-
-let amqplibConnection = null;
+import { sendLogTelegram } from "../../utils/telegram.js";
 
 const createChannel = async () => {
   try {
@@ -9,7 +8,7 @@ const createChannel = async () => {
     const channel = await connection.createChannel();
     return channel;
   } catch (err) {
-    console.log(err);
+    sendLogTelegram("RABBITMQ::CREATE\n" + err);
   }
 };
 
@@ -47,10 +46,8 @@ const logging = (req, data, action) => {
     const path = `${req.get("host")}${req.originalUrl}`;
     const IP = (req?.headers["x-forwarded-for"] || "").split(",").shift() || req.ip;
     const method = req.method;
-    const requestId = req.headers["X-Request-Id"];
+    const requestId = req.headers["X-Request-Id"] || "NO REQUEST-ID";
     const body = req.body;
-
-    console.log(req.headers);
 
     channel.sendToQueue(
       _SERVICE.LOGGING_SERVICE.NAME,
@@ -71,7 +68,7 @@ const logging = (req, data, action) => {
       )
     );
   } catch (err) {
-    console.log(err);
+    sendLogTelegram("RABBITMQ::LOG\n" + err);
   }
 };
 

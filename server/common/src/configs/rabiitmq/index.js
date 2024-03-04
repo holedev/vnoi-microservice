@@ -1,7 +1,7 @@
 import amqplib from "amqplib";
 import { _EXCHANGE, _PROCESS_ENV } from "../env/index.js";
+import { sendLogTelegram } from "../../utils/telegram.js";
 
-const _TIMEOUT_REQUEST = 10000;
 let amqplibConnection = null;
 
 const createChannel = async () => {
@@ -11,7 +11,7 @@ const createChannel = async () => {
     await channel.assertExchange(_EXCHANGE.CLASS_EXCHANGE, "fanout", { durable: true });
     return channel;
   } catch (err) {
-    console.log(err);
+    sendLogTelegram("RABBITMQ::CREATE\n" + err);
   }
 };
 
@@ -27,7 +27,7 @@ const publishMessage = async (msg) => {
     const channel = await getChannel();
     channel.publish(_EXCHANGE.CLASS_EXCHANGE, "", Buffer.from(JSON.stringify(msg)));
   } catch (err) {
-    console.log(err);
+    sendLogTelegram("RABBITMQ::PUBLISH\n" + err);
   }
 };
 
@@ -54,7 +54,7 @@ const subscribeMessage = async (channel, service) => {
       }
     });
   } catch (err) {
-    console.log(err);
+    sendLogTelegram("RABBITMQ::SUBSCRIBE\n" + err);
   }
 };
 

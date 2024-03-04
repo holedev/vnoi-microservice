@@ -1,5 +1,6 @@
 import amqplib from "amqplib";
 import { _EXCHANGE, _PROCESS_ENV } from "../env/index.js";
+import { sendLogTelegram } from "../../utils/telegram.js";
 
 let amqplibConnection = null;
 
@@ -10,7 +11,7 @@ const createChannel = async () => {
     await channel.assertExchange(_EXCHANGE.USER_EXCHANGE, "fanout", { durable: true });
     return channel;
   } catch (err) {
-    console.log(err);
+    sendLogTelegram("RABBITMQ::CREATE\n" + err);
   }
 };
 
@@ -26,7 +27,7 @@ const publishMessage = async (msg) => {
     const channel = await getChannel();
     channel.publish(_EXCHANGE.USER_EXCHANGE, "", Buffer.from(JSON.stringify(msg)));
   } catch (err) {
-    console.log(err);
+    sendLogTelegram("RABBITMQ::PUBLISH\n" + err);
   }
 };
 
@@ -43,17 +44,21 @@ const subscribeMessage = async (service) => {
 
     console.log(`${_PROCESS_ENV.SERVICE_NAME} ${_PROCESS_ENV.SERVICE_PORT} | QUEUE ${q.queue} waiting`);
 
-    channel.consume(q.queue, async (msg) => {
-      if (msg?.content) {
-        if (!msg.properties.replyTo) {
-          service.handleEvent(JSON.parse(msg.content.toString()));
-          channel.ack(msg);
-          return;
+    channel.consume(
+      q.queue,
+      async (msg) => {
+        if (msg?.content) {
+          if (!msg.properties.replyTo) {
+            service.handleEvent(JSON.parse(msg.content.toString()));
+            channel.ack(msg);
+            return;
+          }
         }
-      }
-    });
+      },
+      { noAck: false }
+    );
   } catch (err) {
-    console.log(err);
+    sendLogTelegram("RABBITMQ::SUBSCRIBE\n" + err);
   }
 };
 

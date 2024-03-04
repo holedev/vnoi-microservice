@@ -2,7 +2,6 @@ import { _PROCESS_ENV } from "../../configs/env/index.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 
 export const ErrorHandler = (err, req, res, next) => {
-  console.log("HANDLER ERROR");
   const URL = `${req?.get("host")}${req.originalUrl}`;
   const IP = (req?.headers["x-forwarded-for"] || "").split(",").shift() || req?.ip;
 

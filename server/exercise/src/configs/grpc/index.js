@@ -1,6 +1,7 @@
 import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
 import { _PROCESS_ENV, _SERVICE } from "../env/index.js";
+import { sendLogTelegram } from "../../utils/telegram.js";
 
 const gRPCCreateClient = (protoPath, serviceName, serviceHost, servicePort) => {
   try {
@@ -19,7 +20,7 @@ const gRPCCreateClient = (protoPath, serviceName, serviceHost, servicePort) => {
     );
     return client;
   } catch (err) {
-    console.log(err);
+    sendLogTelegram("GRPC::CLIENT\n" + err);
   }
 };
 

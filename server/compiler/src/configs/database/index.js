@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { _PROCESS_ENV } from "../env/index.js";
+import { sendLogTelegram } from "../../utils/telegram.js";
 
 const databaseConnection = async () => {
   mongoose
@@ -10,7 +11,7 @@ const databaseConnection = async () => {
       )
     )
     .catch((err) => {
-      console.log(err);
+      sendLogTelegram("MONGODB::CREATE\n" + err);
     });
 };
 

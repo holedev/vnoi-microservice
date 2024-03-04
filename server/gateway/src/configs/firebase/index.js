@@ -1,7 +1,7 @@
 import admin from "firebase-admin";
 import serviceAccount from "../../../firebase.json" assert { type: "json" };
-import { InternalServerError } from "../../api/responses/errors/InternalServerError.js";
 import { _PROCESS_ENV } from "../env/index.js";
+import { sendLogTelegram } from "../../utils/telegram.js";
 
 const firebaseInit = () => {
   try {
@@ -10,7 +10,7 @@ const firebaseInit = () => {
     });
     console.log(`${_PROCESS_ENV.SERVICE_NAME} ${_PROCESS_ENV.SERVICE_PORT} | Firebase admin initialized`);
   } catch (error) {
-    throw new InternalServerError("Firebase admin initialization failed!");
+    sendLogTelegram("FIREBASE::INIT" + err);
   }
 };
 
