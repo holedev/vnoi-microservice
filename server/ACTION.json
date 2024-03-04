@@ -1,6 +1,7 @@
 {
   "LOGIN": "login",
   "VERIFY_USER": "verify_user",
+  "USER_UPDATE": "user_update",
   "CLASS_UPDATE": "class_update",
   "CLASS_DELETE": "class_delete",
   "PROBLEM_CREATE": "create_problem",

@@ -6,6 +6,7 @@ import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 import { ConflictError } from "../responses/errors/ConflictError.js";
 import { ForbiddenError } from "../responses/errors/ForbiddenError.js";
 import { gRPCRequest } from "./grpc.js";
+import { publishMessage } from "../../configs/rabiitmq/index.js";
 
 const _EMAIL_WHITE_LIST = ["phanleho002@gmail.com"];
 const _DEFAULT_PASSWORD = "Admin@123";
@@ -121,24 +122,35 @@ const UserService = {
 
       const classCommon = await gRPCRequest.getClassByIdAsync(classCurr);
 
-      const usr = await UserModel.findByIdAndUpdate(
+      const user = await UserModel.findByIdAndUpdate(
         _id,
         { classCurr: classCommon, fullName, studentCode },
         { new: true }
       );
 
+      const payload = {
+        action: _ACTION.USER_UPDATE,
+        data: {
+          _id: user._id,
+          email: user.email,
+          fullName: user.fullName,
+          role: user.role
+        }
+      };
+      publishMessage(payload);
+
       const data = {
-        _id: usr._id,
-        email: usr.email,
-        fullName: usr.fullName,
-        role: usr.role,
-        avatar: usr.avatar,
-        studentCode: usr.studentCode,
-        username: usr.username
+        _id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        avatar: user.avatar,
+        studentCode: user.studentCode,
+        username: user.username
       };
 
-      if (usr.classCurr) {
-        data.classCurr = usr.classCurr;
+      if (user.classCurr) {
+        data.classCurr = user.classCurr;
       }
 
       return res.status(httpStatusCodes.OK).json({
@@ -186,18 +198,24 @@ const UserService = {
 
     const classCommon = await gRPCRequest.getClassByIdAsync(classCurr);
 
-    const u = await UserModel.findByIdAndUpdate(
+    const user = await UserModel.findByIdAndUpdate(
       id,
-      {
-        classCurr: classCommon,
-        fullName,
-        studentCode,
-        role
-      },
+      { classCurr: classCommon, fullName, studentCode, role },
       { new: true }
     );
 
-    const { password, __v, createdAt, updatedAt, ...rest } = u.toObject();
+    const payload = {
+      action: _ACTION.USER_UPDATE,
+      data: {
+        _id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role
+      }
+    };
+    publishMessage(payload);
+
+    const { password, __v, createdAt, updatedAt, ...rest } = user.toObject();
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",

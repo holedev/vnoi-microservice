@@ -7,6 +7,7 @@ const createChannel = async () => {
   try {
     const connection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
     const channel = await connection.createChannel();
+    await channel.assertExchange(_EXCHANGE.USER_EXCHANGE, "fanout", { durable: true });
     return channel;
   } catch (err) {
     console.log(err);
@@ -18,6 +19,15 @@ const getChannel = async () => {
     amqplibConnection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
   }
   return await amqplibConnection.createChannel();
+};
+
+const publishMessage = async (msg) => {
+  try {
+    const channel = await getChannel();
+    channel.publish(_EXCHANGE.USER_EXCHANGE, "", Buffer.from(JSON.stringify(msg)));
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 const subscribeMessage = async (service) => {
@@ -47,4 +57,4 @@ const subscribeMessage = async (service) => {
   }
 };
 
-export { createChannel, subscribeMessage };
+export { createChannel, subscribeMessage, publishMessage };
