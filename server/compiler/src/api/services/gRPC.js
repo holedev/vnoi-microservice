@@ -67,7 +67,7 @@ const gRPCHandle = {
       console.log(error);
       callback(error, null);
     }
-  },
+  }
 };
 
 export { gRPCHandle };
