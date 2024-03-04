@@ -10,6 +10,7 @@ import { verifyToken } from "./src/api/middlewares/verifyToken.js";
 import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
 import { apiFilter } from "./src/api/middlewares/apiFilter.js";
 import { firebaseInit } from "./src/configs/firebase/index.js";
+import { logInfo } from "./src/configs/rabiitmq/index.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
@@ -21,8 +22,6 @@ const corsOptions = {
   credentials: true
 };
 
-app.use(verifyToken);
-
 app.use(
   cors(corsOptions),
   helmet(),
@@ -30,6 +29,15 @@ app.use(
   express.urlencoded({ extended: true, limit: "20mb" }),
   compression()
 );
+
+app.use(verifyToken);
+
+// logger
+
+app.use((req, res, next) => {
+  logInfo(req, null);
+  next();
+});
 
 app.use(apiFilter);
 

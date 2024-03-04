@@ -13,7 +13,7 @@ const verifyToken = async (req, res, next) => {
 
     const data = await admin.auth().verifyIdToken(token);
 
-    req.headers["X-Trace-Id"] = uuidv4();
+    req.headers["X-Request-Id"] = uuidv4();
 
     // login will ignore
     if (req.path === "/api/user/auth") return next();

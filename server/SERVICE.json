@@ -31,10 +31,13 @@
   "COMPILER_SERVICE": {
     "NAME": "COMPILER-SERVICE",
     "PORT": 8004,
-    "PATH": "/compiler",
     "GRPC_PROTO_PATH": "../protos/compiler.proto",
     "GRPC_SERVICE_NAME": "Compiler",
     "GRPC_HOST": "localhost",
     "GRPC_PORT": 50004
+  },
+  "LOGGING_SERVICE": {
+    "NAME": "LOGGING-SERVICE",
+    "PORT": 8005
   }
 }

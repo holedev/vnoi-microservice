@@ -37,8 +37,6 @@ const subscribeMessage = async (channel, service) => {
       durable: true
     });
 
-    channel.prefetch(1);
-
     console.log(`${_PROCESS_ENV.SERVICE_NAME} ${_PROCESS_ENV.SERVICE_PORT} | QUEUE ${q.queue} waiting`);
 
     channel.consume(q.queue, async (msg) => {

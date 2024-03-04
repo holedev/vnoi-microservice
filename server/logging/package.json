@@ -1,12 +1,23 @@
 {
   "name": "logging",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "cross-env NODE_ENV=dev nodemon server.js",
+    "prod": "cross-env NODE_ENV=prod node server.js",
+    "test": "jest --forceExit --passWithNoTests --detectOpenHandles"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.10.3",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "nodemon": "^3.1.0",
+    "winston": "^3.12.0",
+    "winston-daily-rotate-file": "^5.0.0"
+  }
 }
