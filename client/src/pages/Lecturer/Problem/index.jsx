@@ -53,7 +53,7 @@ function AdminProblem() {
     },
     initCode: "```\nint main() {\n\t\n}\n```",
     solution: "```\nint main() {\n\tcout('Hello World');\n\treturn 0;\n}\n```",
-    classCurr: user.classCurr,
+    classCurr: user.classCurr?._id,
     alwayOpen: false,
   });
 
@@ -73,7 +73,7 @@ function AdminProblem() {
         },
         initCode: data.initCode,
         solution: data.solution,
-        classCurr: data.class,
+        classCurr: data.class?._id,
         uuid: data.uuid,
         alwayOpen: data.alwayOpen || false,
       });
@@ -561,7 +561,7 @@ function AdminProblem() {
             withoutOlympic={false}
             withoutAll={true}
             data-tour="action-class"
-            classCurr={data.classCurr?._id}
+            classCurr={data.classCurr}
             handleFilter={handleFilter}
           />
           <Button

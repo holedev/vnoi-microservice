@@ -39,7 +39,7 @@ function Action({ setConsole, handleSubmit, setCode, problem }) {
                 <Button
                     onClick={() => setTimer(!timer)}
                     color="inherit"
-                    className={styles.timmer}
+                    className={styles.timer}
                 >
                     <AccessTime />
                     {timer && (

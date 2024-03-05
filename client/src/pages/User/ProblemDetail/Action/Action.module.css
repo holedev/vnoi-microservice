@@ -7,7 +7,7 @@
     background: var(--white-color);
 }
 
-.timmer {
+.timer {
     display: flex;
     align-items: center;
     gap: 4px;
