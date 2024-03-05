@@ -3,6 +3,7 @@ import uuid4 from "uuid4";
 import { _EXCHANGE, _PROCESS_ENV } from "../env/index.js";
 import { FormatData } from "../../api/responses/formatData/index.js";
 import { sendLogTelegram } from "../../utils/telegram.js";
+import { logInfo } from "./log.js";
 
 const _TIMEOUT_REQUEST = 30000;
 let amqplibConnection = null;
@@ -38,15 +39,22 @@ const subscribeMessage = async (service) => {
 
     console.log(`${_PROCESS_ENV.SERVICE_NAME} ${_PROCESS_ENV.SERVICE_PORT} | QUEUE ${q.queue} waiting`);
 
-    channel.consume(q.queue, async (msg) => {
-      if (msg.content) {
-        if (!msg.properties.replyTo) {
-          service.handleEvent(JSON.parse(msg.content.toString()));
-          channel.ack(msg);
-          return;
+    channel.consume(
+      q.queue,
+      async (msg) => {
+        if (msg.content) {
+          const { action, data, requestId } = JSON.parse(msg.content.toString());
+          logInfo(null, { requestId, method: "RABBITMQ-SUBSCRIBE", body: { action, data } });
+
+          if (!msg.properties.replyTo) {
+            service.handleEvent({ action, data });
+            channel.ack(msg);
+            return;
+          }
         }
-      }
-    });
+      },
+      { noAck: false }
+    );
   } catch (err) {
     sendLogTelegram("RABBITMQ::SUBSCRIBE\n" + err);
   }
@@ -73,14 +81,16 @@ const requestData = async (QUEUE_NAME, requestPayload, uuid) => {
       channel.consume(
         q.queue,
         (msg) => {
-          if (msg.properties.correlationId == uuid) {
-            resolve(JSON.parse(msg.content.toString()));
-            clearTimeout(timeout);
-          } else {
-            reject("Data Not found!");
+          if (msg.content) {
+            const receiveData = JSON.parse(msg.content.toString());
+
+            if (msg.properties.correlationId == uuid) {
+              resolve(receiveData);
+              clearTimeout(timeout);
+              channel.ack(msg);
+              channel.cancel(msg.fields.consumerTag);
+            }
           }
-          channel.ack(msg);
-          channel.cancel(msg.fields.consumerTag);
         },
         { noAck: false }
       );
@@ -95,4 +105,4 @@ const requestAsync = async (QUEUE_NAME, requestPayload) => {
   return await requestData(QUEUE_NAME, requestPayload, uuid);
 };
 
-export { createChannel, subscribeMessage, requestAsync };
+export { createChannel, subscribeMessage, requestAsync, getChannel };

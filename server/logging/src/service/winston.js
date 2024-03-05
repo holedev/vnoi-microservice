@@ -1,7 +1,7 @@
 import { format, createLogger, transports } from "winston";
 
 const formatPrintInfo = format.printf(({ requestId, requestTime, IP, method, path, message, body }) => {
-  return `${requestTime}::${requestId}::${message}::${IP}::${method} ${path}::${JSON.stringify(body)}`;
+  return `${requestTime}::${requestId}::${message}::${IP || "NO-IP"}::${method || "NO-METHOD"} ${path || "NO-PATH"}::${JSON.stringify(body) || "NO-BODY"}`;
 });
 
 const formatPrintError = format.printf(

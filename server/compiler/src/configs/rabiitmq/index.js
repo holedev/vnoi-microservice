@@ -1,6 +1,9 @@
 import amqplib from "amqplib";
 import { _PROCESS_ENV } from "../env/index.js";
 import { sendLogTelegram } from "../../utils/telegram.js";
+import { logInfo } from "./log.js";
+
+let amqplibConnection = null;
 
 const createChannel = async () => {
   try {
@@ -10,6 +13,13 @@ const createChannel = async () => {
   } catch (err) {
     sendLogTelegram("RABBITMQ::CREATE\n" + err);
   }
+};
+
+const getChannel = async () => {
+  if (amqplibConnection === null) {
+    amqplibConnection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
+  }
+  return await amqplibConnection.createChannel();
 };
 
 const subscribeMessage = async (channel, service) => {
@@ -24,20 +34,20 @@ const subscribeMessage = async (channel, service) => {
       q.queue,
       async (msg) => {
         if (msg.content) {
-          try {
-            if (!msg.properties.replyTo) {
-              service.handleEvent(JSON.parse(msg.content.toString()));
-              channel.ack(msg);
-              return;
-            }
-            const response = await service.handleEvent(JSON.parse(msg.content.toString()));
-            channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(response)), {
-              correlationId: msg.properties.correlationId
-            });
+          const { action, data, requestId } = JSON.parse(msg.content.toString());
+          logInfo(null, { requestId, method: "RABBITMQ-SUBSCRIBE", body: { action, data } });
+
+          if (!msg.properties.replyTo) {
+            service.handleEvent({ action, data });
             channel.ack(msg);
-          } catch (err) {
-            console.log(err);
+            return;
           }
+
+          const response = await service.handleEvent({ action, data });
+          channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(response)), {
+            correlationId: msg.properties.correlationId
+          });
+          channel.ack(msg);
         }
       },
       { noAck: false }
@@ -47,4 +57,4 @@ const subscribeMessage = async (channel, service) => {
   }
 };
 
-export { createChannel, subscribeMessage };
+export { createChannel, subscribeMessage, getChannel };

@@ -117,10 +117,11 @@ const UserService = {
   },
   update: async (req, res) => {
     try {
+      const requestId = req.headers["x-request-id"];
       const _id = req.headers["x-user-id"];
       const { classCurr, fullName, studentCode } = req.body;
 
-      const classCommon = await gRPCRequest.getClassByIdAsync(classCurr);
+      const classCommon = await gRPCRequest.getClassByIdAsync(requestId, classCurr);
 
       const user = await UserModel.findByIdAndUpdate(
         _id,
@@ -129,6 +130,7 @@ const UserService = {
       );
 
       const payload = {
+        requestId,
         action: _ACTION.USER_UPDATE,
         data: {
           _id: user._id,
@@ -193,10 +195,11 @@ const UserService = {
     });
   },
   updateByAdmin: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
     const { id } = req.params;
     const { classCurr, fullName, studentCode, role } = req.body;
 
-    const classCommon = await gRPCRequest.getClassByIdAsync(classCurr);
+    const classCommon = await gRPCRequest.getClassByIdAsync(requestId, classCurr);
 
     const user = await UserModel.findByIdAndUpdate(
       id,
@@ -205,6 +208,7 @@ const UserService = {
     );
 
     const payload = {
+      requestId,
       action: _ACTION.USER_UPDATE,
       data: {
         _id: user._id,

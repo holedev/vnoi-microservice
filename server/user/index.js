@@ -9,6 +9,7 @@ import { UserRoute } from "./src/api/routes/index.js";
 import { firebaseInit } from "./src/configs/firebase/index.js";
 import { UserService } from "./src/api/services/index.js";
 import { gRPCServerUser } from "./src/configs/grpc/index.js";
+import { logInfo } from "./src/configs/rabiitmq/log.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
@@ -26,10 +27,15 @@ app.use(
     // client can access this service without gateway
     origin: "*",
     credentials: true
-  })
+  }),
+  express.json(),
+  express.urlencoded({ extended: true })
 );
 
-app.use(express.json(), express.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+  logInfo(req, null);
+  next();
+});
 
 app.use("/", UserRoute);
 

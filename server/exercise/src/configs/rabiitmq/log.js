@@ -1,25 +1,14 @@
-import amqplib from "amqplib";
-import { _ACTION, _PROCESS_ENV, _SERVICE } from "../env/index.js";
 import { sendLogTelegram } from "../../utils/telegram.js";
+import { _ACTION, _PROCESS_ENV, _SERVICE } from "../env/index.js";
+import { getChannel } from "./index.js";
 
-let amqplibConnection = null;
-
-const createChannel = async () => {
-  try {
-    const connection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
-    const channel = await connection.createChannel();
-    return channel;
-  } catch (err) {
-    sendLogTelegram("RABBITMQ::CREATE\n" + err);
-  }
-};
-
-const getChannel = async () => {
-  if (amqplibConnection === null) {
-    amqplibConnection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
-  }
-  return await amqplibConnection.createChannel();
-};
+/**
+ * This function logs the given data and action, request is optional.
+ * @param {Object} req The HTTP request object, if applicable.
+ * @param {Object} data The data to be logged.
+ * @param {String} action The action type for the log.
+ * @returns {void}
+ */
 
 const logging = async (req, data, action) => {
   try {
@@ -55,7 +44,7 @@ const logging = async (req, data, action) => {
     const path = `${req.get("host")}${req.originalUrl}`;
     const IP = (req?.headers["x-forwarded-for"] || "").split(",").shift() || req.ip;
     const method = req.method;
-    const requestId = req.headers["X-Request-Id"] || "NO REQUEST-ID";
+    const requestId = req.headers["X-Request-Id"] || req.headers["x-request-id"] || "NO REQUEST-ID";
     const body = req.body;
 
     channel.sendToQueue(
@@ -81,7 +70,20 @@ const logging = async (req, data, action) => {
   }
 };
 
+/**
+ * @param {Object} req The HTTP request, optional
+ * @param {Object} data Data logger includes { requestId, requestTime, IP, method, path, message, body }
+ * @returns {void}
+ */
+
 const logInfo = (req, data) => logging(req, data, _ACTION.LOGGING_INFO);
+
+/**
+ * @param {Object} req The HTTP request, optional
+ * @param {Object} data Data logger includes { requestId, requestTime, IP, method, path, message, body, errStatus, errMessage, errStack }
+ * @returns {void}
+ */
+
 const logError = (req, data) => logging(req, data, _ACTION.LOGGING_ERROR);
 
-export { createChannel, logInfo, logError };
+export { logInfo, logError };

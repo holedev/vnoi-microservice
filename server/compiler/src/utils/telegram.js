@@ -1,7 +1,7 @@
 import { _PROCESS_ENV } from "../configs/env/index.js";
 
 const sendLogTelegram = async (text) => {
-  const err = `${_PROCESS_ENV.SERVICE_NAME}:${_PROCESS_ENV.SERVICE_PORT}\n${text}`;
+  const err = `${_PROCESS_ENV.SERVICE_NAME}:${_PROCESS_ENV.SERVICE_PORT}\nTYPE: ${text}`;
 
   // dev
   // if (_PROCESS_ENV.NODE_ENV === "dev") {

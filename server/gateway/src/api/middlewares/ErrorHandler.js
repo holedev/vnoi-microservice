@@ -2,15 +2,18 @@ import { logError } from "../../configs/rabiitmq/index.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 
 export const ErrorHandler = (err, req, res, next) => {
+  const errStatus = err.statusCode || httpStatusCodes.INTERNAL_SERVER_ERROR;
+  const errMessage = err.messageObject || err.message || err || "ERROR DON'T HAVE A MESSAGE OR SERVER DIE!";
+  const errStack = err.stack || "CANNOT GET ERR STACK! REQUEST CAN FROM RABBITMQ OR GRPC!";
 
   logError(req, {
-    errStatus: err.statusCode || httpStatusCodes.INTERNAL_SERVER_ERROR,
-    errMessage: err.messageObject || err.message || "Server not response!",
-    errStack: err.stack
+    errStatus,
+    errMessage,
+    errStack
   });
 
-  const messageError = err.messageObject || err.message || "Server not response!";
-  const statusCode = err.statusCode || httpStatusCodes.INTERNAL_SERVER_ERROR;
+  const statusCode = errStatus;
+  const messageError = errMessage;
   const error = {
     status: statusCode,
     message: messageError,

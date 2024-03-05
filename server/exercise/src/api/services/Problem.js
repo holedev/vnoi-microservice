@@ -14,6 +14,7 @@ const _COMPETITION_CLASS_NAME = "COMPETITION";
 
 const ProblemService = {
   create: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
     const _id = req.headers["x-user-id"];
 
     const {
@@ -33,6 +34,7 @@ const ProblemService = {
     let solutionCode = solution.slice(3, -3);
 
     const payload = {
+      requestId,
       action: _ACTION.PROBLEM_CREATE,
       data: {
         uuid,
@@ -48,15 +50,8 @@ const ProblemService = {
       throw new BadRequestError(data.message || "Something went wrong!");
     }
 
-    const classGRPC = await gRPCRequest.getClassByIdAsync(classCurr);
-    if (!classGRPC._id) {
-      throw new ConflictError("Get class fail!");
-    }
-
-    const userGRPC = await gRPCRequest.getUserByIdAsync(_id);
-    if (!userGRPC._id) {
-      throw new ConflictError("Get user fail!");
-    }
+    const classGRPC = await gRPCRequest.getClassByIdAsync(requestId, classCurr);
+    const userGRPC = await gRPCRequest.getUserByIdAsync(requestId, _id);
 
     const dataCreate = {
       title,
@@ -85,11 +80,13 @@ const ProblemService = {
     });
   },
   runTest: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
     const _id = req.headers["x-user-id"];
     const { problem, code, testcases } = req.body;
     const uuid = uuidv4();
 
     const payload = {
+      requestId,
       action: _ACTION.PROBLEM_RUN,
       data: {
         uuid,
@@ -112,6 +109,7 @@ const ProblemService = {
     });
   },
   updateProblemByLecturer: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
     const _id = req.headers["x-user-id"];
     const { slug } = req.params;
     const {
@@ -131,6 +129,7 @@ const ProblemService = {
     let solutionCode = solution.slice(3, -3);
 
     const payload = {
+      requestId,
       action: _ACTION.PROBLEM_UPDATE,
       data: {
         uuid,
@@ -146,15 +145,8 @@ const ProblemService = {
       throw new BadRequestError(data.message || "Something went wrong");
     }
 
-    const classGRPC = await gRPCRequest.getClassByIdAsync(classCurr);
-    if (!classGRPC._id) {
-      throw new ConflictError("Get class fail!");
-    }
-
-    const userGRPC = await gRPCRequest.getUserByIdAsync(_id);
-    if (!userGRPC._id) {
-      throw new ConflictError("Get user fail!");
-    }
+    const classGRPC = await gRPCRequest.getClassByIdAsync(requestId, classCurr);
+    const userGRPC = await gRPCRequest.getUserByIdAsync(requestId, _id);
 
     const updateData = {
       title,
@@ -188,6 +180,7 @@ const ProblemService = {
     });
   },
   getBySlug: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
     const _id = req.headers["x-user-id"];
     const role = req.headers["x-user-role"];
 
@@ -220,7 +213,7 @@ const ProblemService = {
 
     const { submitList, ...rest } = problem;
 
-    const { testcases } = await gRPCRequest.getTestcasesOfProblemAsync(problem.uuid, problem.author._id);
+    const { testcases } = await gRPCRequest.getTestcasesOfProblemAsync(requestId, problem.uuid, problem.author._id);
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",
@@ -603,14 +596,15 @@ const ProblemService = {
     });
   },
   getFolderInvalid: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
     const folder = "problems";
     let problems = await ProblemModel.find().lean().select("uuid");
-    const { users } = await gRPCRequest.getUsersAvailableAsync();
+    const { users } = await gRPCRequest.getUsersAvailableAsync(requestId);
     const usersList = JSON.parse(users).map((item) => item._id);
 
     problems = problems.map((p) => p.uuid);
 
-    const { count, total } = await gRPCRequest.getCountFolderAsync(folder, problems, usersList);
+    const { count, total } = await gRPCRequest.getCountFolderAsync(requestId, folder, problems, usersList);
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",
@@ -621,8 +615,10 @@ const ProblemService = {
     });
   },
   getProblemsWithoutAuthor: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
+
     let problems = await ProblemModel.find();
-    const { users } = await gRPCRequest.getUsersAvailableAsync();
+    const { users } = await gRPCRequest.getUsersAvailableAsync(requestId);
     const usersList = JSON.parse(users).map((item) => item._id);
 
     const total = problems.length;
@@ -677,6 +673,8 @@ const ProblemService = {
     return res.status(httpStatusCodes.NO_CONTENT).json();
   },
   deleteProblemWithoutAuthor: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
+
     let problems = await ProblemModel.find();
     const { users } = await gRPCRequest.getUsersAvailableAsync();
     const usersList = JSON.parse(users).map((item) => item._id);
@@ -685,8 +683,8 @@ const ProblemService = {
 
     for await (const problem of problems) {
       await ProblemModel.findByIdAndRemove(problem._id);
-      await gRPCRequest.deleteSubmissionFolderByProblemUUIDAsync(problem.uuid);
-      await gRPCRequest.deleteProblemFolderByUUIDAsync(problem.uuid);
+      gRPCRequest.deleteSubmissionFolderByProblemUUID(requestId, problem.uuid);
+      gRPCRequest.deleteProblemFolderByUUID(requestId, problem.uuid);
     }
 
     return res.status(httpStatusCodes.OK).json({
@@ -695,14 +693,17 @@ const ProblemService = {
     });
   },
   clearFolderNoAuthorAndProblemUUID: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
+
     const folder = "problems";
     let problems = await ProblemModel.find().lean().select("uuid");
-    const { users } = await gRPCRequest.getUsersAvailableAsync();
+
+    const { users } = await gRPCRequest.getUsersAvailableAsync(requestId);
     const usersList = JSON.parse(users).map((item) => item._id);
 
     problems = problems.map((p) => p.uuid);
 
-    const length = await gRPCRequest.clearFolderAsync(folder, problems, usersList);
+    const length = await gRPCRequest.clearFolderAsync(requestId, folder, problems, usersList);
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",

@@ -6,16 +6,17 @@ service Compiler {
     rpc getCountFolder (getCountFolderReq) returns (getCountFolderRes) {};
     rpc clearFolder (getCountFolderReq) returns (clearFolderRes) {};
     rpc getTestcasesOfProblem (getTestcasesOfProblemReq) returns (getTestcasesOfProblemRes) {};
-    rpc deleteSubmissionFolderByUUID (deleteUUIDReq) returns (Empty) {};
-    rpc deleteSubmissionFolderByProblemUUID (deleteUUIDReq) returns (Empty) {};
-    rpc deleteProblemFolderByUUID (deleteUUIDReq) returns (Empty) {};
+    rpc deleteSubmissionFolderByUUID (deleteUUIDReq) returns (EmptyRes) {};
+    rpc deleteSubmissionFolderByProblemUUID (deleteUUIDReq) returns (EmptyRes) {};
+    rpc deleteProblemFolderByUUID (deleteUUIDReq) returns (EmptyRes) {};
 }
 
-message Empty {}
+message EmptyRes {}
   
 message getTestcasesOfProblemReq {
-    string problemUuid = 1;
-    string problemAuthorId = 2;
+    string requestId = 1;
+    string problemUuid = 2;
+    string problemAuthorId = 3;
 }
   
 message getTestcasesOfProblemRes {
@@ -23,9 +24,10 @@ message getTestcasesOfProblemRes {
 }
 
 message getCountFolderReq {
-    string folder = 1;
-    string dataArr = 2;
-    string dataUser = 3;
+    string requestId = 1;
+    string folder = 2;
+    string dataArr = 3;
+    string dataUser = 4;
 }
 
 message getCountFolderRes {
@@ -34,7 +36,8 @@ message getCountFolderRes {
 }
 
 message deleteUUIDReq {
-    string uuid = 1;
+    string requestId = 1;
+    string uuid = 2;
 }
 
 message clearFolderRes {

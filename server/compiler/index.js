@@ -22,7 +22,6 @@ app.use(
     credentials: true
   })
 );
-app.use(express.json(), express.urlencoded({ extended: true }));
 
 app.use(ErrorHandler);
 

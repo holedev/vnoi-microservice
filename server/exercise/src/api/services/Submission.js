@@ -40,7 +40,7 @@ async function getBestSubmission(userId, problemId, withoutSubmissionId) {
   return bestSubmission;
 }
 
-async function deleteByAdmin(submission) {
+async function deleteByAdmin(requestId, submission) {
   const problem = await ProblemModel.findById(submission.problem);
   if (problem && problem.submitList?.length > 0) {
     let idx = 0;
@@ -64,11 +64,12 @@ async function deleteByAdmin(submission) {
     await problem.save();
   }
   await submission.deleteOne();
-  await gRPCRequest.deleteSubmissionFolderByUUIDAsync(submission.uuid);
+  gRPCRequest.deleteSubmissionFolderByUUID(requestId, submission.uuid);
 }
 
 const SubmissionService = {
   create: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
     const _id = req.headers["x-user-id"];
     const { problem, code } = req.body;
 
@@ -99,6 +100,7 @@ const SubmissionService = {
     }
 
     const payload = {
+      requestId,
       action: _ACTION.PROBLEM_SUBMIT,
       data: {
         uuid,
@@ -118,7 +120,7 @@ const SubmissionService = {
 
     const score = parseFloat((result.pass / result.total) * 10).toFixed(2);
 
-    const userGRPC = await gRPCRequest.getUserByIdAsync(_id);
+    const userGRPC = await gRPCRequest.getUserByIdAsync(requestId, _id);
 
     const submission = await SubmissionModel.create({
       author: userGRPC,
@@ -214,13 +216,15 @@ const SubmissionService = {
     });
   },
   getSubmissionsWithoutAuthorWithoutProblem: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
+
     let submissions = await SubmissionModel.find()
       .populate({
         path: "problem"
       })
       .lean();
 
-    const { users } = await gRPCRequest.getUsersAvailableAsync();
+    const { users } = await gRPCRequest.getUsersAvailableAsync(requestId);
     const usersList = JSON.parse(users).map((item) => item._id);
 
     const total = submissions.length;
@@ -236,15 +240,17 @@ const SubmissionService = {
     });
   },
   getFolderInvalid: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
+
     const folder = "submissions";
     let submissions = await SubmissionModel.find().lean().select("uuid");
 
-    const { users } = await gRPCRequest.getUsersAvailableAsync();
+    const { users } = await gRPCRequest.getUsersAvailableAsync(requestId);
     const usersList = JSON.parse(users).map((item) => item._id);
 
     submissions = submissions.map((s) => s.uuid);
 
-    const { count, total } = await gRPCRequest.getCountFolderAsync(folder, submissions, usersList);
+    const { count, total } = await gRPCRequest.getCountFolderAsync(requestId, folder, submissions, usersList);
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",
@@ -255,6 +261,7 @@ const SubmissionService = {
     });
   },
   deleteSubmissionByAdmin: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
     const { id } = req.params;
 
     const submission = await SubmissionModel.findById(id);
@@ -263,22 +270,24 @@ const SubmissionService = {
       throw new ConflictError("Submission not found!");
     }
 
-    await deleteByAdmin(submission);
+    await deleteByAdmin(requestId, submission);
 
     return res.status(httpStatusCodes.NO_CONTENT).json({});
   },
   deleteSubmissionWithoutAuthorWithoutProblem: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
+
     let submissions = await SubmissionModel.find().populate({
       path: "problem"
     });
 
-    const { users } = await gRPCRequest.getUsersAvailableAsync();
+    const { users } = await gRPCRequest.getUsersAvailableAsync(requestId);
     const usersList = JSON.parse(users).map((item) => item._id);
 
     submissions = submissions.filter((s) => !s.problem || !usersList.includes(s.author?._id));
 
     for await (const submission of submissions) {
-      await deleteByAdmin(submission);
+      await deleteByAdmin(requestId, submission);
     }
 
     return res.status(httpStatusCodes.OK).json({
@@ -287,10 +296,12 @@ const SubmissionService = {
     });
   },
   clearFolderNoAuthorAndSubmissionUUID: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
+
     const folder = "submissions";
     let submissions = await SubmissionModel.find().lean().select("uuid");
 
-    const { users } = await gRPCRequest.getUsersAvailableAsync();
+    const { users } = await gRPCRequest.getUsersAvailableAsync(requestId);
     const usersList = JSON.parse(users).map((item) => item._id);
 
     submissions = submissions.map((s) => s.uuid);

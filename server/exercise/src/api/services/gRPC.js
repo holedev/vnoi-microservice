@@ -1,58 +1,74 @@
 import { grpCClientCommon, grpCClientUser, grpcClientCompiler } from "../../configs/grpc/index.js";
+import { sendLogTelegram } from "../../utils/telegram.js";
 
 const gRPCRequest = {
-  getUserByIdAsync: (_id) => {
+  getUserByIdAsync: (requestId, _id) => {
     return new Promise((resolve, reject) => {
-      grpCClientUser.getUserById({ _id }, (err, res) => {
+      grpCClientUser.getUserById({ requestId, _id }, (err, res) => {
         if (err) {
-          reject(err);
+          reject({
+            statusCode: "GRPC",
+            message: err
+          });
         } else {
           resolve(res);
         }
       });
     });
   },
-  getUsersAvailableAsync: () => {
+  getUsersAvailableAsync: (requestId) => {
     return new Promise((resolve, reject) => {
-      grpCClientUser.getUsersAvailable({}, (err, res) => {
+      grpCClientUser.getUsersAvailable({ requestId }, (err, res) => {
         if (err) {
-          reject(err);
+          reject({
+            statusCode: "GRPC",
+            message: err
+          });
         } else {
           resolve(res);
         }
       });
     });
   },
-  getClassByIdAsync: (_id) => {
+  getClassByIdAsync: (requestId, _id) => {
     return new Promise((resolve, reject) => {
-      grpCClientCommon.getClassById({ _id }, (err, res) => {
+      grpCClientCommon.getClassById({ requestId, _id }, (err, res) => {
         if (err) {
-          reject(err);
+          reject({
+            statusCode: "GRPC",
+            message: err
+          });
         } else {
           resolve(res);
         }
       });
     });
   },
-  getTestcasesOfProblemAsync: (problemUuid, problemAuthorId) => {
+  getTestcasesOfProblemAsync: (requestId, problemUuid, problemAuthorId) => {
     return new Promise((resolve, reject) => {
-      grpcClientCompiler.getTestcasesOfProblem({ problemUuid, problemAuthorId }, (err, res) => {
+      grpcClientCompiler.getTestcasesOfProblem({ requestId, problemUuid, problemAuthorId }, (err, res) => {
         if (err) {
-          reject(err);
+          reject({
+            statusCode: "GRPC",
+            requestId,
+            message: err
+          });
         } else {
           resolve(res);
         }
       });
     });
   },
-  getCountFolderAsync: (folder, dataArr, dataUser) => {
+  getCountFolderAsync: (requestId, folder, dataArr, dataUser) => {
     return new Promise((resolve, reject) => {
       grpcClientCompiler.getCountFolder(
-        { folder, dataArr: JSON.stringify(dataArr), dataUser: JSON.stringify(dataUser) },
+        { requestId, folder, dataArr: JSON.stringify(dataArr), dataUser: JSON.stringify(dataUser) },
         (err, res) => {
           if (err) {
-            console.log(err);
-            reject(err);
+            reject({
+              statusCode: "GRPC",
+              message: err
+            });
           } else {
             resolve(res);
           }
@@ -60,14 +76,16 @@ const gRPCRequest = {
       );
     });
   },
-  clearFolderAsync: (folder, dataArr, dataUser) => {
+  clearFolderAsync: (requestId, folder, dataArr, dataUser) => {
     return new Promise((resolve, reject) => {
       grpcClientCompiler.clearFolder(
-        { folder, dataArr: JSON.stringify(dataArr), dataUser: JSON.stringify(dataUser) },
+        { requestId, folder, dataArr: JSON.stringify(dataArr), dataUser: JSON.stringify(dataUser) },
         (err, res) => {
           if (err) {
-            console.log(err);
-            reject(err);
+            reject({
+              statusCode: "GRPC",
+              message: err
+            });
           } else {
             resolve(res);
           }
@@ -75,24 +93,24 @@ const gRPCRequest = {
       );
     });
   },
-  deleteSubmissionFolderByUUIDAsync: async (uuid) => {
-    grpcClientCompiler.deleteSubmissionFolderByUUID({ uuid }, (err, res) => {
+  deleteSubmissionFolderByUUID: (requestId, uuid) => {
+    grpcClientCompiler.deleteSubmissionFolderByUUID({ requestId, uuid }, (err, res) => {
       if (err) {
-        console.log(err);
+        sendLogTelegram(`GRPC::DELETE_FOLDER\nERROR: ${err}`);
       }
     });
   },
-  deleteSubmissionFolderByProblemUUIDAsync: async (uuid) => {
-    grpcClientCompiler.deleteSubmissionFolderByProblemUUID({ uuid }, (err, res) => {
+  deleteSubmissionFolderByProblemUUID: (requestId, uuid) => {
+    grpcClientCompiler.deleteSubmissionFolderByProblemUUID({ requestId, uuid }, (err, res) => {
       if (err) {
-        console.log(err);
+        sendLogTelegram(`GRPC::DELETE_FOLDER\nERROR: ${err}`);
       }
     });
   },
-  deleteProblemFolderByUUIDAsync: async (uuid) => {
-    grpcClientCompiler.deleteProblemFolderByUUID({ uuid }, (err, res) => {
+  deleteProblemFolderByUUID: (requestId, uuid) => {
+    grpcClientCompiler.deleteProblemFolderByUUID({ requestId, uuid }, (err, res) => {
       if (err) {
-        console.log(err);
+        sendLogTelegram(`GRPC::DELETE_FOLDER\nERROR: ${err}`);
       }
     });
   }

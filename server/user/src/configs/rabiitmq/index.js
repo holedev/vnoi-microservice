@@ -1,6 +1,7 @@
 import amqplib from "amqplib";
 import { _EXCHANGE, _PROCESS_ENV } from "../env/index.js";
 import { sendLogTelegram } from "../../utils/telegram.js";
+import { logInfo } from "./log.js";
 
 let amqplibConnection = null;
 
@@ -47,9 +48,12 @@ const subscribeMessage = async (service) => {
     channel.consume(
       q.queue,
       async (msg) => {
-        if (msg?.content) {
+        if (msg.content) {
+          const { action, data, requestId } = JSON.parse(msg.content.toString());
+          logInfo(null, { requestId, method: "RABBITMQ-SUBSCRIBE", body: { action, data } });
+
           if (!msg.properties.replyTo) {
-            service.handleEvent(JSON.parse(msg.content.toString()));
+            service.handleEvent({ action, data });
             channel.ack(msg);
             return;
           }
@@ -62,4 +66,4 @@ const subscribeMessage = async (service) => {
   }
 };
 
-export { createChannel, subscribeMessage, publishMessage };
+export { createChannel, subscribeMessage, publishMessage, getChannel };

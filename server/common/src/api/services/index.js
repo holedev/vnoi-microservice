@@ -31,6 +31,7 @@ const CommonService = {
     });
   },
   update: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
     const { name } = req.body;
     const { id } = req.params;
 
@@ -49,6 +50,7 @@ const CommonService = {
     const updatedClass = await ClassModel.findByIdAndUpdate(id, { name }, { new: true });
 
     const payload = {
+      requestId,
       action: _ACTION.CLASS_UPDATE,
       data: updatedClass.toObject()
     };
