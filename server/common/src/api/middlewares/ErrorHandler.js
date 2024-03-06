@@ -3,7 +3,8 @@ import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 
 export const ErrorHandler = (err, req, res, next) => {
   const errStatus = err.statusCode || httpStatusCodes.INTERNAL_SERVER_ERROR;
-  const errMessage = err.messageObject || err.message || err || "ERROR DON'T HAVE A MESSAGE OR SERVER DIE!";
+  const errMessage =
+    err.messageObject || err.message || JSON.stringify(err) || "ERROR DON'T HAVE A MESSAGE OR SERVER DIE!";
   const errStack = err.stack || "CANNOT GET ERR STACK! REQUEST CAN FROM RABBITMQ OR GRPC!";
 
   logError(req, {

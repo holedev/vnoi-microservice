@@ -306,7 +306,7 @@ const SubmissionService = {
 
     submissions = submissions.map((s) => s.uuid);
 
-    const length = await gRPCRequest.clearFolderAsync(folder, submissions, usersList);
+    const length = await gRPCRequest.clearFolderAsync(requestId, folder, submissions, usersList);
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",
