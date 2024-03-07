@@ -1,5 +1,5 @@
 import { logInfo } from "../../configs/rabiitmq/log.js";
-import { ClassModel } from "../models/class.js";
+import { ClassModel } from "../models/Class.js";
 
 const logGRPCHandle = (requestId, method, body) => logInfo(null, { requestId, method, body });
 

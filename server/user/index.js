@@ -3,7 +3,7 @@ import "express-async-errors";
 import cors from "cors";
 import { _PROCESS_ENV } from "./src/configs/env/index.js";
 import { databaseConnection } from "./src/configs/database/index.js";
-import { createChannel, subscribeMessage } from "./src/configs/rabiitmq/index.js";
+import { getSubscribeChannel, subscribeMessage } from "./src/configs/rabiitmq/index.js";
 import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
 import { UserRoute } from "./src/api/routes/index.js";
 import { firebaseInit } from "./src/configs/firebase/index.js";
@@ -17,8 +17,8 @@ const PORT = _PROCESS_ENV.SERVICE_PORT;
 await firebaseInit();
 await databaseConnection();
 
-await createChannel();
-subscribeMessage(UserService);
+const channel = await getSubscribeChannel();
+subscribeMessage(channel, UserService);
 
 gRPCServerUser();
 

@@ -3,7 +3,7 @@ import "express-async-errors";
 import cors from "cors";
 import { _PROCESS_ENV } from "./src/configs/env/index.js";
 import { databaseConnection } from "./src/configs/database/index.js";
-import { createChannel, subscribeMessage } from "./src/configs/rabiitmq/index.js";
+import { subscribeMessage, getSubscribeChannel } from "./src/configs/rabiitmq/index.js";
 import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
 import { ProblemRoute } from "./src/api/routes/Problem.js";
 import { SubmissionRoute } from "./src/api/routes/Submission.js";
@@ -14,9 +14,8 @@ const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
 
 await databaseConnection();
-
-await createChannel();
-subscribeMessage(ExerciseService);
+const channel = await getSubscribeChannel();
+subscribeMessage(channel, ExerciseService);
 
 app.use(
   cors({

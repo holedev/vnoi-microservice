@@ -1,0 +1,54 @@
+version: "3.8"
+name: dev-compose
+services:
+  client:
+    container_name: vnoi-client
+    build:
+      context: client
+      dockerfile: Dockerfile.dev
+    ports:
+      - 5173:5173
+    restart: unless-stopped
+    networks:
+      - vnoi-network
+
+  gateway:
+    container_name: vnoi-gateway
+    build:
+      context: server
+      dockerfile: gateway/Dockerfile.dev
+    ports:
+      - 8000:8000
+    networks:
+      - vnoi-network
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3.12-management
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - vnoi-rabbitmq:/var/lib/rabbitmq
+    networks:
+      - vnoi-network
+
+  mongodb:
+    container_name: vnoi-db
+    image: mongo:5.0.22
+    restart: always
+    ports:
+      - 27017:27017
+    volumes:
+      - vnoi-db:/data/db
+    networks:
+      - vnoi-network
+
+volumes:
+  vnoi-rabbitmq:
+  vnoi-db:
+
+networks:
+  vnoi-network:
+    driver: bridge

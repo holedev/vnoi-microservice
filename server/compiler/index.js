@@ -2,7 +2,7 @@ import express from "express";
 import "express-async-errors";
 import cors from "cors";
 import { _PROCESS_ENV } from "./src/configs/env/index.js";
-import { createChannel, subscribeMessage } from "./src/configs/rabiitmq/index.js";
+import { getSubscribeChannel, subscribeMessage } from "./src/configs/rabiitmq/index.js";
 import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
 import { CompilerService } from "./src/api/services/index.js";
 import { gRPCServerCompiler } from "./src/configs/grpc/index.js";
@@ -10,7 +10,7 @@ import { gRPCServerCompiler } from "./src/configs/grpc/index.js";
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
 
-const channel = await createChannel();
+const channel = await getSubscribeChannel();
 subscribeMessage(channel, CompilerService);
 
 gRPCServerCompiler();

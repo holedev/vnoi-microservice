@@ -337,6 +337,7 @@ const ProblemService = {
     });
   },
   getRankCompetition: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
     let problems = await ProblemModel.find({
       "class.name": _COMPETITION_CLASS_NAME,
       isDeleted: false
@@ -372,7 +373,7 @@ const ProblemService = {
           continue;
         }
         if (!results[userId]) {
-          const userGRPC = await gRPCRequest.getUserByIdAsync(userId);
+          const userGRPC = await gRPCRequest.getUserByIdAsync(requestId, userId);
           if (!userGRPC._id) continue;
 
           results[userId] = {
@@ -641,7 +642,7 @@ const ProblemService = {
     const condition = { slug };
 
     if (role === "LECTURER") {
-      condition.author = _id;
+      condition["author._id"] = _id;
     }
 
     const problem = await ProblemModel.findOne(condition);
@@ -676,7 +677,7 @@ const ProblemService = {
     const requestId = req.headers["x-request-id"];
 
     let problems = await ProblemModel.find();
-    const { users } = await gRPCRequest.getUsersAvailableAsync();
+    const { users } = await gRPCRequest.getUsersAvailableAsync(requestId);
     const usersList = JSON.parse(users).map((item) => item._id);
 
     problems = problems.filter((p) => !usersList.includes(p.author?._id));
