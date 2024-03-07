@@ -40,7 +40,7 @@ const getSubscribeChannel = async () => {
     subscribeChannel.on("close", () => {
       console.log("Subscribe channel close");
     });
-    return channel;
+    return subscribeChannel;
   } catch (err) {
     sendLogTelegram("RABBITMQ::CREATE\n" + err);
   }
