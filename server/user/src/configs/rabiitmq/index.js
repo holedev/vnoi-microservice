@@ -4,23 +4,46 @@ import { sendLogTelegram } from "../../utils/telegram.js";
 import { logInfo } from "./log.js";
 
 let amqplibConnection = null;
+let subscribeChannel = null;
+let channel = null;
 
-const createChannel = async () => {
+const getConn = async () => {
+  if (amqplibConnection === null) {
+    amqplibConnection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
+  }
+  amqplibConnection.on("close", () => console.log("Connect close!"));
+  return amqplibConnection;
+};
+
+const getChannel = async () => {
   try {
-    const connection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
-    const channel = await connection.createChannel();
-    await channel.assertExchange(_EXCHANGE.USER_EXCHANGE, "fanout", { durable: true });
+    const connection = await getConn();
+    if (channel === null) {
+      channel = await connection.createChannel();
+      await channel.assertExchange(_EXCHANGE.USER_EXCHANGE, "fanout", { durable: true });
+    }
+    channel.on("close", () => {
+      console.log("Channel close");
+    });
     return channel;
   } catch (err) {
     sendLogTelegram("RABBITMQ::CREATE\n" + err);
   }
 };
 
-const getChannel = async () => {
-  if (amqplibConnection === null) {
-    amqplibConnection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
+const getSubscribeChannel = async () => {
+  try {
+    const connection = await getConn();
+    if (subscribeChannel === null) {
+      subscribeChannel = await connection.createChannel();
+    }
+    subscribeChannel.on("close", () => {
+      console.log("Subscribe channel close");
+    });
+    return channel;
+  } catch (err) {
+    sendLogTelegram("RABBITMQ::CREATE\n" + err);
   }
-  return await amqplibConnection.createChannel();
 };
 
 const publishMessage = async (msg) => {
@@ -32,10 +55,8 @@ const publishMessage = async (msg) => {
   }
 };
 
-const subscribeMessage = async (service) => {
+const subscribeMessage = async (channel, service) => {
   try {
-    const channel = await getChannel();
-
     await channel.assertExchange(_EXCHANGE.CLASS_EXCHANGE, "fanout", { durable: true });
     const q = await channel.assertQueue(_PROCESS_ENV.SERVICE_NAME, {
       durable: true
@@ -66,4 +87,4 @@ const subscribeMessage = async (service) => {
   }
 };
 
-export { createChannel, subscribeMessage, publishMessage, getChannel };
+export { getSubscribeChannel, subscribeMessage, publishMessage, getChannel };

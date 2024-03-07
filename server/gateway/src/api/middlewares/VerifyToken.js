@@ -2,7 +2,7 @@ import admin from "firebase-admin";
 import uuidv4 from "uuid4";
 import { UnauthorizeError } from "../responses/errors/UnauthorizeError.js";
 
-const verifyToken = async (req, res, next) => {
+const VerifyToken = async (req, res, next) => {
   if (req.method === "OPTIONS") return next();
 
   try {
@@ -28,4 +28,4 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
-export { verifyToken };
+export { VerifyToken };

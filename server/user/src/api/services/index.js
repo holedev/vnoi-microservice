@@ -5,7 +5,7 @@ import { UserModel } from "../models/User.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 import { ConflictError } from "../responses/errors/ConflictError.js";
 import { ForbiddenError } from "../responses/errors/ForbiddenError.js";
-import { gRPCRequest } from "./grpc.js";
+import { gRPCRequest } from "./gRPC.js";
 import { publishMessage } from "../../configs/rabiitmq/index.js";
 
 const _EMAIL_WHITE_LIST = ["phanleho002@gmail.com"];

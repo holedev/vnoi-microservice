@@ -3,28 +3,34 @@ import { _ACTION, _PROCESS_ENV, _SERVICE } from "../env/index.js";
 import { sendLogTelegram } from "../../utils/telegram.js";
 
 let amqplibConnection = null;
+let channel = null;
 
-const createChannel = async () => {
+const getConn = async () => {
+  if (amqplibConnection === null) {
+    amqplibConnection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
+  }
+  amqplibConnection.on("close", () => console.log("Connect close!"));
+  return amqplibConnection;
+};
+
+const getChannel = async () => {
   try {
-    const connection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
-    const channel = await connection.createChannel();
+    const connection = await getConn();
+    if (channel === null) {
+      channel = await connection.createChannel();
+    }
+    channel.on("close", () => {
+      console.log("Channel close");
+    });
     return channel;
   } catch (err) {
     sendLogTelegram("RABBITMQ::CREATE\n" + err);
   }
 };
 
-const getChannel = async () => {
-  if (amqplibConnection === null) {
-    amqplibConnection = await amqplib.connect(_PROCESS_ENV.RABBITMQ_URL);
-  }
-  return await amqplibConnection.createChannel();
-};
-
 const logging = async (req, data, action) => {
   try {
     const channel = await getChannel();
-
     const dateOptions = {
       day: "2-digit",
       month: "2-digit",
@@ -84,4 +90,4 @@ const logging = async (req, data, action) => {
 const logInfo = (req, data) => logging(req, data, _ACTION.LOGGING_INFO);
 const logError = (req, data) => logging(req, data, _ACTION.LOGGING_ERROR);
 
-export { createChannel, logInfo, logError };
+export { logInfo, logError };

@@ -5,8 +5,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "cross-env NODE_ENV=dev nodemon server.js",
-    "prod": "cross-env NODE_ENV=prod node server.js",
+    "dev": "cross-env NODE_ENV=dev nodemon index.js",
+    "prod": "cross-env NODE_ENV=prod node index.js",
     "test": "jest --forceExit --passWithNoTests --detectOpenHandles"
   },
   "keywords": [],

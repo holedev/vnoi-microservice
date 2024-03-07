@@ -3,7 +3,7 @@ import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 import { ConflictError } from "../responses/errors/ConflictError.js";
 import { ForbiddenError } from "../responses/errors/ForbiddenError.js";
 import { FormatData } from "../responses/formatData/index.js";
-import { ClassModel } from "../models/class.js";
+import { ClassModel } from "../models/Class.js";
 import { publishMessage } from "../../configs/rabiitmq/index.js";
 
 const CommonService = {

@@ -6,7 +6,7 @@ import compression from "compression";
 import helmet from "helmet";
 import { _PROCESS_ENV } from "./src/configs/env/index.js";
 import { _PROXY_CONFIG } from "./src/configs/proxy/index.js";
-import { verifyToken } from "./src/api/middlewares/verifyToken.js";
+import { VerifyToken } from "./src/api/middlewares/VerifyToken.js";
 import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
 import { apiFilter } from "./src/api/middlewares/apiFilter.js";
 import { firebaseInit } from "./src/configs/firebase/index.js";
@@ -30,7 +30,7 @@ app.use(
   compression()
 );
 
-app.use(verifyToken);
+app.use(VerifyToken);
 
 // logger
 
