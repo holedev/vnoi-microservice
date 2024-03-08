@@ -206,8 +206,7 @@ export default function Sidebar() {
         className="toggle-sidebar"
         sx={{
           position: "absolute",
-          top: "50%",
-
+          top: "100%",
           right: 0,
           transform: "translate(50%, -50%)",
         }}
