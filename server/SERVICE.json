@@ -1,11 +1,11 @@
 {
   "GATEWAY_SERVICE": {
     "NAME": "GATEWAY-SERVICE",
-    "PORT": 8000
+    "PORT": 9000
   },
   "COMMON_SERVICE": {
     "NAME": "COMMON-SERVICE",
-    "PORT": 8001,
+    "PORT": 9001,
     "PATH": "/common",
     "GRPC_PROTO_PATH": "../protos/common.proto",
     "GRPC_SERVICE_NAME": "Common",
@@ -14,7 +14,7 @@
   },
   "USER_SERVICE": {
     "NAME": "USER-SERVICE",
-    "PORT": 8002,
+    "PORT": 9002,
     "PATH": "/user",
     "GRPC_PROTO_PATH": "../protos/user.proto",
     "GRPC_SERVICE_NAME": "User",
@@ -23,14 +23,14 @@
   },
   "EXERCISE_SERVICE": {
     "NAME": "EXERCISE-SERVICE",
-    "PORT": 8003,
+    "PORT": 9003,
     "PATH": "/exercise",
     "GRPC_HOST": "localhost",
     "GRPC_PORT": 50003
   },
   "COMPILER_SERVICE": {
     "NAME": "COMPILER-SERVICE",
-    "PORT": 8004,
+    "PORT": 9004,
     "GRPC_PROTO_PATH": "../protos/compiler.proto",
     "GRPC_SERVICE_NAME": "Compiler",
     "GRPC_HOST": "localhost",
@@ -38,6 +38,6 @@
   },
   "LOGGING_SERVICE": {
     "NAME": "LOGGING-SERVICE",
-    "PORT": 8005
+    "PORT": 9005
   }
 }
