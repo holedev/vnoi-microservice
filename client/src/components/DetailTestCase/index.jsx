@@ -1,27 +1,56 @@
-import { AccessTimeFilled } from "@mui/icons-material";
-import styles from "./DetailTestCase.module.css";
-import { Box, Chip } from "@mui/material";
-import { ReactMarkdown } from "react-markdown/lib/react-markdown";
-import gfm from "remark-gfm";
+import { AccessTimeFilled } from '@mui/icons-material';
+import styles from './DetailTestCase.module.css';
+import { Box, Chip } from '@mui/material';
+import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
+import gfm from 'remark-gfm';
+import { Fragment } from 'react';
 
 function DetailTestCase({ problem }) {
     const customComponents = {
         table: (props) => (
-            <table style={{ borderCollapse: "collapse" }}>
+            <table style={{ borderCollapse: 'collapse' }}>
                 {props.children}
             </table>
         ),
-        th: (props) => (
-            <th style={{ padding: "6px 13px", border: "1px solid black" }}>
-                {props.children}
-            </th>
-        ),
-        td: (props) => (
-            <td style={{ padding: "6px 13px", border: "1px solid black" }}>
-                {props.children}
-            </td>
-        ),
-        p: (props) => <p style={{ lineHeight: "1.5" }}>{props.children}</p>,
+        th: (props) => {
+            const data = props.children[0].split('\\hehe');
+            return (
+                <th
+                    style={{
+                        verticalAlign: 'top',
+                        padding: '6px 13px',
+                        border: '1px solid black',
+                    }}
+                >
+                    {data.map((item, index) => (
+                        <Fragment key={index}>
+                            {item}
+                            {index < data.length - 1 && <br />}
+                        </Fragment>
+                    ))}
+                </th>
+            );
+        },
+        td: (props) => {
+            const data = props.children[0].split('\\hehe');
+            return (
+                <td
+                    style={{
+                        verticalAlign: 'top',
+                        padding: '6px 13px',
+                        border: '1px solid black',
+                    }}
+                >
+                    {data.map((item, index) => (
+                        <Fragment key={index}>
+                            {item}
+                            {index < data.length - 1 && <br />}
+                        </Fragment>
+                    ))}
+                </td>
+            );
+        },
+        p: (props) => <p style={{ lineHeight: '1.5' }}>{props.children}</p>,
     };
 
     return (
@@ -30,21 +59,21 @@ function DetailTestCase({ problem }) {
                 <div className={styles.headingLeft}>
                     <h3
                         style={{
-                            margin: "12px 0",
+                            margin: '12px 0',
                         }}
                     >
                         {problem.title}
                     </h3>
                     <Chip
                         sx={{
-                            marginLeft: "4px",
+                            marginLeft: '4px',
                         }}
                         label={
                             problem.level == 0
-                                ? "Easy"
+                                ? 'Easy'
                                 : problem.level == 1
-                                ? "Medium"
-                                : "Hard"
+                                ? 'Medium'
+                                : 'Hard'
                         }
                     />
                 </div>
@@ -52,7 +81,7 @@ function DetailTestCase({ problem }) {
                     <div className={styles.headingRight}>
                         <Chip
                             icon={<AccessTimeFilled />}
-                            label={problem.testTime + " min"}
+                            label={problem.testTime + ' min'}
                         />
                     </div>
                 )}
