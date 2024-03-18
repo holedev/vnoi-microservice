@@ -11,7 +11,7 @@ function DetailTestCase({ problem }) {
       <table style={{ borderCollapse: 'collapse' }}>{props.children}</table>
     ),
     th: (props) => {
-      const data = props.children[0]?.split('\\hehe');
+      const data = props?.children[0]?.split('\\hehe');
       return (
         <th
           style={{
@@ -31,7 +31,7 @@ function DetailTestCase({ problem }) {
       );
     },
     td: (props) => {
-      const data = props.children[0]?.split('\\hehe');
+      const data = props?.children[0]?.split('\\hehe');
       return (
         <td
           style={{
