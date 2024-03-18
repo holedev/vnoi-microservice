@@ -10,8 +10,11 @@ export const runSchema = Joi.object({
     .required()
     .trim()
     .strict()
-    .regex(/main/)
-    .label('Code editor'),
+    .pattern(/main()/)
+    .label('Code editor')
+    .messages({
+      'string.pattern.base': `Code must be have main function (main()).`,
+    }),
   testcases: Joi.object({
     input: Joi.array().items(Joi.any()).required(),
     output: Joi.array().items(Joi.any()).required(),
@@ -28,8 +31,11 @@ export const submitSchema = Joi.object({
     .required()
     .trim()
     .strict()
-    .regex(/main/)
-    .label('Code editor'),
+    .pattern(/main()/)
+    .label('Code editor')
+    .messages({
+      'string.pattern.base': `Code must be have main function (main()).`,
+    }),
 });
 
 export const handleValidate = (schema, data) => {
