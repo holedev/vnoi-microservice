@@ -1,9 +1,9 @@
-import styles from "./ProblemDetail.module.css";
-import { useEffect, useState } from "react";
-import CodeMirror from "@uiw/react-codemirror";
-import { okaidia } from "@uiw/codemirror-theme-okaidia";
-import { cpp } from "@codemirror/lang-cpp";
-import Split from "react-split";
+import styles from './ProblemDetail.module.css';
+import { useEffect, useState } from 'react';
+import CodeMirror from '@uiw/react-codemirror';
+import { okaidia } from '@uiw/codemirror-theme-okaidia';
+import { cpp } from '@codemirror/lang-cpp';
+import Split from 'react-split';
 import {
   Alert,
   Button,
@@ -11,22 +11,22 @@ import {
   CircularProgress,
   Modal,
   Tab,
-} from "@mui/material";
-import { TabContext, TabList, TabPanel } from "@mui/lab";
-import { Box } from "@mui/system";
-import clsx from "clsx";
-import { useParams } from "react-router-dom";
-import DetailTestCase from "~/components/DetailTestCase";
-import useUserContext from "~/hook/useUserContext";
-import { handleTimeProblem } from "~/utils/datetime";
-import { loadingToast, updateToast } from "~/utils/toast";
-import useAxiosAPI from "~/hook/useAxiosAPI";
-import Action from "./Action";
-import Testcase from "./Testcase";
-import Submission from "./Submission";
-import { handleValidate, runSchema, submitSchema } from "./validation";
-import { toast } from "react-toastify";
-import useLoadingContext from "~/hook/useLoadingContext";
+} from '@mui/material';
+import { TabContext, TabList, TabPanel } from '@mui/lab';
+import { Box } from '@mui/system';
+import clsx from 'clsx';
+import { useParams } from 'react-router-dom';
+import DetailTestCase from '~/components/DetailTestCase';
+import useUserContext from '~/hook/useUserContext';
+import { handleTimeProblem } from '~/utils/datetime';
+import { loadingToast, updateToast } from '~/utils/toast';
+import useAxiosAPI from '~/hook/useAxiosAPI';
+import Action from './Action';
+import Testcase from './Testcase';
+import Submission from './Submission';
+import { handleValidate, runSchema, submitSchema } from './validation';
+import { toast } from 'react-toastify';
+import useLoadingContext from '~/hook/useLoadingContext';
 
 const ProblemsDetail = () => {
   const { slug } = useParams();
@@ -41,8 +41,8 @@ const ProblemsDetail = () => {
   const [isLoad, setIsLoad] = useState(false);
   const [submissions, setSubmissions] = useState([]);
   const [testcases, setTestcases] = useState([]);
-  const [code, setCode] = useState("");
-  const [tab, setTab] = useState("1");
+  const [code, setCode] = useState('');
+  const [tab, setTab] = useState('1');
 
   const getProblem = async (slug) => {
     if (loading) return;
@@ -67,7 +67,7 @@ const ProblemsDetail = () => {
       .catch((err) => {
         err.response.status === 409
           ? toast.error(err.response.data.message)
-          : toast.error("Bad Request!");
+          : toast.error('Bad Request!');
       })
       .finally(() => setLoading(false));
   };
@@ -79,7 +79,7 @@ const ProblemsDetail = () => {
   const handleRun = async () => {
     if (isLoad) return;
     setIsLoad(true);
-    const input = testcases.map((tc) => tc.input.join("\n") + "\n");
+    const input = testcases.map((tc) => tc.input.join('\n') + '\n');
     const output = testcases.map((tc) => tc.output);
 
     const data = {
@@ -96,25 +96,29 @@ const ProblemsDetail = () => {
     };
 
     const error = handleValidate(runSchema, data);
-    if (error) return toast.error(error);
+    if (error) {
+      setIsLoad(false);
+      toast.error(error);
+      return;
+    }
 
     setErrRun(null);
     setResultCheck(null);
-    const toastID = loadingToast("Running ...");
+    const toastID = loadingToast('Running ...');
     await axiosAPI
       .post(`${endpoints.problems}/run`, data)
       .then((res) => {
         const results = res.data.data;
         setResultCheck(results);
-        updateToast(toastID, "Running success!", "success");
+        updateToast(toastID, 'Running success!', 'success');
       })
       .catch((err) => {
         err.response.status === 400 && console.log(err?.response?.data.message);
         (err?.response?.data.message && err.response?.status === 422) ||
         err.response?.status === 400
           ? setErrRun(err.response?.data.message)
-          : setErrRun("Bad Request!");
-        updateToast(toastID, "Something went wrong!", "error");
+          : setErrRun('Bad Request!');
+        updateToast(toastID, 'Something went wrong!', 'error');
       })
       .finally(() => setIsLoad(false));
   };
@@ -132,14 +136,18 @@ const ProblemsDetail = () => {
     };
 
     const error = handleValidate(submitSchema, data);
-    if (error) return toast.error(error);
+    if (error) {
+      setIsLoad(false);
+      toast.error(error);
+      return;
+    }
 
-    const toastID = loadingToast("Submitting ...");
-    setTab("2");
+    const toastID = loadingToast('Submitting ...');
+    setTab('2');
     await axiosAPI
       .post(endpoints.submissions, data)
       .then((res) => {
-        updateToast(toastID, "Submited!", "success");
+        updateToast(toastID, 'Submited!', 'success');
         const data = res.data.data;
         const { submitRemain, ...rest } = data;
         setSubmissions((prev) => {
@@ -155,8 +163,8 @@ const ProblemsDetail = () => {
       .catch((err) =>
         updateToast(
           toastID,
-          err?.response?.data.message || "Submit failure!",
-          "error"
+          err?.response?.data.message || 'Submit failure!',
+          'error'
         )
       )
       .finally(() => setIsLoad(false));
@@ -172,14 +180,14 @@ const ProblemsDetail = () => {
       gutterSize={5}
       sizes={[50, 50]}
       minSize={500}
-      className={clsx("split", styles.wrapper)}
+      className={clsx('split', styles.wrapper)}
     >
       <Box className={styles.testDesc}>
-        <TabContext sx={{ flex: 1, display: "flex" }} value={tab}>
+        <TabContext sx={{ flex: 1, display: 'flex' }} value={tab}>
           <Box
             sx={{
               borderBottom: 1,
-              borderColor: "divider",
+              borderColor: 'divider',
             }}
           >
             <TabList onChange={handleChange}>
@@ -189,7 +197,7 @@ const ProblemsDetail = () => {
           </Box>
           <TabPanel
             style={{
-              padding: "4px 12px",
+              padding: '4px 12px',
             }}
             value="1"
           >
@@ -202,8 +210,8 @@ const ProblemsDetail = () => {
           <TabPanel
             sx={{
               flex: 1,
-              display: "flex",
-              overflowY: "hidden",
+              display: 'flex',
+              overflowY: 'hidden',
             }}
             value="2"
           >
@@ -244,27 +252,27 @@ const ProblemsDetail = () => {
 
       <Modal
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
         open={consoleP}
         onClose={() => setConsoleP(false)}
       >
         <Box className={styles.modalBody}>
           <TabContext value="3">
-            <Box sx={{ borderBottom: 1, borderColor: "" }}>
+            <Box sx={{ borderBottom: 1, borderColor: '' }}>
               <TabList>
                 <Tab label="Testcase" value="3" />
               </TabList>
             </Box>
             <TabPanel
               sx={{
-                padding: "4px 12px",
-                maxHeight: "calc(100vh - 160px)",
-                overflowY: "auto",
-                "&::-webkit-scrollbar": {
-                  display: "none",
+                padding: '4px 12px',
+                maxHeight: 'calc(100vh - 160px)',
+                overflowY: 'auto',
+                '&::-webkit-scrollbar': {
+                  display: 'none',
                 },
               }}
               value="3"
@@ -272,16 +280,16 @@ const ProblemsDetail = () => {
               {resultCheck && (
                 <Box
                   sx={{
-                    marginTop: "6px",
+                    marginTop: '6px',
                   }}
                 >
                   <Alert severity="info">
                     Pass: {resultCheck.pass}
                     <Chip
                       style={{
-                        marginLeft: "4px",
+                        marginLeft: '4px',
                       }}
-                      component={"span"}
+                      component={'span'}
                       label={`${resultCheck.time}s`}
                       size="small"
                       variant="outlined"
@@ -293,7 +301,7 @@ const ProblemsDetail = () => {
               {errRun && (
                 <Box
                   sx={{
-                    marginTop: "6px",
+                    marginTop: '6px',
                   }}
                 >
                   <Alert severity="error">
@@ -320,12 +328,12 @@ const ProblemsDetail = () => {
           </TabContext>
           <Box
             sx={{
-              padding: "4px 12px",
+              padding: '4px 12px',
             }}
           >
             <Button
               onClick={handleRun}
-              sx={{ width: "100%" }}
+              sx={{ width: '100%' }}
               variant="outlined"
             >
               Run
