@@ -12,7 +12,11 @@ function Editor({ state, setState }) {
       <table style={{ borderCollapse: 'collapse' }}>{props.children}</table>
     ),
     th: (props) => {
-      const data = props?.children[0]?.split('\\hehe');
+      const value = props.children;
+      if (!value) {
+        return <th style={{ border: '1px solid black' }}></th>;
+      }
+      const data = value[0]?.split('\\hehe');
       return (
         <th
           style={{
@@ -32,7 +36,12 @@ function Editor({ state, setState }) {
       );
     },
     td: (props) => {
-      const data = props?.children[0]?.split('\\hehe');
+      const value = props.children;
+      if (!value) {
+        return <td style={{ border: '1px solid black' }}></td>;
+      }
+
+      const data = value[0]?.split('\\hehe');
       return (
         <td
           style={{
