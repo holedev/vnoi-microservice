@@ -17,6 +17,7 @@ function DetailTestCase({ problem }) {
       if (!value) {
         return <th style={{ border: '1px solid black' }}></th>;
       }
+    
       const data = value[0]?.split('\\hehe');
       return (
         <th
