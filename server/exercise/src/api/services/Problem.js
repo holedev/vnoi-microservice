@@ -9,6 +9,9 @@ import { requestAsync } from "../../configs/rabiitmq/index.js";
 import { gRPCRequest } from "./gRPC.js";
 import { BadRequestError } from "../responses/errors/BadRequestError.js";
 import { handleTime } from "../../utils/index.js";
+import { setProblemStatus } from "../../utils/firebase.js";
+import { decode } from "../../utils/judge0.js";
+import { judge0Service } from "./judge0.js";
 
 const _COMPETITION_CLASS_NAME = "COMPETITION";
 
@@ -27,28 +30,35 @@ const ProblemService = {
       initCode,
       solution,
       script,
-      alwayOpen
+      alwayOpen,
+      langIdSolution,
+      timeLimit,
+      memoryLimit,
+      stackLimit,
+      availableLanguages
     } = req.body;
 
     const uuid = uuidv4();
     let solutionCode = solution.slice(3, -3);
 
-    const payload = {
-      requestId,
-      action: _ACTION.PROBLEM_CREATE,
-      data: {
-        uuid,
-        author: _id,
-        solutionCode,
-        script
-      }
-    };
+    const inputs = [];
 
-    const data = await requestAsync(_SERVICE.COMPILER_SERVICE.NAME, payload);
+    const submissions = script.data.map((stdin) => {
+      inputs.push(stdin.trim());
+      return {
+        language_id: langIdSolution,
+        source_code: solutionCode,
+        stdin: stdin.trim(),
+        cpu_time_limit: timeLimit,
+        memory_limit: memoryLimit,
+        stack_limit: stackLimit
+      };
+    });
 
-    if (data.code !== _RESPONSE_SERVICE.SUCCESS) {
-      throw new BadRequestError(data.message || "Something went wrong!");
-    }
+    const submissionTokens = await judge0Service.getSubmissionBatchTokens(submissions);
+
+    setProblemStatus(uuid, "processing");
+    judge0Service.checkProblemStatus(uuid, submissionTokens);
 
     const classGRPC = await gRPCRequest.getClassByIdAsync(requestId, classCurr);
     const userGRPC = await gRPCRequest.getUserByIdAsync(requestId, _id);
@@ -65,11 +75,17 @@ const ProblemService = {
       initCode,
       solution,
       testcases: {
+        input: inputs.join(_PROCESS_ENV.STRING_SPLIT_CODE),
         generateCode: script.generateCode ? script.generateCode : null,
         quantity: parseInt(script.quantity),
         file: script.file
       },
-      alwayOpen
+      alwayOpen,
+      langIdSolution,
+      timeLimit,
+      memoryLimit,
+      stackLimit,
+      availableLanguages
     };
 
     const problem = await ProblemModel.create(dataCreate);
@@ -80,33 +96,25 @@ const ProblemService = {
     });
   },
   runTest: async (req, res) => {
-    const requestId = req.headers["x-request-id"];
-    const _id = req.headers["x-user-id"];
     const { problem, code, testcases } = req.body;
     const uuid = uuidv4();
 
-    const payload = {
-      requestId,
-      action: _ACTION.PROBLEM_RUN,
-      data: {
-        uuid,
-        user: _id,
-        problem,
-        code,
-        testcases
-      }
-    };
-
-    const data = await requestAsync(_SERVICE.COMPILER_SERVICE.NAME, payload);
-
-    if (data.code !== _RESPONSE_SERVICE.SUCCESS) {
-      throw new BadRequestError(data.message || "Something went wrong!");
-    }
-
-    return res.status(httpStatusCodes.OK).json({
-      status: "success",
-      data: data.message
+    const submissions = testcases.map((stdin) => {
+      return {
+        language_id: code.langIdSolution,
+        source_code: code.text.trim(),
+        stdin: stdin.input[0].trim(),
+        expected_output: stdin.output[0].trim(),
+        cpu_time_limit: problem.timeLimit,
+        memory_limit: problem.memoryLimit,
+        stack_limit: problem.stackLimit
+      };
     });
+
+    const submissionTokens = await judge0Service.getSubmissionBatchTokens(submissions);
+    judge0Service.checkRunConsoleStatus(uuid, submissionTokens);
+
+    return res.status(httpStatusCodes.OK).json({ status: "success", data: { uuid } });
   },
   updateProblemByLecturer: async (req, res) => {
     const requestId = req.headers["x-request-id"];
@@ -179,6 +187,23 @@ const ProblemService = {
       data: problem
     });
   },
+  updateProblemStatusByUUID: async (uuid, status, data) => {
+    const problem = await ProblemModel.findOne({ uuid });
+
+    if (!problem) {
+      throw new ConflictError("Problem not found!");
+    }
+
+    problem.status = status;
+    problem.testcases.submissions = data.map((submission) => submission.token);
+
+    if (status === "success") {
+      const outputs = data.map((submission) => decode(submission.stdout));
+      problem.testcases.output = outputs.join(_PROCESS_ENV.STRING_SPLIT_CODE);
+    }
+
+    await problem.save();
+  },
   getBySlug: async (req, res) => {
     const requestId = req.headers["x-request-id"];
     const _id = req.headers["x-user-id"];
@@ -211,9 +236,28 @@ const ProblemService = {
       quantitySubmit ? _PROCESS_ENV.MAX_SUBMISSION - quantitySubmit : _PROCESS_ENV.MAX_SUBMISSION
     );
 
-    const { submitList, ...rest } = problem;
+    // eslint-disable-next-line no-unused-vars
+    const { submitList, testcases: tc, ...rest } = problem;
 
-    const { testcases } = await gRPCRequest.getTestcasesOfProblemAsync(requestId, problem.uuid, problem.author._id);
+    if (!problem.testcases?.output) {
+      throw new ConflictError("Testcases not found!");
+    }
+
+    const inputList = problem.testcases.input.split(_PROCESS_ENV.STRING_SPLIT_CODE);
+    const outputList = problem.testcases.output.split(_PROCESS_ENV.STRING_SPLIT_CODE);
+
+    const testcases = [];
+
+    for (let i = 0; i < 3; i++) {
+      const obj = {
+        input: [],
+        output: []
+      };
+
+      obj.input.push(inputList[i]);
+      obj.output.push(outputList[i]);
+      testcases.push(obj);
+    }
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",
@@ -222,7 +266,7 @@ const ProblemService = {
           ...rest,
           submitRemain
         },
-        testcases: JSON.parse(testcases)
+        testcases
       }
     });
   },
@@ -448,7 +492,7 @@ const ProblemService = {
     })
 
       .lean()
-      .select("title author class timeStart testTime timeEnd slug submitList")
+      .select("title uuid author class timeStart testTime timeEnd slug submitList status")
       .sort({
         timeStart: -1
       });

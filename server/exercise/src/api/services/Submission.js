@@ -8,6 +8,7 @@ import { NotFoundError } from "../responses/errors/NotFoundError.js";
 import { ConflictError } from "../responses/errors/ConflictError.js";
 import { BadRequestError } from "../responses/errors/BadRequestError.js";
 import { gRPCRequest } from "./gRPC.js";
+import { judge0Service } from "./judge0.js";
 
 async function getBestSubmission(userId, problemId, withoutSubmissionId) {
   const submissions = await SubmissionModel.find({
@@ -99,48 +100,90 @@ const SubmissionService = {
       );
     }
 
-    const payload = {
-      requestId,
-      action: _ACTION.PROBLEM_SUBMIT,
-      data: {
-        uuid,
-        user: _id,
-        problem,
-        code
-      }
-    };
+    const submitRemain = userSubmission
+      ? _PROCESS_ENV.MAX_SUBMISSION - userSubmission?.submissionTotal
+      : _PROCESS_ENV.MAX_SUBMISSION - 1;
 
-    const data = await requestAsync(_SERVICE.COMPILER_SERVICE.NAME, payload);
+    const inputs = problemDoc.testcases.input.split(_PROCESS_ENV.STRING_SPLIT_CODE);
+    const outputs = problemDoc.testcases.output.split(_PROCESS_ENV.STRING_SPLIT_CODE);
 
-    if (data.code !== _RESPONSE_SERVICE.SUCCESS) {
-      throw new BadRequestError(data.message || "Something went wrong!");
+    if (inputs.length !== outputs.length) {
+      throw new BadRequestError("Problem testcases invalid!");
     }
 
-    const result = data.message;
+    const submissions = inputs.map((stdin, idx) => {
+      return {
+        language_id: code.langIdSolution,
+        source_code: code.text.trim(),
+        stdin: stdin.trim(),
+        expected_output: outputs[idx].trim(),
+        cpu_time_limit: problem.timeLimit,
+        memory_limit: problem.memoryLimit,
+        stack_limit: problem.stackLimit
+      };
+    });
 
-    const score = parseFloat((result.pass / result.total) * 10).toFixed(2);
+    const submissionTokens = await judge0Service.getSubmissionBatchTokens(submissions);
+    judge0Service.checkSubmissionStatus(
+      uuid,
+      submissionTokens,
+      problemDoc._id,
+      code,
+      requestReceivedAt,
+      requestId,
+      _id
+    );
 
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: {
+        uuid,
+        submitRemain
+      }
+    });
+  },
+  updateSubmissionByUUID: async ({ result, tokens, requestId, _id, requestReceivedAt, uuid, problemId, code }) => {
     const userGRPC = await gRPCRequest.getUserByIdAsync(requestId, _id);
 
     const submission = await SubmissionModel.create({
-      author: userGRPC,
-      problem: problem._id,
-      solution: code,
-      pass: `${result.pass}/${result.total}`,
-      score,
       uuid,
-      time: result.time,
-      requestReceivedAt
+      author: userGRPC,
+      problem: problemId,
+      langIdSolution: code.langIdSolution,
+      solution: code.text.trim(),
+      pass: `${result.pass}/${result.total}`,
+      score: result.score,
+      timeAvg: result.timeAvg,
+      memoryAvg: result.memoryAvg,
+      requestReceivedAt,
+      tokens: tokens
     });
 
     if (!submission) {
       throw new ConflictError("Submit failed!");
     }
 
+    const problemDoc = await ProblemModel.findOne({
+      _id: problemId,
+      isDeleted: false
+    });
+
+    if (!problemDoc) {
+      throw new NotFoundError("Problem not found!");
+    }
+
+    if (!problemDoc.alwayOpen) {
+      if (requestReceivedAt < new Date(problemDoc.timeStart) || requestReceivedAt > new Date(problemDoc.timeEnd)) {
+        throw new ConflictError("Problem is not available now!");
+      }
+    }
+
+    const userSubmission = problemDoc.submitList.find((s) => s.userId?.toString() === _id);
+
     if (userSubmission) {
       userSubmission.submissionTotal += 1;
-      if (score > userSubmission.maxScore) {
-        userSubmission.maxScore = score;
+      if (result.score > userSubmission.maxScore) {
+        userSubmission.maxScore = result.score;
         userSubmission.submissionId = submission._id;
       }
     } else {
@@ -148,26 +191,12 @@ const SubmissionService = {
         userId: _id,
         submissionId: submission._id,
         submissionTotal: 1,
-        maxScore: score
+        maxScore: result.score
       };
       problemDoc.submitList.push(obj);
     }
 
     await problemDoc.save();
-
-    const submitRemain = userSubmission
-      ? _PROCESS_ENV.MAX_SUBMISSION - userSubmission?.submissionTotal
-      : _PROCESS_ENV.MAX_SUBMISSION - 1;
-
-    const { createdAt, updatedAt, __v, author, problem: pb, uuid: u, ...rest } = submission._doc;
-
-    return res.status(httpStatusCodes.OK).json({
-      status: "success",
-      data: {
-        ...rest,
-        submitRemain
-      }
-    });
   },
   getSubmissionOfUser: async (req, res) => {
     const _id = req.headers["x-user-id"];
@@ -178,7 +207,7 @@ const SubmissionService = {
     })
       .lean()
       .sort({ requestReceivedAt: -1 })
-      .select("_id pass score solution time requestReceivedAt");
+      .select("uuid pass score solution langIdSolution timeAvg memoryAvg requestReceivedAt");
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",

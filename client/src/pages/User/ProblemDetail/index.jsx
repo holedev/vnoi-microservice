@@ -27,6 +27,8 @@ import Submission from './Submission';
 import { handleValidate, runSchema, submitSchema } from './validation';
 import { toast } from 'react-toastify';
 import useLoadingContext from '~/hook/useLoadingContext';
+import DropdownLanguage from '~/components/Editor/DropdownLanguage';
+import { checkRunConsolesQueue, checkSubmissionsQueue } from '~/utils/firebase';
 
 const ProblemsDetail = () => {
   const { slug } = useParams();
@@ -41,8 +43,12 @@ const ProblemsDetail = () => {
   const [isLoad, setIsLoad] = useState(false);
   const [submissions, setSubmissions] = useState([]);
   const [testcases, setTestcases] = useState([]);
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState({
+    langIdSolution: '',
+    text: '',
+  });
   const [tab, setTab] = useState('1');
+  const [uuid, setUuid] = useState(null);
 
   const getProblem = async (slug) => {
     if (loading) return;
@@ -55,13 +61,18 @@ const ProblemsDetail = () => {
           data.problem.timeStart,
           data.problem.testTime
         );
+
         const problem = {
           ...data.problem,
           timeEnd: end,
           isValid,
         };
+
         setProblem(problem);
-        setCode(data.problem?.initCode.slice(3, -3));
+        setCode({
+          langIdSolution: data.problem?.langIdSolution,
+          text: data.problem?.initCode.slice(3, -3),
+        });
         setTestcases(data.testcases);
       })
       .catch((err) => {
@@ -72,27 +83,37 @@ const ProblemsDetail = () => {
       .finally(() => setLoading(false));
   };
 
-  const handleChange = (event, newValue) => {
+  const handleChangeTab = (event, newValue) => {
     setTab(newValue);
+  };
+
+  const handleChangeLanguage = (langIdSolution) => {
+    setCode((prev) => {
+      return {
+        ...prev,
+        langIdSolution: langIdSolution,
+      };
+    });
   };
 
   const handleRun = async () => {
     if (isLoad) return;
     setIsLoad(true);
-    const input = testcases.map((tc) => tc.input.join('\n') + '\n');
-    const output = testcases.map((tc) => tc.output);
 
     const data = {
       problem: {
         _id: problem._id,
         author: problem.author._id,
         uuid: problem.uuid,
+        timeLimit: problem.timeLimit,
+        memoryLimit: problem.memoryLimit,
+        stackLimit: problem.stackLimit,
       },
-      code: code.trim(),
-      testcases: {
-        input,
-        output,
+      code: {
+        langIdSolution: code.langIdSolution,
+        text: code.text.trim(),
       },
+      testcases,
     };
 
     const error = handleValidate(runSchema, data);
@@ -104,13 +125,13 @@ const ProblemsDetail = () => {
 
     setErrRun(null);
     setResultCheck(null);
-    const toastID = loadingToast('Running ...');
+
     await axiosAPI
       .post(`${endpoints.problems}/run`, data)
       .then((res) => {
-        const results = res.data.data;
-        setResultCheck(results);
-        updateToast(toastID, 'Running success!', 'success');
+        const data = res.data.data;
+        const { uuid } = data;
+        setUuid(uuid);
       })
       .catch((err) => {
         err.response.status === 400 && console.log(err?.response?.data.message);
@@ -118,7 +139,6 @@ const ProblemsDetail = () => {
         err.response?.status === 400
           ? setErrRun(err.response?.data.message)
           : setErrRun('Bad Request!');
-        updateToast(toastID, 'Something went wrong!', 'error');
       })
       .finally(() => setIsLoad(false));
   };
@@ -126,13 +146,20 @@ const ProblemsDetail = () => {
   const handleSubmit = async () => {
     if (isLoad) return;
     setIsLoad(true);
+
     const data = {
       problem: {
         _id: problem._id,
         author: problem.author._id,
         uuid: problem.uuid,
+        timeLimit: problem.timeLimit,
+        memoryLimit: problem.memoryLimit,
+        stackLimit: problem.stackLimit,
       },
-      code: code.trim(),
+      code: {
+        langIdSolution: code.langIdSolution,
+        text: code.text.trim(),
+      },
     };
 
     const error = handleValidate(submitSchema, data);
@@ -147,18 +174,16 @@ const ProblemsDetail = () => {
     await axiosAPI
       .post(endpoints.submissions, data)
       .then((res) => {
-        updateToast(toastID, 'Submited!', 'success');
         const data = res.data.data;
-        const { submitRemain, ...rest } = data;
-        setSubmissions((prev) => {
-          return [rest, ...prev];
-        });
+        const { submitRemain, uuid } = data;
         setProblem((prev) => {
           return {
             ...prev,
-            submitRemain,
+            submitRemain: submitRemain - 1,
           };
         });
+        updateToast(toastID, 'Submit success!', 'success');
+        setUuid(uuid);
       })
       .catch((err) =>
         updateToast(
@@ -173,6 +198,28 @@ const ProblemsDetail = () => {
   useEffect(() => {
     getProblem(slug);
   }, []);
+
+  useEffect(() => {
+    const handleRunConsole = (data) => {
+      if (data.uuid !== uuid) return;
+      setResultCheck(JSON.parse(data.message));
+    };
+
+    const handleSubmission = (data) => {
+      if (data.uuid !== uuid) return;
+      setSubmissions((prev) => {
+        const message = JSON.parse(data.message);
+        const lastSubmission = {
+          ...message,
+          pass: `${message.pass}/${message.total}`,
+        };
+        return [lastSubmission, ...prev];
+      });
+    };
+
+    checkRunConsolesQueue(handleRunConsole);
+    checkSubmissionsQueue(handleSubmission);
+  }, [uuid]);
 
   return (
     <Split
@@ -190,7 +237,7 @@ const ProblemsDetail = () => {
               borderColor: 'divider',
             }}
           >
-            <TabList onChange={handleChange}>
+            <TabList onChange={handleChangeTab}>
               <Tab label="Description" value="1" />
               <Tab label="Submissions" value="2" />
             </TabList>
@@ -226,17 +273,28 @@ const ProblemsDetail = () => {
         </TabContext>
       </Box>
       <Box className={styles.code}>
+        <DropdownLanguage
+          value={code?.langIdSolution}
+          handleChangeLanguage={(langId) => handleChangeLanguage(langId)}
+          availableListId={problem?.availableLanguages}
+        />
         <Box className={styles.editor}>
           <CodeMirror
-            value={code}
+            value={code?.text}
             style={{
               flex: 1,
             }}
             height="100%"
+            lang=""
             theme={okaidia}
             extensions={[cpp()]}
             onChange={(editor) => {
-              setCode(editor);
+              setCode((prev) => {
+                return {
+                  ...prev,
+                  text: editor,
+                };
+              });
             }}
           />
         </Box>
@@ -290,10 +348,22 @@ const ProblemsDetail = () => {
                         marginLeft: '4px',
                       }}
                       component={'span'}
-                      label={`${resultCheck.time}s`}
+                      label={`${resultCheck.timeAvg}s`}
                       size="small"
                       variant="outlined"
                       color="info"
+                      title="Time average"
+                    />
+                    <Chip
+                      style={{
+                        marginLeft: '4px',
+                      }}
+                      component={'span'}
+                      label={`${resultCheck.memoryAvg}KB`}
+                      size="small"
+                      variant="outlined"
+                      color="info"
+                      title="Memory average"
                     />
                   </Alert>
                 </Box>
@@ -317,7 +387,7 @@ const ProblemsDetail = () => {
                         <Testcase
                           key={index}
                           data={tc}
-                          resultCheck={resultCheck?.data[index]}
+                          resultCheck={resultCheck}
                           idx={index}
                         />
                       );

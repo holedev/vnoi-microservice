@@ -17,6 +17,10 @@ const Submission = new Schema(
       type: String,
       require: true
     },
+    langIdSolution: {
+      type: Number,
+      require: true
+    },
     solution: {
       type: String,
       require: true
@@ -27,8 +31,15 @@ const Submission = new Schema(
     score: {
       type: Number
     },
-    time: {
+    timeAvg: {
       type: String
+    },
+    memoryAvg: {
+      type: String
+    },
+    tokens: {
+      type: [String],
+      _id: false
     },
     requestReceivedAt: {
       type: Date,

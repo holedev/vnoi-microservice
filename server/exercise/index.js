@@ -19,7 +19,7 @@ subscribeMessage(channel, ExerciseService);
 
 app.use(
   cors({
-    // client can access this service without gateway
+    // TODO: client can access this service without gateway
     origin: "*",
     credentials: true
   })
