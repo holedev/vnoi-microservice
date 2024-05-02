@@ -11,6 +11,7 @@ import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
 import { apiFilter } from "./src/api/middlewares/apiFilter.js";
 import { firebaseInit } from "./src/configs/firebase/index.js";
 import { logInfo } from "./src/configs/rabiitmq/index.js";
+import { RateLimit } from "./src/api/middlewares/RateLimit.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
@@ -22,6 +23,8 @@ const corsOptions = {
   credentials: true
 };
 
+app.use(RateLimit);
+
 app.use(
   cors(corsOptions),
   helmet(),
@@ -31,8 +34,6 @@ app.use(
 );
 
 app.use(VerifyToken);
-
-// logger
 
 app.use((req, res, next) => {
   logInfo(req, null);

@@ -2,8 +2,10 @@ import { AccessTimeFilled } from '@mui/icons-material';
 import styles from './DetailTestCase.module.css';
 import { Box, Chip } from '@mui/material';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
+import Divider from '@mui/material/Divider';
 import gfm from 'remark-gfm';
 import { Fragment } from 'react';
+import { _PROBLEM_LEVEL } from '~/utils/problem';
 
 function DetailTestCase({ problem }) {
   const customComponents = {
@@ -79,9 +81,9 @@ function DetailTestCase({ problem }) {
               marginLeft: '4px',
             }}
             label={
-              problem.level == 0
+              problem.level == _PROBLEM_LEVEL.EASY
                 ? 'Easy'
-                : problem.level == 1
+                : problem.level == _PROBLEM_LEVEL.MEDIUM
                 ? 'Medium'
                 : 'Hard'
             }
@@ -103,6 +105,14 @@ function DetailTestCase({ problem }) {
       >
         {problem.desc}
       </ReactMarkdown>
+      <Divider sx={{ mt: 2 }} />
+      <Box>
+        Time Limit: {problem.timeLimit} s
+        <br />
+        Memory Limit: {problem.memoryLimit} KB
+        <br />
+        Stack Limit: {problem.stackLimit} KB
+      </Box>
     </Box>
   );
 }

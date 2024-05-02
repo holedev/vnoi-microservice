@@ -1,7 +1,6 @@
 import amqplib from "amqplib";
 import { _EXCHANGE, _PROCESS_ENV } from "../env/index.js";
 import { sendLogTelegram } from "../../utils/telegram.js";
-import { logInfo } from "./log.js";
 
 let amqplibConnection = null;
 let channel = null;

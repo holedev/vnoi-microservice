@@ -5,20 +5,24 @@ export const runSchema = Joi.object({
     _id: Joi.string().hex().length(24).required().trim().strict(),
     author: Joi.string().hex().length(24).required().trim().strict(),
     uuid: Joi.string().guid({ version: 'uuidv4' }).required().trim().strict(),
+    timeLimit: Joi.number().required().integer().label('Time limit'),
+    memoryLimit: Joi.number().required().integer().label('Memory limit'),
+    stackLimit: Joi.number().required().integer().label('Stack limit'),
   }),
-  code: Joi.string()
-    .required()
-    .trim()
-    .strict()
-    .pattern(/main()/)
-    .label('Code editor')
-    .messages({
-      'string.pattern.base': `Code must be have main function (main()).`,
-    }),
-  testcases: Joi.object({
-    input: Joi.array().items(Joi.any()).required(),
-    output: Joi.array().items(Joi.any()).required(),
-  }).required(),
+  code: Joi.object({
+    langIdSolution: Joi.number()
+      .required()
+      .integer()
+      .label('Language')
+      .messages({ 'number.base': `Language must be a number.` }),
+    text: Joi.string().required().trim().strict().label('Code'),
+  }),
+  testcases: Joi.array()
+    .items({
+      input: Joi.array().items(Joi.any()).required(),
+      output: Joi.array().items(Joi.any()).required(),
+    })
+    .required(),
 });
 
 export const submitSchema = Joi.object({
@@ -26,16 +30,18 @@ export const submitSchema = Joi.object({
     _id: Joi.string().hex().length(24).required().trim().strict(),
     author: Joi.string().hex().length(24).required().trim().strict(),
     uuid: Joi.string().guid({ version: 'uuidv4' }).required().trim().strict(),
+    timeLimit: Joi.number().required().integer().label('Time limit'),
+    memoryLimit: Joi.number().required().integer().label('Memory limit'),
+    stackLimit: Joi.number().required().integer().label('Stack limit'),
   }),
-  code: Joi.string()
-    .required()
-    .trim()
-    .strict()
-    .pattern(/main()/)
-    .label('Code editor')
-    .messages({
-      'string.pattern.base': `Code must be have main function (main()).`,
-    }),
+  code: Joi.object({
+    langIdSolution: Joi.number()
+      .required()
+      .integer()
+      .label('Language')
+      .messages({ 'number.base': `Language must be a number.` }),
+    text: Joi.string().required().trim().strict().label('Code'),
+  }),
 });
 
 export const handleValidate = (schema, data) => {

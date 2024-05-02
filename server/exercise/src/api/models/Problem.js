@@ -65,6 +65,10 @@ const Problem = new Schema(
       type: String,
       required: true
     },
+    langIdSolution: {
+      type: Number,
+      required: true
+    },
     solution: {
       type: String,
       required: true
@@ -74,9 +78,13 @@ const Problem = new Schema(
       default: false
     },
     testcases: {
-      generateCode: {
-        type: String
+      submissions: {
+        type: [String],
+        _id: false
       },
+      input: String,
+      output: String,
+      generateCode: String,
       quantity: {
         type: Number,
         required: true
@@ -86,6 +94,17 @@ const Problem = new Schema(
         default: false,
         required: true
       }
+    },
+    timeLimit: Number,
+    memoryLimit: Number,
+    stackLimit: Number,
+    availableLanguages: {
+      type: [Number]
+    },
+    status: {
+      type: String,
+      enum: ["processing", "success", "error"],
+      default: "processing"
     },
     isDeleted: {
       type: Boolean,
