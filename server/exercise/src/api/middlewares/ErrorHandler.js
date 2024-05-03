@@ -13,6 +13,12 @@ export const ErrorHandler = (err, req, res, next) => {
     errStack
   });
 
+  console.error({
+    errStatus,
+    errMessage,
+    errStack
+  });
+
   const statusCode = errStatus;
   const messageError = errMessage;
   const error = {

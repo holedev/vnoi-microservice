@@ -39,8 +39,7 @@ const judge0Service = {
 
       return tokens.json();
     } catch (err) {
-      console.log(err);
-      throw new BadRequestError("Compiler fail!");
+      throw new BadRequestError("Get Submissions Batch Tokens Fail!");
     }
   },
   checkTokens: async (tokens) => {
@@ -54,120 +53,147 @@ const judge0Service = {
       return data.json();
     } catch (err) {
       console.log(err);
-      throw new BadRequestError("Compiler fail!");
+      throw new BadRequestError("Check Tokens Fail!");
     }
   },
   checkProblemStatus: (uuid, tokens) => {
-    const interval = setInterval(async () => {
-      const { submissions } = await judge0Service.checkTokens(tokens);
+    try {
+      const interval = setInterval(async () => {
+        const { submissions } = await judge0Service.checkTokens(tokens);
 
-      const isProcessing = submissions.some((d) => d.status.id < _COMPILER_STATUS.ACCEPTED);
+        if (!submissions || submissions.length === 0) {
+          clearInterval(interval);
+          throw new BadRequestError("No Submissions Found!");
+        }
 
-      if (!isProcessing) {
-        clearInterval(interval);
-        const status = submissions.every(
-          (d) => d.status.id === _COMPILER_STATUS.ACCEPTED || d.status.id === _COMPILER_STATUS.WRONG_ANSWER
-        )
-          ? "success"
-          : "error";
+        const isProcessing = submissions.some((d) => d.status.id < _COMPILER_STATUS.ACCEPTED);
 
-        await ProblemService.updateProblemStatusByUUID(uuid, status, submissions);
-        removeProblemStatus(uuid, "processing");
-        setProblemStatus(uuid, status);
-      }
-    }, _INTERVAL_TIME_MS);
+        if (!isProcessing) {
+          clearInterval(interval);
+          const status = submissions.every(
+            (d) => d.status.id === _COMPILER_STATUS.ACCEPTED || d.status.id === _COMPILER_STATUS.WRONG_ANSWER
+          )
+            ? "success"
+            : "error";
+
+          await ProblemService.updateProblemStatusByUUID(uuid, status, submissions);
+          removeProblemStatus(uuid, "processing");
+          setProblemStatus(uuid, status);
+        }
+      }, _INTERVAL_TIME_MS);
+    } catch (err) {
+      throw new BadRequestError("Check Interval Problem Status Fail!");
+    }
   },
   checkRunConsoleStatus: (uuid, tokens) => {
-    const interval = setInterval(async () => {
-      const { submissions } = await judge0Service.checkTokens(tokens);
+    try {
+      const interval = setInterval(async () => {
+        const { submissions } = await judge0Service.checkTokens(tokens);
 
-      const isProcessing = submissions.some((d) => d.status.id < _COMPILER_STATUS.ACCEPTED);
+        if (!submissions || submissions.length === 0) {
+          clearInterval(interval);
+          throw new BadRequestError("No Submissions Found!");
+        }
 
-      if (!isProcessing) {
-        clearInterval(interval);
+        const isProcessing = submissions.some((d) => d.status.id < _COMPILER_STATUS.ACCEPTED);
 
-        const total = submissions.length;
-        const data = [];
-        let timeAvg = 0;
-        let memoryAvg = 0;
-        let pass = 0;
+        if (!isProcessing) {
+          clearInterval(interval);
 
-        submissions.forEach((s) => {
-          const obj = {
-            status: s.status.description,
-            stdout: decode(s.stdout) || decode(s.stderr) || decode(s.compile_output) || decode(s.message),
-            pass: s.status.id === _COMPILER_STATUS.ACCEPTED
+          const total = submissions.length;
+          const data = [];
+          let timeAvg = 0;
+          let memoryAvg = 0;
+          let pass = 0;
+
+          submissions.forEach((s) => {
+            const obj = {
+              status: s.status.description,
+              stdout: decode(s.stdout) || decode(s.stderr) || decode(s.compile_output) || decode(s.message),
+              pass: s.status.id === _COMPILER_STATUS.ACCEPTED
+            };
+            data.push(obj);
+
+            if (s.status.id === _COMPILER_STATUS.ACCEPTED || s.status.id === _COMPILER_STATUS.WRONG_ANSWER) {
+              timeAvg += parseFloat(s.time);
+              memoryAvg += parseFloat(s.memory);
+            }
+
+            if (s.status.id === _COMPILER_STATUS.ACCEPTED) pass++;
+          });
+
+          const message = {
+            data,
+            timeAvg: (timeAvg / total).toFixed(4),
+            memoryAvg: (memoryAvg / total).toFixed(0),
+            pass: `${pass}/${total}`
           };
-          data.push(obj);
 
-          if (s.status.id === _COMPILER_STATUS.ACCEPTED || s.status.id === _COMPILER_STATUS.WRONG_ANSWER) {
-            timeAvg += parseFloat(s.time);
-            memoryAvg += parseFloat(s.memory);
-          }
-
-          if (s.status.id === _COMPILER_STATUS.ACCEPTED) pass++;
-        });
-
-        const message = {
-          data,
-          timeAvg: (timeAvg / total).toFixed(4),
-          memoryAvg: (memoryAvg / total).toFixed(0),
-          pass: `${pass}/${total}`
-        };
-
-        removeRunConsoleStatus(uuid, "processing");
-        setRunConsoleStatus(uuid, "results", JSON.stringify(message));
-      }
-    }, _INTERVAL_TIME_MS);
+          removeRunConsoleStatus(uuid, "processing");
+          setRunConsoleStatus(uuid, "results", JSON.stringify(message));
+        }
+      }, _INTERVAL_TIME_MS);
+    } catch (err) {
+      throw new BadRequestError("Check Interval Run Console Status Fail!");
+    }
   },
   checkSubmissionStatus: (uuid, tokens, problem, code, requestReceivedAt, requestId, _id) => {
-    const interval = setInterval(async () => {
-      const { submissions } = await judge0Service.checkTokens(tokens);
+    try {
+      const interval = setInterval(async () => {
+        const { submissions } = await judge0Service.checkTokens(tokens);
 
-      const isProcessing = submissions.some((d) => d.status.id < _COMPILER_STATUS.ACCEPTED);
+        if (!submissions || submissions.length === 0) {
+          clearInterval(interval);
+          throw new BadRequestError("No Submissions Found!");
+        }
 
-      if (!isProcessing) {
-        clearInterval(interval);
+        const isProcessing = submissions.some((d) => d.status.id < _COMPILER_STATUS.ACCEPTED);
 
-        const totalSubmission = submissions.length;
-        let totalTime = 0;
-        let totalMemory = 0;
-        let pass = 0;
+        if (!isProcessing) {
+          clearInterval(interval);
 
-        submissions.forEach((s) => {
-          if (s.status.id === _COMPILER_STATUS.ACCEPTED || s.status.id === _COMPILER_STATUS.WRONG_ANSWER) {
-            totalTime += parseFloat(s.time);
-            totalMemory += parseFloat(s.memory);
-          }
+          const totalSubmission = submissions.length;
+          let totalTime = 0;
+          let totalMemory = 0;
+          let pass = 0;
 
-          if (s.status.id === _COMPILER_STATUS.ACCEPTED) pass++;
-        });
+          submissions.forEach((s) => {
+            if (s.status.id === _COMPILER_STATUS.ACCEPTED || s.status.id === _COMPILER_STATUS.WRONG_ANSWER) {
+              totalTime += parseFloat(s.time);
+              totalMemory += parseFloat(s.memory);
+            }
 
-        const result = {
-          uuid,
-          pass,
-          total: totalSubmission,
-          timeAvg: (totalTime / totalSubmission).toFixed(4),
-          memoryAvg: (totalMemory / totalSubmission).toFixed(0),
-          score: parseFloat((pass / totalSubmission) * 10).toFixed(2),
-          requestReceivedAt,
-          solution: code.text.trim(),
-          langIdSolution: code.langIdSolution
-        };
+            if (s.status.id === _COMPILER_STATUS.ACCEPTED) pass++;
+          });
 
-        await SubmissionService.updateSubmissionByUUID({
-          result,
-          tokens: tokens.map((t) => t.token),
-          requestId,
-          _id,
-          requestReceivedAt,
-          uuid,
-          problemId: problem._id,
-          code
-        });
-        setSubmissionStatus(uuid, "results", JSON.stringify(result));
-      }
-    }, _INTERVAL_TIME_MS);
+          const result = {
+            uuid,
+            pass,
+            total: totalSubmission,
+            timeAvg: (totalTime / totalSubmission).toFixed(4),
+            memoryAvg: (totalMemory / totalSubmission).toFixed(0),
+            score: parseFloat((pass / totalSubmission) * 10).toFixed(2),
+            requestReceivedAt,
+            solution: code.text.trim(),
+            langIdSolution: code.langIdSolution
+          };
+
+          await SubmissionService.updateSubmissionByUUID({
+            result,
+            tokens: tokens.map((t) => t.token),
+            requestId,
+            _id,
+            requestReceivedAt,
+            uuid,
+            problemId: problem._id,
+            code
+          });
+          setSubmissionStatus(uuid, "results", JSON.stringify(result));
+        }
+      }, _INTERVAL_TIME_MS);
+    } catch (err) {
+      throw new BadRequestError("Check Submission Status Fail!");
+    }
   }
 };
 

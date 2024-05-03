@@ -63,11 +63,13 @@ function AdminProblem() {
     stackLimit: 2048, // kilobyte
     availableLanguages: new Set([54, 62, 63, 71]), // utils/compiler/data.js
   });
+  const [isRecompile, setIsReCompile] = useState(false);
 
   const getProblem = async (slug) => {
     await axiosAPI.get(endpoints.problems + `/edit/${slug}`).then((res) => {
       const data = res.data.data;
-      setData({
+
+      const problem = {
         title: data.title,
         level: data.level,
         timeStart: dayjs(data.timeStart),
@@ -79,6 +81,7 @@ function AdminProblem() {
           file: data.testcases.file,
         },
         initCode: data.initCode,
+        langIdSolution: data.langIdSolution,
         solution: data.solution,
         classCurr: data.class?._id,
         uuid: data.uuid,
@@ -86,13 +89,27 @@ function AdminProblem() {
         timeLimit: data.timeLimit || 1,
         memoryLimit: data.memoryLimit || 2048,
         stackLimit: data.stackLimit || 2048,
-        availableLanguages: data.availableLanguages,
-      });
+        availableLanguages: data.availableLanguages || new Set([54]),
+      };
+
+      setData(problem);
       setUseFileTC(data.testcases.file);
     });
   };
 
   const handleData = (value, field) => {
+    const recompileFields = [
+      'script',
+      'solution',
+      'timeLimit',
+      'memoryLimit',
+      'stackLimit',
+    ];
+
+    if (recompileFields.includes(field)) {
+      setIsReCompile(true);
+    }
+
     setData((prev) => {
       prev = {
         ...prev,
@@ -171,6 +188,8 @@ function AdminProblem() {
             };
           });
 
+          setIsReCompile(true);
+
           toast.success('Upload success!');
         };
         reader.onerror = (error) => {
@@ -231,6 +250,7 @@ function AdminProblem() {
           toast.error('Error reading file:', error);
         };
         reader.readAsText(file);
+        setIsReCompile(true);
       } else {
         toast.error(
           'Unsupported file type. Please select a .cpp, .c, or .txt file.'
@@ -262,6 +282,7 @@ function AdminProblem() {
       endpoint = endpoints.problems + '/edit/' + slug;
       mode = 'Update';
       method = 'patch';
+      data.isRecompile = isRecompile;
     }
 
     if (data.alwayOpen) {
@@ -277,7 +298,7 @@ function AdminProblem() {
     if (isPrevDate) return toast.error(`"Time start" must be after now!`);
 
     const error = handleValidate(schema, data);
-    
+
     if (error) return toast.error(error);
 
     const toastID = loadingToast(
@@ -285,13 +306,16 @@ function AdminProblem() {
     );
 
     await axiosAPI[method](endpoint, data)
-      .then(() => {
+      .then((res) => {
+        const { uuid } = res.data.data;
         updateToast(
           toastID,
           mode === 'Create' ? 'Created!' : 'Updated!',
           'success'
         );
-        nav('/lecturer/dashboard');
+        nav('/lecturer/dashboard', {
+          state: { problemUuidLoadingStatus: uuid },
+        });
       })
       .catch((err) => {
         import.meta.env.VITE_MODE === 'development' &&
@@ -351,19 +375,6 @@ function AdminProblem() {
   const handleCopyTC = () => {
     navigator.clipboard.writeText(dataTC.join(''));
     toast.success('Copied!');
-  };
-
-  // TODO: Rewrite or remove this
-  const handleSuggestMain = () => {
-    const main =
-      '```\nint main() {\r\n    std::ifstream iFile("/app/input.txt");\r\n    std::ofstream oFile("/app/output.txt");\r\n    \r\n    if (!iFile) {\r\n        std::cerr << "Failed to open input.txt" << std::endl;\r\n        return 1;\r\n    }\r\n    if (!oFile) {\r\n        std::cerr << "Failed to open output.txt" << std::endl;\r\n        return 1;\r\n    }\r\n\r\n    int quantity, line_per_testcase;\r\n    iFile >> quantity >> line_per_testcase; \r\n    \r\n    while (quantity--) {\r\n        \r\n    }\r\n    \r\n    return 0;\r\n}\n```';
-
-    setData((prev) => {
-      return {
-        ...prev,
-        solution: main,
-      };
-    });
   };
 
   useEffect(() => {
@@ -452,14 +463,6 @@ function AdminProblem() {
           />
           <h5 className={styles.heading}>
             Solution
-            <Button
-              sx={{
-                ml: 1,
-              }}
-              onClick={() => handleSuggestMain()}
-            >
-              GENERATE MAIN
-            </Button>
             <IconButton
               data-tour="upload-btn"
               onClick={() => fileRef.current.click()}
@@ -474,14 +477,15 @@ function AdminProblem() {
             <DropdownLanguage
               sx={{ ml: 3 }}
               value={data.langIdSolution}
-              handleChangeLanguage={(langId) =>
+              handleChangeLanguage={(langId) => {
+                setIsReCompile(true);
                 setData((prev) => {
                   return {
                     ...prev,
                     langIdSolution: langId,
                   };
-                })
-              }
+                });
+              }}
             />
           </h5>
           <Editor
@@ -553,6 +557,7 @@ function AdminProblem() {
                 label="Time limit (second)"
                 variant="outlined"
                 type="number"
+                onChange={(e) => handleData(e.target.value, 'timeLimit')}
               />
             </Box>
             <Box>
@@ -564,6 +569,7 @@ function AdminProblem() {
                 label="Memory limit (kilobyte)"
                 variant="outlined"
                 type="number"
+                onChange={(e) => handleData(e.target.value, 'memoryLimit')}
               />
             </Box>
             <Box>
@@ -575,6 +581,7 @@ function AdminProblem() {
                 label="Stack limit (kilobyte)"
                 variant="outlined"
                 type="number"
+                onChange={(e) => handleData(e.target.value, 'stackLimit')}
               />
             </Box>
           </Box>

@@ -63,7 +63,7 @@ const ProblemService = {
     const classGRPC = await gRPCRequest.getClassByIdAsync(requestId, classCurr);
     const userGRPC = await gRPCRequest.getUserByIdAsync(requestId, _id);
 
-    const dataCreate = {
+    const newProblem = {
       title,
       uuid,
       author: userGRPC,
@@ -88,7 +88,7 @@ const ProblemService = {
       availableLanguages
     };
 
-    const problem = await ProblemModel.create(dataCreate);
+    const problem = await ProblemModel.create(newProblem);
 
     return res.status(httpStatusCodes.CREATED).json({
       status: "success",
@@ -120,6 +120,7 @@ const ProblemService = {
     const requestId = req.headers["x-request-id"];
     const _id = req.headers["x-user-id"];
     const { slug } = req.params;
+
     const {
       title,
       classCurr,
@@ -131,32 +132,19 @@ const ProblemService = {
       solution,
       script,
       uuid,
-      alwayOpen
+      alwayOpen,
+      langIdSolution,
+      timeLimit,
+      memoryLimit,
+      stackLimit,
+      availableLanguages,
+      isRecompile
     } = req.body;
-
-    let solutionCode = solution.slice(3, -3);
-
-    const payload = {
-      requestId,
-      action: _ACTION.PROBLEM_UPDATE,
-      data: {
-        uuid,
-        author: _id,
-        solutionCode,
-        script
-      }
-    };
-
-    const data = await requestAsync(_SERVICE.COMPILER_SERVICE.NAME, payload);
-
-    if (data.code !== _RESPONSE_SERVICE.SUCCESS) {
-      throw new BadRequestError(data.message || "Something went wrong");
-    }
 
     const classGRPC = await gRPCRequest.getClassByIdAsync(requestId, classCurr);
     const userGRPC = await gRPCRequest.getUserByIdAsync(requestId, _id);
 
-    const updateData = {
+    let updateData = {
       title,
       author: userGRPC,
       class: classGRPC,
@@ -165,26 +153,64 @@ const ProblemService = {
       level,
       desc,
       initCode,
-      solution,
-      testcases: {
-        generateCode: script.generateCode ? script.generateCode : null,
-        quantity: parseInt(script.quantity),
-        file: script.file
-      },
-      alwayOpen
+      alwayOpen,
+      availableLanguages
     };
 
-    const problem = await ProblemModel.findOneAndUpdate({ slug, isDeleted: false }, updateData, { new: true })
-      .select("-createdAt -updatedAt -__v -solution")
-      .lean();
+    if (isRecompile) {
+      const solutionCode = solution.slice(3, -3);
 
-    if (!problem) {
-      throw new ConflictError("Problem not found!");
+      const inputs = [];
+
+      let stdins = null;
+
+      if (!script.data) {
+        const problem = await ProblemModel.findOne({ slug });
+        if (!problem) {
+          throw new ConflictError("Problem not found!");
+        }
+        stdins = problem.testcases.input.split(_PROCESS_ENV.STRING_SPLIT_CODE);
+      } else {
+        stdins = script.data;
+      }
+
+      const submissions = stdins.map((stdin) => {
+        inputs.push(stdin.trim());
+        return {
+          language_id: langIdSolution,
+          source_code: solutionCode,
+          stdin: stdin.trim(),
+          cpu_time_limit: timeLimit,
+          memory_limit: memoryLimit,
+          stack_limit: stackLimit
+        };
+      });
+
+      const submissionTokens = await judge0Service.getSubmissionBatchTokens(submissions);
+
+      setProblemStatus(uuid, "processing");
+      judge0Service.checkProblemStatus(uuid, submissionTokens);
+
+      updateData = {
+        solution,
+        testcases: {
+          input: inputs.join(_PROCESS_ENV.STRING_SPLIT_CODE),
+          generateCode: script.generateCode ? script.generateCode : null,
+          quantity: parseInt(script.quantity),
+          file: script.file
+        },
+        langIdSolution,
+        timeLimit,
+        memoryLimit,
+        stackLimit
+      };
     }
+
+    await ProblemModel.findOneAndUpdate({ slug, isDeleted: false }, updateData, { new: true });
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",
-      data: problem
+      data: { uuid: isRecompile ? uuid : null }
     });
   },
   updateProblemStatusByUUID: async (uuid, status, data) => {
@@ -467,7 +493,9 @@ const ProblemService = {
       isDeleted: false
     })
       .lean()
-      .select("author class desc initCode level slug solution testTime timeStart title uuid alwayOpen testcases");
+      .select(
+        "author class desc initCode level slug langIdSolution solution testTime timeStart title uuid alwayOpen testcases timeLimit memoryLimit stackLimit availableLanguages"
+      );
 
     if (!problem) {
       throw new ConflictError("Problem not found!");

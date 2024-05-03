@@ -135,6 +135,7 @@ export const updateSchema = Joi.object({
     .messages({
       'string.pattern.base': `"Init code" must enclosed between \`\`\` marks.`,
     }),
+  langIdSolution: Joi.number().required().label('Language solution'),
   solution: Joi.string()
     .required()
     .pattern(/^```[\s\S]+```$/)
@@ -169,6 +170,68 @@ export const updateSchema = Joi.object({
     data: Joi.array().items(Joi.string()).min(3).max(200),
     file: Joi.boolean().required().label('File'),
   }),
+  timeLimit: Joi.number().required().min(0).max(2).label('Time limit'),
+  memoryLimit: Joi.number()
+    .required()
+    .min(1024)
+    .max(128000)
+    .label('Memory limit'),
+  stackLimit: Joi.number().required().min(1024).max(64000).label('Stack limit'),
+  availableLanguages: Joi.array()
+    .items(
+      Joi.number().valid(
+        45,
+        46,
+        47,
+        75,
+        76,
+        48,
+        52,
+        49,
+        53,
+        50,
+        54,
+        86,
+        51,
+        77,
+        55,
+        56,
+        57,
+        58,
+        44,
+        87,
+        59,
+        60,
+        88,
+        61,
+        62,
+        63,
+        78,
+        64,
+        89,
+        79,
+        65,
+        66,
+        67,
+        85,
+        68,
+        43,
+        69,
+        70,
+        71,
+        80,
+        72,
+        73,
+        81,
+        82,
+        83,
+        74,
+        84
+      )
+    )
+    .required()
+    .label('Available languages'),
+  isRecompile: Joi.boolean().required().label('Recompile'),
 });
 
 export const handleValidate = (schema, data) => {

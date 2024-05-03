@@ -29,9 +29,11 @@ import useAxiosAPI from '~/hook/useAxiosAPI';
 import useLoadingContext from '~/hook/useLoadingContext';
 import { _PROBLEM_STATUS } from '~/utils/problem';
 import { checkProblemsQueue } from '~/utils/firebase';
+import { useLocation } from 'react-router-dom';
 
 export default function Dashboard() {
   const nav = useNavigate();
+  const { state } = useLocation();
   const { axiosAPI, endpoints } = useAxiosAPI();
   const [loading, setLoading] = useLoadingContext();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -61,7 +63,18 @@ export default function Dashboard() {
     await axiosAPI
       .get(endpoints.problems + '/get-by-lecturer?' + params.toString())
       .then((res) => {
-        setData(res.data.data);
+        let response = res.data.data;
+
+        if (state?.problemUuidLoadingStatus) {
+          console.log('hehe');
+          response.forEach((r) => {
+            if (r.uuid === state.problemUuidLoadingStatus) {
+              r.status = _PROBLEM_STATUS.PROCESSING;
+            }
+          });
+        }
+
+        setData(response);
         setFiliter((prev) => {
           const currentPage =
             res.data.currentPage > res.data.totalPage
