@@ -1,19 +1,37 @@
-import { _ACTION, _PROCESS_ENV, _RESPONSE_SERVICE, _SERVICE } from "../../configs/env/index.js";
+import { _PROCESS_ENV } from "../../configs/env/index.js";
 import { ProblemModel } from "../models/Problem.js";
 import { SubmissionModel } from "../models/Submission.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 import { ConflictError } from "../responses/errors/ConflictError.js";
 import { ForbiddenError } from "../responses/errors/ForbiddenError.js";
 import uuidv4 from "uuid4";
-import { requestAsync } from "../../configs/rabiitmq/index.js";
 import { gRPCRequest } from "./gRPC.js";
-import { BadRequestError } from "../responses/errors/BadRequestError.js";
 import { handleTime } from "../../utils/index.js";
 import { setProblemStatus } from "../../utils/firebase.js";
 import { decode } from "../../utils/judge0.js";
 import { judge0Service } from "./judge0.js";
 
 const _COMPETITION_CLASS_NAME = "COMPETITION";
+
+const ProblemHandle = {
+  updateProblemStatusByUUID: async (uuid, status, data) => {
+    const problem = await ProblemModel.findOne({ uuid });
+
+    if (!problem) {
+      throw new ConflictError("Problem not found!");
+    }
+
+    problem.status = status;
+    problem.testcases.submissions = data.map((submission) => submission.token);
+
+    if (status === "success") {
+      const outputs = data.map((submission) => decode(submission.stdout));
+      problem.testcases.output = outputs.join(_PROCESS_ENV.STRING_SPLIT_CODE);
+    }
+
+    await problem.save();
+  }
+};
 
 const ProblemService = {
   create: async (req, res) => {
@@ -55,7 +73,7 @@ const ProblemService = {
       };
     });
 
-    const submissionTokens = await judge0Service.getSubmissionBatchTokens(submissions);
+    const submissionTokens = await judge0Service.createSubmissionBatchTokens(submissions);
 
     setProblemStatus(uuid, "processing");
     judge0Service.checkProblemStatus(uuid, submissionTokens);
@@ -111,7 +129,7 @@ const ProblemService = {
       };
     });
 
-    const submissionTokens = await judge0Service.getSubmissionBatchTokens(submissions);
+    const submissionTokens = await judge0Service.createSubmissionBatchTokens(submissions);
     judge0Service.checkRunConsoleStatus(uuid, submissionTokens);
 
     return res.status(httpStatusCodes.OK).json({ status: "success", data: { uuid } });
@@ -161,18 +179,20 @@ const ProblemService = {
       const solutionCode = solution.slice(3, -3);
 
       const inputs = [];
-
       let stdins = null;
 
+      const problem = await ProblemModel.findOne({ slug });
+      if (!problem) {
+        throw new ConflictError("Problem not found!");
+      }
+
       if (!script.data) {
-        const problem = await ProblemModel.findOne({ slug });
-        if (!problem) {
-          throw new ConflictError("Problem not found!");
-        }
         stdins = problem.testcases.input.split(_PROCESS_ENV.STRING_SPLIT_CODE);
       } else {
         stdins = script.data;
       }
+
+      await judge0Service.deleteSubmissions(problem.testcases.submissions);
 
       const submissions = stdins.map((stdin) => {
         inputs.push(stdin.trim());
@@ -186,7 +206,7 @@ const ProblemService = {
         };
       });
 
-      const submissionTokens = await judge0Service.getSubmissionBatchTokens(submissions);
+      const submissionTokens = await judge0Service.createSubmissionBatchTokens(submissions);
 
       setProblemStatus(uuid, "processing");
       judge0Service.checkProblemStatus(uuid, submissionTokens);
@@ -213,22 +233,40 @@ const ProblemService = {
       data: { uuid: isRecompile ? uuid : null }
     });
   },
-  updateProblemStatusByUUID: async (uuid, status, data) => {
-    const problem = await ProblemModel.findOne({ uuid });
+  getDetailsSubmissions: async (req, res) => {
+    const _id = req.headers["x-user-id"];
+    const { id: problemId } = req.params;
+
+    const problem = await ProblemModel.findOne({ _id: problemId, "author._id": _id })
+      .lean()
+      .select("testcases title class");
 
     if (!problem) {
       throw new ConflictError("Problem not found!");
     }
 
-    problem.status = status;
-    problem.testcases.submissions = data.map((submission) => submission.token);
+    const { submissions } = await judge0Service.checkTokensWithArray(problem.testcases.submissions);
 
-    if (status === "success") {
-      const outputs = data.map((submission) => decode(submission.stdout));
-      problem.testcases.output = outputs.join(_PROCESS_ENV.STRING_SPLIT_CODE);
-    }
+    const data = submissions.map((submission) => {
+      return {
+        token: submission.token,
+        status: submission.status.description,
+        time: submission.time,
+        memory: submission.memory,
+        output: decode(submission.stderr || submission.compile_output),
+        stdin: decode(submission.stdin),
+        stdout: decode(submission.stdout)
+      };
+    });
 
-    await problem.save();
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: {
+        title: problem.title,
+        class: problem.class?.name,
+        submissions: data
+      }
+    });
   },
   getBySlug: async (req, res) => {
     const requestId = req.headers["x-request-id"];
@@ -619,8 +657,6 @@ const ProblemService = {
       .lean()
       .select("author");
 
-    console.log(problem);
-
     if (!problem) {
       throw new ConflictError("Problem not found!");
     }
@@ -666,25 +702,6 @@ const ProblemService = {
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       data: results
-    });
-  },
-  getFolderInvalid: async (req, res) => {
-    const requestId = req.headers["x-request-id"];
-    const folder = "problems";
-    let problems = await ProblemModel.find().lean().select("uuid");
-    const { users } = await gRPCRequest.getUsersAvailableAsync(requestId);
-    const usersList = JSON.parse(users).map((item) => item._id);
-
-    problems = problems.map((p) => p.uuid);
-
-    const { count, total } = await gRPCRequest.getCountFolderAsync(requestId, folder, problems, usersList);
-
-    return res.status(httpStatusCodes.OK).json({
-      status: "success",
-      data: {
-        count,
-        total
-      }
     });
   },
   getProblemsWithoutAuthor: async (req, res) => {
@@ -756,33 +773,13 @@ const ProblemService = {
 
     for await (const problem of problems) {
       await ProblemModel.findByIdAndRemove(problem._id);
-      gRPCRequest.deleteSubmissionFolderByProblemUUID(requestId, problem.uuid);
-      gRPCRequest.deleteProblemFolderByUUID(requestId, problem.uuid);
     }
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       length: problems.length
     });
-  },
-  clearFolderNoAuthorAndProblemUUID: async (req, res) => {
-    const requestId = req.headers["x-request-id"];
-
-    const folder = "problems";
-    let problems = await ProblemModel.find().lean().select("uuid");
-
-    const { users } = await gRPCRequest.getUsersAvailableAsync(requestId);
-    const usersList = JSON.parse(users).map((item) => item._id);
-
-    problems = problems.map((p) => p.uuid);
-
-    const length = await gRPCRequest.clearFolderAsync(requestId, folder, problems, usersList);
-
-    return res.status(httpStatusCodes.OK).json({
-      status: "success",
-      length: length
-    });
   }
 };
 
-export { ProblemService };
+export { ProblemService, ProblemHandle };

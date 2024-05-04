@@ -5,7 +5,6 @@ import { VerifyRole } from "../middlewares/VerifyRole.js";
 const router = Router();
 
 router.get("/get-by-admin", VerifyRole.admin, SubmissionService.getAllSubmissionByAdmin);
-router.get("/get-folders-invalid", VerifyRole.admin, SubmissionService.getFolderInvalid);
 router.get(
   "/get-submissions-without-author-without-problem",
   VerifyRole.admin,
@@ -18,7 +17,6 @@ router.delete(
   VerifyRole.admin,
   SubmissionService.deleteSubmissionWithoutAuthorWithoutProblem
 );
-router.delete("/clear-folder-invalid", VerifyRole.admin, SubmissionService.clearFolderNoAuthorAndSubmissionUUID);
 router.delete("/:id", VerifyRole.admin, SubmissionService.deleteSubmissionByAdmin);
 
 export { router as SubmissionRoute };

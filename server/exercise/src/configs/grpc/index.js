@@ -38,11 +38,4 @@ const grpCClientUser = gRPCCreateClient(
   _SERVICE.USER_SERVICE.GRPC_PORT
 );
 
-const grpcClientCompiler = gRPCCreateClient(
-  _SERVICE.COMPILER_SERVICE.GRPC_PROTO_PATH,
-  _SERVICE.COMPILER_SERVICE.GRPC_SERVICE_NAME,
-  _SERVICE.COMPILER_SERVICE.GRPC_HOST,
-  _SERVICE.COMPILER_SERVICE.GRPC_PORT
-);
-
-export { grpCClientCommon, grpCClientUser, grpcClientCompiler };
+export { grpCClientCommon, grpCClientUser };

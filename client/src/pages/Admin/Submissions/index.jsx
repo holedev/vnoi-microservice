@@ -8,15 +8,15 @@ import {
   TableRow,
   Button,
   Pagination,
-} from "@mui/material";
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { toast } from "react-toastify";
+} from '@mui/material';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
-import SearchDebounce from "~/components/SearchDebounce";
-import useConfirmDialog from "~/hook/useConfirmDialog";
-import useAxiosAPI from "~/hook/useAxiosAPI";
-import { handleDatetime } from "~/utils/datetime";
+import SearchDebounce from '~/components/SearchDebounce';
+import useConfirmDialog from '~/hook/useConfirmDialog';
+import useAxiosAPI from '~/hook/useAxiosAPI';
+import { handleDatetime } from '~/utils/datetime';
 
 export default function Problems() {
   const { axiosAPI, endpoints } = useAxiosAPI();
@@ -24,20 +24,20 @@ export default function Problems() {
   const [confirm, ConfirmDialog] = useConfirmDialog();
 
   const [data, setData] = useState([]);
-  const [search, setSearch] = useState(searchParams.get("search") || "");
+  const [search, setSearch] = useState(searchParams.get('search') || '');
   const [filter, setFilter] = useState({
-    limit: parseInt(searchParams.get("limit")) || 8,
-    page: parseInt(searchParams.get("page")) || 1,
+    limit: parseInt(searchParams.get('limit')) || 8,
+    page: parseInt(searchParams.get('page')) || 1,
   });
 
   const getData = async () => {
     const params = new URLSearchParams();
-    params.append("limit", filter.limit);
-    params.append("page", filter.page);
-    if (search.trim()) params.append("search", search);
+    params.append('limit', filter.limit);
+    params.append('page', filter.page);
+    if (search.trim()) params.append('search', search);
 
     await axiosAPI
-      .get(endpoints.submissions + "/get-by-admin?" + params.toString())
+      .get(endpoints.submissions + '/get-by-admin?' + params.toString())
       .then((res) => {
         setData(res.data.data);
         setFilter((prev) => {
@@ -57,7 +57,7 @@ export default function Problems() {
 
   const handleDelete = async (id) => {
     const isConfirmed = await confirm(
-      "Delete!",
+      'Delete!',
       "This action can't Ctrl Z? Problem will be HARD delete! Are you sure?"
     );
 
@@ -67,7 +67,7 @@ export default function Problems() {
           setData((prev) => {
             return prev.filter((item) => item._id !== id);
           });
-          toast.success("Update Success!");
+          toast.success('Update Success!');
         }
       });
     }
@@ -75,27 +75,27 @@ export default function Problems() {
 
   const handleDeleteSubmissionsWithoutAuthorOrProblem = async () => {
     const res = await axiosAPI.get(
-      endpoints.submissions + "/get-submissions-without-author-without-problem"
+      endpoints.submissions + '/get-submissions-without-author-without-problem'
     );
     const cf = await confirm(
-      "Delete!",
+      'Delete!',
       `This action can't Ctrl Z? Database will be delete document with NULL author and NULL problem, delete submissions & submissions folder of them! Find ${res.data.data.count}/${res.data.data.total}, continue?`
     );
     if (res.data?.data?.count == 0 && cf) {
-      toast.warning("No submissions to delete!");
+      toast.warning('No submissions to delete!');
       return;
     }
 
     if (cf) {
       const cf2 = await confirm(
-        "Delete!",
+        'Delete!',
         "This action can't Ctrl Z? Submissions & Folders will be delete forever! Are you sure?"
       );
       if (cf2)
         await axiosAPI
           .delete(
             endpoints.submissions +
-              "/delete-submissions-without-author-without-problem"
+              '/delete-submissions-without-author-without-problem'
           )
           .then((res) => {
             res.status === 200 &&
@@ -106,37 +106,8 @@ export default function Problems() {
     }
   };
 
-  const handleClearFolder = async () => {
-    const res = await axiosAPI.get(
-      endpoints.submissions + "/get-folders-invalid"
-    );
-    const cf1 = await confirm(
-      "Delete!",
-      `Server will be delete all submissions folder has USER ID and SUBMISSION UUID INVALID! Found ${res.data?.data?.count}/${res.data?.data?.total} submissions folder, continue delete?`
-    );
-
-    if (res.data?.data?.count == 0 && cf1) {
-      toast.warning("No folder to delete!");
-      return;
-    }
-
-    if (cf1) {
-      const cf2 = await confirm(
-        "Delete!",
-        "This action can't Ctrl Z? Folders will be delete forever! Are you sure?"
-      );
-      if (cf2) {
-        await axiosAPI
-          .delete(endpoints.submissions + "/clear-folder-invalid")
-          .then(() => {
-            toast.success(`Delete Successfully!`);
-          });
-      }
-    }
-  };
-
   const handleFilter = (value, type) => {
-    if (type === "page") {
+    if (type === 'page') {
       setFilter((prev) => {
         return {
           ...prev,
@@ -153,7 +124,7 @@ export default function Problems() {
 
   useEffect(() => {
     setSearchParams((prev) => {
-      prev.set("page", filter.page);
+      prev.set('page', filter.page);
       return prev;
     });
     getData();
@@ -162,39 +133,30 @@ export default function Problems() {
   return (
     <Box
       sx={{
-        padding: "12px 12px 12px 20px",
+        padding: '12px 12px 12px 20px',
       }}
     >
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "4px",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '4px',
         }}
       >
         <Pagination
           count={filter.totalPage}
           page={filter.page}
-          onChange={(_, value) => handleFilter(value, "page")}
+          onChange={(_, value) => handleFilter(value, 'page')}
         />
 
         <Box
           sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
           }}
         >
-          <Button
-            size="small"
-            color="error"
-            variant="contained"
-            onClick={handleClearFolder}
-            title="Delete folders without submission or author"
-          >
-            !!! Delete FOLDER
-          </Button>
           <Button
             size="small"
             color="error"
@@ -216,8 +178,8 @@ export default function Problems() {
         <Table
           sx={{
             minWidth: 650,
-            borderRadius: "4px",
-            background: "#fff",
+            borderRadius: '4px',
+            background: '#fff',
           }}
         >
           <TableHead>
@@ -238,24 +200,24 @@ export default function Problems() {
                 <TableRow
                   key={row._id}
                   sx={{
-                    "&:last-child td, &:last-child th": {
+                    '&:last-child td, &:last-child th': {
                       border: 0,
                     },
                   }}
                 >
                   <TableCell component="th" scope="row">
-                    {row._id || "---"}
+                    {row._id || '---'}
                   </TableCell>
                   <TableCell align="center">
-                    {row.author?._id || "---"}
+                    {row.author?._id || '---'}
                   </TableCell>
-                  <TableCell align="center">{row.problem || "---"}</TableCell>
+                  <TableCell align="center">{row.problem || '---'}</TableCell>
                   <TableCell align="center">
-                    {handleDatetime(row.requestReceivedAt, true) || "---"}
+                    {handleDatetime(row.requestReceivedAt, true) || '---'}
                   </TableCell>
-                  <TableCell align="center">{row.pass || "---"}</TableCell>
-                  <TableCell align="center">{row.score || "---"}</TableCell>
-                  <TableCell align="center">{row.time || "---"}</TableCell>
+                  <TableCell align="center">{row.pass || '---'}</TableCell>
+                  <TableCell align="center">{row.score || '---'}</TableCell>
+                  <TableCell align="center">{row.time || '---'}</TableCell>
                   <TableCell align="center">
                     <Button
                       size="small"

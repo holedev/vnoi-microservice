@@ -1,8 +1,7 @@
 import { ProblemModel } from "../models/Problem.js";
 import { SubmissionModel } from "../models/Submission.js";
 import uuidv4 from "uuid4";
-import { _ACTION, _PROCESS_ENV, _RESPONSE_SERVICE, _SERVICE } from "../../configs/env/index.js";
-import { requestAsync } from "../../configs/rabiitmq/index.js";
+import { _PROCESS_ENV } from "../../configs/env/index.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 import { NotFoundError } from "../responses/errors/NotFoundError.js";
 import { ConflictError } from "../responses/errors/ConflictError.js";
@@ -10,63 +9,67 @@ import { BadRequestError } from "../responses/errors/BadRequestError.js";
 import { gRPCRequest } from "./gRPC.js";
 import { judge0Service } from "./judge0.js";
 
-async function getBestSubmission(userId, problemId, withoutSubmissionId) {
-  const submissions = await SubmissionModel.find({
-    "author._id": userId,
-    problem: problemId
-  }).lean();
+const SubmissionHandle = {
+  getBestSubmission: async (userId, problemId, withoutSubmissionId) => {
+    const submissions = await SubmissionModel.find({
+      "author._id": userId,
+      problem: problemId
+    }).lean();
 
-  let bestSubmission = null;
+    let bestSubmission = null;
 
-  for (const submission of submissions) {
-    if (withoutSubmissionId) {
-      if (submission._id.toString() === withoutSubmissionId.toString()) {
-        continue;
+    for (const submission of submissions) {
+      if (withoutSubmissionId) {
+        if (submission._id.toString() === withoutSubmissionId.toString()) {
+          continue;
+        }
       }
-    }
-    if (!bestSubmission) {
-      bestSubmission = submission;
-    } else {
-      // eslint-disable-next-line no-lonely-if
-      if (submission.score > bestSubmission.score) {
+      if (!bestSubmission) {
         bestSubmission = submission;
-      } else if (submission.score === bestSubmission.score) {
-        if (new Date(submission.requestReceivedAt) < new Date(bestSubmission.requestReceivedAt)) {
+      } else {
+        // eslint-disable-next-line no-lonely-if
+        if (submission.score > bestSubmission.score) {
           bestSubmission = submission;
+        } else if (submission.score === bestSubmission.score) {
+          if (new Date(submission.requestReceivedAt) < new Date(bestSubmission.requestReceivedAt)) {
+            bestSubmission = submission;
+          }
         }
       }
     }
-  }
-
-  return bestSubmission;
-}
-
-async function deleteByAdmin(requestId, submission) {
-  const problem = await ProblemModel.findById(submission.problem);
-  if (problem && problem.submitList?.length > 0) {
-    let idx = 0;
-    for await (const si of problem.submitList) {
-      if (!si.userId || !submission.author) {
+    return bestSubmission;
+  },
+  deleteByAdmin: async (submission) => {
+    const problem = await ProblemModel.findById(submission.problem);
+    if (problem && problem.submitList?.length > 0) {
+      let idx = 0;
+      for await (const si of problem.submitList) {
+        if (!si.userId || !submission.author) {
+          idx++;
+          continue;
+        }
+        if (si.userId === submission.author?._id) {
+          si.submissionTotal -= 1;
+          if (si.submissionTotal <= 0) {
+            problem.submitList.splice(idx, 1);
+          } else {
+            const bestSubmission = await SubmissionHandle.getBestSubmission(
+              submission.author?._id,
+              submission.problem,
+              submission._id
+            );
+            si.submissionId = bestSubmission._id;
+            si.maxScore = bestSubmission.score;
+          }
+        }
         idx++;
-        continue;
       }
-      if (si.userId === submission.author?._id) {
-        si.submissionTotal -= 1;
-        if (si.submissionTotal <= 0) {
-          problem.submitList.splice(idx, 1);
-        } else {
-          const bestSubmission = await getBestSubmission(submission.author?._id, submission.problem, submission._id);
-          si.submissionId = bestSubmission._id;
-          si.maxScore = bestSubmission.score;
-        }
-      }
-      idx++;
+      await problem.save();
     }
-    await problem.save();
+    await judge0Service.deleteSubmissions(submission.tokens);
+    await submission.deleteOne();
   }
-  await submission.deleteOne();
-  gRPCRequest.deleteSubmissionFolderByUUID(requestId, submission.uuid);
-}
+};
 
 const SubmissionService = {
   create: async (req, res) => {
@@ -123,16 +126,16 @@ const SubmissionService = {
       };
     });
 
-    const submissionTokens = await judge0Service.getSubmissionBatchTokens(submissions);
-    judge0Service.checkSubmissionStatus(
+    const submissionTokens = await judge0Service.createSubmissionBatchTokens(submissions);
+    judge0Service.checkSubmissionStatus({
       uuid,
-      submissionTokens,
-      problemDoc._id,
+      tokens: submissionTokens,
+      problemId: problemDoc._id,
       code,
       requestReceivedAt,
       requestId,
-      _id
-    );
+      authorId: _id
+    });
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",
@@ -268,29 +271,7 @@ const SubmissionService = {
       }
     });
   },
-  getFolderInvalid: async (req, res) => {
-    const requestId = req.headers["x-request-id"];
-
-    const folder = "submissions";
-    let submissions = await SubmissionModel.find().lean().select("uuid");
-
-    const { users } = await gRPCRequest.getUsersAvailableAsync(requestId);
-    const usersList = JSON.parse(users).map((item) => item._id);
-
-    submissions = submissions.map((s) => s.uuid);
-
-    const { count, total } = await gRPCRequest.getCountFolderAsync(requestId, folder, submissions, usersList);
-
-    return res.status(httpStatusCodes.OK).json({
-      status: "success",
-      data: {
-        count,
-        total
-      }
-    });
-  },
   deleteSubmissionByAdmin: async (req, res) => {
-    const requestId = req.headers["x-request-id"];
     const { id } = req.params;
 
     const submission = await SubmissionModel.findById(id);
@@ -299,16 +280,14 @@ const SubmissionService = {
       throw new ConflictError("Submission not found!");
     }
 
-    await deleteByAdmin(requestId, submission);
+    await SubmissionHandle.deleteByAdmin(submission);
 
     return res.status(httpStatusCodes.NO_CONTENT).json({});
   },
   deleteSubmissionWithoutAuthorWithoutProblem: async (req, res) => {
     const requestId = req.headers["x-request-id"];
 
-    let submissions = await SubmissionModel.find().populate({
-      path: "problem"
-    });
+    let submissions = await SubmissionModel.find().populate({ path: "problem" });
 
     const { users } = await gRPCRequest.getUsersAvailableAsync(requestId);
     const usersList = JSON.parse(users).map((item) => item._id);
@@ -316,30 +295,12 @@ const SubmissionService = {
     submissions = submissions.filter((s) => !s.problem || !usersList.includes(s.author?._id));
 
     for await (const submission of submissions) {
-      await deleteByAdmin(requestId, submission);
+      await SubmissionHandle.deleteByAdmin(submission);
     }
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       length: submissions.length
-    });
-  },
-  clearFolderNoAuthorAndSubmissionUUID: async (req, res) => {
-    const requestId = req.headers["x-request-id"];
-
-    const folder = "submissions";
-    let submissions = await SubmissionModel.find().lean().select("uuid");
-
-    const { users } = await gRPCRequest.getUsersAvailableAsync(requestId);
-    const usersList = JSON.parse(users).map((item) => item._id);
-
-    submissions = submissions.map((s) => s.uuid);
-
-    const length = await gRPCRequest.clearFolderAsync(requestId, folder, submissions, usersList);
-
-    return res.status(httpStatusCodes.OK).json({
-      status: "success",
-      length: length
     });
   }
 };
