@@ -17,6 +17,7 @@ function Editor({ state, setState }) {
         return <th style={{ border: '1px solid black' }}></th>;
       }
       const data = value[0]?.split('\\hehe');
+
       return (
         <th
           style={{
@@ -42,6 +43,7 @@ function Editor({ state, setState }) {
       }
 
       const data = value[0]?.split('\\hehe');
+
       return (
         <td
           style={{
