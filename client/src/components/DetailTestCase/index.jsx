@@ -105,12 +105,31 @@ function DetailTestCase({ problem }) {
         {problem.desc}
       </ReactMarkdown>
       <Divider sx={{ mt: 2 }} />
-      <Box>
-        Time Limit: {problem.timeLimit} s
-        <br />
-        Memory Limit: {problem.memoryLimit} KB
-        <br />
-        Stack Limit: {problem.stackLimit} KB
+      <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+        <Chip
+          component={'strong'}
+          label={`Time Limit: ${problem.timeLimit}s`}
+          size="medium"
+          variant="outlined"
+          color="info"
+          title="Time limit"
+        />
+        <Chip
+          component={'strong'}
+          label={`Memory Limit: ${problem.memoryLimit}KB`}
+          size="medium"
+          variant="outlined"
+          color="info"
+          title="Memory limit"
+        />
+        <Chip
+          component={'strong'}
+          label={`Stack Limit: ${problem.stackLimit}KB`}
+          size="medium"
+          variant="outlined"
+          color="info"
+          title="Stack limit"
+        />
       </Box>
     </Box>
   );

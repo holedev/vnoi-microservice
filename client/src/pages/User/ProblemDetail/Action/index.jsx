@@ -5,7 +5,7 @@ import { useRef, useState } from 'react';
 import CountdownTimer from '~/components/CountdownTimer';
 import { toast } from 'react-toastify';
 
-function Action({ setConsole, handleSubmit, setCode, problem }) {
+function Action({ setConsole, handleSubmit, setCode, problem, isLoad }) {
   const fileRef = useRef(null);
 
   const [timer, setTimer] = useState(true);
@@ -67,7 +67,7 @@ function Action({ setConsole, handleSubmit, setCode, problem }) {
             marginLeft: 'auto',
           }}
           disabled={
-            !problem?.alwayOpen
+            isLoad.submit || !problem?.alwayOpen
               ? !problem?.isValid
                 ? true
                 : false

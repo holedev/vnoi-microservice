@@ -4,9 +4,9 @@ import { VerifyRole } from "../middlewares/VerifyRole.js";
 
 const router = Router();
 
+router.get("/get-detail-submissions/:id", VerifyRole.lecturer, ProblemService.getDetailsSubmissions);
 router.get("/edit/:slug", VerifyRole.lecturer, ProblemService.getProblemByLecturer);
 router.get("/get-by-admin", VerifyRole.admin, ProblemService.getAllProblemByAdmin);
-router.get("/get-folders-invalid", VerifyRole.admin, ProblemService.getFolderInvalid);
 router.get("/get-problems-without-author", VerifyRole.admin, ProblemService.getProblemsWithoutAuthor);
 router.get("/get-by-lecturer", VerifyRole.lecturer, ProblemService.getAllProblemByLecturer);
 router.get("/get-competition", ProblemService.getCompetitionProblem);
@@ -20,6 +20,5 @@ router.patch("/edit/:slug", VerifyRole.lecturer, ProblemService.updateProblemByL
 router.patch("/:slug", VerifyRole.lecturerOrAdmin, ProblemService.softDelete);
 router.delete("/delete-by-admin/:slug", VerifyRole.admin, ProblemService.deleteProblemByAdmin);
 router.delete("/delete-problem-without-author", VerifyRole.admin, ProblemService.deleteProblemWithoutAuthor);
-router.delete("/clear-folder-invalid", VerifyRole.admin, ProblemService.clearFolderNoAuthorAndProblemUUID);
 
 export { router as ProblemRoute };

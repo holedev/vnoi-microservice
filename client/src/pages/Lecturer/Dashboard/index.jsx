@@ -30,6 +30,9 @@ import useLoadingContext from '~/hook/useLoadingContext';
 import { _PROBLEM_STATUS } from '~/utils/problem';
 import { checkProblemsQueue } from '~/utils/firebase';
 import { useLocation } from 'react-router-dom';
+import LinearProgress from '@mui/material/LinearProgress';
+import DoneIcon from '@mui/icons-material/Done';
+import ErrorIcon from '@mui/icons-material/Error';
 
 export default function Dashboard() {
   const nav = useNavigate();
@@ -41,6 +44,7 @@ export default function Dashboard() {
 
   const [data, setData] = useState([]);
   const [result, setResult] = useState(null);
+  const [submissionsDetail, setSubmissionsDetail] = useState(null);
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [filter, setFiliter] = useState({
     limit:
@@ -66,7 +70,6 @@ export default function Dashboard() {
         let response = res.data.data;
 
         if (state?.problemUuidLoadingStatus) {
-          console.log('hehe');
           response.forEach((r) => {
             if (r.uuid === state.problemUuidLoadingStatus) {
               r.status = _PROBLEM_STATUS.PROCESSING;
@@ -149,6 +152,17 @@ export default function Dashboard() {
 
   const handleNewProblem = () => {
     nav('/lecturer/problems/__new');
+  };
+
+  const getSubmissionsDetail = async (id) => {
+    await axiosAPI
+      .get(endpoints.problems + '/get-detail-submissions/' + id)
+      .then((res) => {
+        let response = res.data.data;
+        setSubmissionsDetail(response);
+      })
+      .catch(() => toast.error('Something went wrong!'))
+      .finally();
   };
 
   useEffect(() => {
@@ -303,11 +317,21 @@ export default function Dashboard() {
                     </TableCell>
 
                     <TableCell align="center">
-                      {row.status === _PROBLEM_STATUS.PROCESSING &&
-                        'In Processing'}
-                      {row.status === _PROBLEM_STATUS.SUCCESS &&
-                        'Done - Success'}
-                      {row.status === _PROBLEM_STATUS.ERROR && 'Done - Error'}
+                      {row.status === _PROBLEM_STATUS.PROCESSING && (
+                        <LinearProgress />
+                      )}
+                      {row.status === _PROBLEM_STATUS.SUCCESS && (
+                        <DoneIcon
+                          onClick={() => getSubmissionsDetail(row._id)}
+                          color="success"
+                        />
+                      )}
+                      {row.status === _PROBLEM_STATUS.ERROR && (
+                        <ErrorIcon
+                          onClick={() => getSubmissionsDetail(row._id)}
+                          color="error"
+                        />
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
@@ -397,6 +421,97 @@ export default function Dashboard() {
                       <TableCell align="center">{row.score}</TableCell>
                       <TableCell align="center">
                         {handleDatetime(row.requestReceivedAt, true)}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell align="center" colSpan={5}>
+                      No submit yet!
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
+      </Modal>
+      <Modal
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        open={submissionsDetail != null}
+        onClose={() => setSubmissionsDetail(null)}
+      >
+        <div>
+          <Typography
+            bgcolor="#fff"
+            component="h4"
+            sx={{
+              textAlign: 'center',
+              py: 2,
+              fontWeight: 'bold',
+              borderTopLeftRadius: '4px',
+              borderTopRightRadius: '4px',
+              bgcolor: '#ccc',
+            }}
+          >
+            Submissions Details of {submissionsDetail?.title} -{' '}
+            {submissionsDetail?.class}
+          </Typography>
+          <TableContainer
+            sx={{
+              maxHeight: '80vh',
+              maxWidth: '60vw',
+              overflowY: 'auto',
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
+            }}
+            component={Paper}
+          >
+            <Table sx={{ minWidth: 500 }} aria-label="simple table">
+              <TableHead>
+                <TableRow
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
+                >
+                  <TableCell>Status</TableCell>
+                  <TableCell align="center">Stdin</TableCell>
+                  <TableCell align="center">Stdout</TableCell>
+                  <TableCell align="center">Time</TableCell>
+                  <TableCell align="center">Memory</TableCell>
+                  <TableCell align="center">Output</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {submissionsDetail &&
+                submissionsDetail.submissions?.length > 0 ? (
+                  submissionsDetail.submissions.map((row) => (
+                    <TableRow
+                      key={row.token}
+                      sx={{
+                        '&:last-child td, &:last-child th': {
+                          border: 0,
+                        },
+                      }}
+                      bgcolor="success"
+                    >
+                      <TableCell component="th" scope="row">
+                        {row.status}
+                      </TableCell>
+                      <TableCell align="center">
+                        <pre>{row.stdin}</pre>
+                      </TableCell>
+                      <TableCell align="center">
+                        <pre>{row.stdout}</pre>
+                      </TableCell>
+                      <TableCell align="center">{row.time}s</TableCell>
+                      <TableCell align="center">{row.memory}kb</TableCell>
+                      <TableCell align="center">
+                        <pre>{row.output}</pre>
                       </TableCell>
                     </TableRow>
                   ))

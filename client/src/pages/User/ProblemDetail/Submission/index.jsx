@@ -11,9 +11,16 @@ import { handleDatetime } from '~/utils/datetime';
 import useAxiosAPI from '~/hook/useAxiosAPI';
 import { getBgSubmitByScore } from './handle';
 import useLoadingContext from '~/hook/useLoadingContext';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, LinearProgress } from '@mui/material';
 
-function Submission({ problem, user, submissions, setSubmissions, setCode }) {
+function Submission({
+  problem,
+  user,
+  submissions,
+  setSubmissions,
+  setCode,
+  isLoad,
+}) {
   const { axiosAPI, endpoints } = useAxiosAPI();
   const [loading, setLoading] = useLoadingContext();
 
@@ -85,9 +92,16 @@ function Submission({ problem, user, submissions, setSubmissions, setCode }) {
           </TableRow>
         </TableHead>
         <TableBody>
+          {isLoad.submit && (
+            <TableRow bgcolor="">
+              <TableCell sx={{ p: 3 }} align="center" colSpan={5}>
+                <LinearProgress />
+              </TableCell>
+            </TableRow>
+          )}
           {loading ? (
             <TableRow>
-              <TableCell align="center" colSpan={4}>
+              <TableCell align="center" colSpan={5}>
                 <CircularProgress size={20} />
               </TableCell>
             </TableRow>
@@ -125,7 +139,7 @@ function Submission({ problem, user, submissions, setSubmissions, setCode }) {
             ))
           ) : (
             <TableRow>
-              <TableCell align="center" colSpan={4}>
+              <TableCell align="center" colSpan={5}>
                 No submit yet!
               </TableCell>
             </TableRow>

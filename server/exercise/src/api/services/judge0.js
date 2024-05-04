@@ -8,7 +8,8 @@ import {
 } from "../../utils/firebase.js";
 import { decode } from "../../utils/judge0.js";
 import { BadRequestError } from "../responses/errors/BadRequestError.js";
-import { ProblemService } from "./Problem.js";
+import { InternalServerError } from "../responses/errors/InternalServerError.js";
+import { ProblemHandle } from "./Problem.js";
 import { SubmissionService } from "./Submission.js";
 
 export const _COMPILER_STATUS = {
@@ -25,7 +26,7 @@ export const _COMPILER_STATUS = {
 const _INTERVAL_TIME_MS = 1000;
 
 const judge0Service = {
-  getSubmissionBatchTokens: async (submissions) => {
+  createSubmissionBatchTokens: async (submissions) => {
     try {
       const tokens = await fetch(_PROCESS_ENV.COMPILER_HOST + "/submissions/batch?redirect_stderr_to_stdout=true", {
         method: "POST",
@@ -39,20 +40,30 @@ const judge0Service = {
 
       return tokens.json();
     } catch (err) {
-      throw new BadRequestError("Get Submissions Batch Tokens Fail!");
+      throw new BadRequestError("Create Submissions Batch Tokens Fail!");
     }
   },
   checkTokens: async (tokens) => {
     try {
       const tokenStr = tokens.map((token) => token.token).join(",");
       const _URI = _PROCESS_ENV.COMPILER_HOST + `/submissions/batch?tokens=${tokenStr}&base64_encoded=true`;
-      const data = await fetch(_URI, {
-        method: "GET"
-      });
+      const data = await fetch(_URI, { method: "GET" });
 
       return data.json();
     } catch (err) {
-      console.log(err);
+      throw new BadRequestError("Check Tokens Fail!");
+    }
+  },
+  checkTokensWithArray: async (tokens) => {
+    try {
+      const tokenStr = tokens.map((token) => token).join(",");
+      const _URI =
+        _PROCESS_ENV.COMPILER_HOST +
+        `/submissions/batch?tokens=${tokenStr}&base64_encoded=true&fields=token,stdin,stdout,time,memory,stderr,compile_output,status`;
+      const data = await fetch(_URI, { method: "GET" });
+
+      return data.json();
+    } catch (err) {
       throw new BadRequestError("Check Tokens Fail!");
     }
   },
@@ -76,7 +87,7 @@ const judge0Service = {
             ? "success"
             : "error";
 
-          await ProblemService.updateProblemStatusByUUID(uuid, status, submissions);
+          await ProblemHandle.updateProblemStatusByUUID(uuid, status, submissions);
           removeProblemStatus(uuid, "processing");
           setProblemStatus(uuid, status);
         }
@@ -137,7 +148,7 @@ const judge0Service = {
       throw new BadRequestError("Check Interval Run Console Status Fail!");
     }
   },
-  checkSubmissionStatus: (uuid, tokens, problem, code, requestReceivedAt, requestId, _id) => {
+  checkSubmissionStatus: ({ uuid, tokens, problemId, code, requestReceivedAt, requestId, authorId }) => {
     try {
       const interval = setInterval(async () => {
         const { submissions } = await judge0Service.checkTokens(tokens);
@@ -182,10 +193,10 @@ const judge0Service = {
             result,
             tokens: tokens.map((t) => t.token),
             requestId,
-            _id,
+            _id: authorId,
             requestReceivedAt,
             uuid,
-            problemId: problem._id,
+            problemId: problemId,
             code
           });
           setSubmissionStatus(uuid, "results", JSON.stringify(result));
@@ -193,6 +204,34 @@ const judge0Service = {
       }, _INTERVAL_TIME_MS);
     } catch (err) {
       throw new BadRequestError("Check Submission Status Fail!");
+    }
+  },
+  deleteSubmission: async (token) => {
+    try {
+      const _URI = _PROCESS_ENV.COMPILER_HOST + `/submissions/${token}`;
+      const res = await fetch(_URI, {
+        method: "DELETE",
+        headers: {
+          "X-Auth-User": _PROCESS_ENV.COMPILER_X_AUTH_USER
+        }
+      });
+
+      return res.status;
+    } catch (err) {
+      throw new InternalServerError("Delete Submission Fail!");
+    }
+  },
+  deleteSubmissions: async (tokens) => {
+    try {
+      if (!tokens || tokens.length === 0) {
+        throw new BadRequestError("No Submissions Found!");
+      }
+
+      for await (const token of tokens) {
+        await judge0Service.deleteSubmission(token);
+      }
+    } catch (err) {
+      throw new BadRequestError("Delete Submissions Fail!");
     }
   }
 };

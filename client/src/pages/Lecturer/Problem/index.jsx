@@ -21,7 +21,6 @@ import Editor from '~/components/Editor';
 import useUserContext from '~/hook/useUserContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import DropdownClass from '~/components/DropdownClass';
-import { loadingToast, updateToast } from '~/utils/toast';
 import useAxiosAPI from '~/hook/useAxiosAPI';
 import Tutorial from '~/components/Tutorial';
 import { createSchema, handleValidate, updateSchema } from './validation';
@@ -301,18 +300,9 @@ function AdminProblem() {
 
     if (error) return toast.error(error);
 
-    const toastID = loadingToast(
-      mode === 'Create' ? 'Creating ...' : 'Updating ...'
-    );
-
     await axiosAPI[method](endpoint, data)
       .then((res) => {
         const { uuid } = res.data.data;
-        updateToast(
-          toastID,
-          mode === 'Create' ? 'Created!' : 'Updated!',
-          'success'
-        );
         nav('/lecturer/dashboard', {
           state: { problemUuidLoadingStatus: uuid },
         });
@@ -320,11 +310,7 @@ function AdminProblem() {
       .catch((err) => {
         import.meta.env.VITE_MODE === 'development' &&
           console.log(err?.response?.data?.message || err);
-        updateToast(
-          toastID,
-          err.response.data.message || 'Something went wrong!',
-          'error'
-        );
+        toast.error(err.response.data.message || 'Something went wrong!');
       });
   };
 

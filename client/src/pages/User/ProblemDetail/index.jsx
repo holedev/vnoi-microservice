@@ -19,7 +19,6 @@ import { useParams } from 'react-router-dom';
 import DetailTestCase from '~/components/DetailTestCase';
 import useUserContext from '~/hook/useUserContext';
 import { handleTimeProblem } from '~/utils/datetime';
-import { loadingToast, updateToast } from '~/utils/toast';
 import useAxiosAPI from '~/hook/useAxiosAPI';
 import Action from './Action';
 import Testcase from './Testcase';
@@ -29,6 +28,7 @@ import { toast } from 'react-toastify';
 import useLoadingContext from '~/hook/useLoadingContext';
 import DropdownLanguage from '~/components/Editor/DropdownLanguage';
 import { checkRunConsolesQueue, checkSubmissionsQueue } from '~/utils/firebase';
+import LinearProgress from '@mui/material/LinearProgress';
 
 const ProblemsDetail = () => {
   const { slug } = useParams();
@@ -40,7 +40,7 @@ const ProblemsDetail = () => {
   const [errRun, setErrRun] = useState(null);
   const [resultCheck, setResultCheck] = useState(null);
   const [consoleP, setConsoleP] = useState(false);
-  const [isLoad, setIsLoad] = useState(false);
+  const [isLoad, setIsLoad] = useState({ run: false, submit: false });
   const [submissions, setSubmissions] = useState([]);
   const [testcases, setTestcases] = useState([]);
   const [code, setCode] = useState({
@@ -97,8 +97,10 @@ const ProblemsDetail = () => {
   };
 
   const handleRun = async () => {
-    if (isLoad) return;
-    setIsLoad(true);
+    if (isLoad.run || isLoad.submit) return;
+    setIsLoad((prev) => {
+      return { ...prev, run: true };
+    });
 
     const data = {
       problem: {
@@ -118,7 +120,9 @@ const ProblemsDetail = () => {
 
     const error = handleValidate(runSchema, data);
     if (error) {
-      setIsLoad(false);
+      setIsLoad((prev) => {
+        return { ...prev, run: false };
+      });
       toast.error(error);
       return;
     }
@@ -134,18 +138,22 @@ const ProblemsDetail = () => {
         setUuid(uuid);
       })
       .catch((err) => {
+        setIsLoad((prev) => {
+          return { ...prev, run: false };
+        });
         err.response.status === 400 && console.log(err?.response?.data.message);
         (err?.response?.data.message && err.response?.status === 422) ||
         err.response?.status === 400
           ? setErrRun(err.response?.data.message)
           : setErrRun('Bad Request!');
-      })
-      .finally(() => setIsLoad(false));
+      });
   };
 
   const handleSubmit = async () => {
-    if (isLoad) return;
-    setIsLoad(true);
+    if (isLoad.run || isLoad.submit) return;
+    setIsLoad((prev) => {
+      return { ...prev, submit: true };
+    });
 
     const data = {
       problem: {
@@ -164,13 +172,14 @@ const ProblemsDetail = () => {
 
     const error = handleValidate(submitSchema, data);
     if (error) {
-      setIsLoad(false);
+      setIsLoad((prev) => {
+        return { ...prev, submit: false };
+      });
       toast.error(error);
       return;
     }
-
-    const toastID = loadingToast('Submitting ...');
     setTab('2');
+
     await axiosAPI
       .post(endpoints.submissions, data)
       .then((res) => {
@@ -182,17 +191,14 @@ const ProblemsDetail = () => {
             submitRemain: submitRemain - 1,
           };
         });
-        updateToast(toastID, 'Submit success!', 'success');
         setUuid(uuid);
       })
-      .catch((err) =>
-        updateToast(
-          toastID,
-          err?.response?.data.message || 'Submit failure!',
-          'error'
-        )
-      )
-      .finally(() => setIsLoad(false));
+      .catch((err) => {
+        setIsLoad((prev) => {
+          return { ...prev, submit: false };
+        });
+        toast.error(err?.response?.data.message || 'Submit failure!');
+      });
   };
 
   useEffect(() => {
@@ -203,6 +209,9 @@ const ProblemsDetail = () => {
     const handleRunConsole = (data) => {
       if (data.uuid !== uuid) return;
       setResultCheck(JSON.parse(data.message));
+      setIsLoad((prev) => {
+        return { ...prev, run: false };
+      });
     };
 
     const handleSubmission = (data) => {
@@ -214,6 +223,9 @@ const ProblemsDetail = () => {
           pass: `${message.pass}/${message.total}`,
         };
         return [lastSubmission, ...prev];
+      });
+      setIsLoad((prev) => {
+        return { ...prev, submit: false };
       });
     };
 
@@ -268,6 +280,7 @@ const ProblemsDetail = () => {
               setSubmissions={setSubmissions}
               problem={problem?._id}
               user={user?.id}
+              isLoad={isLoad}
             />
           </TabPanel>
         </TabContext>
@@ -300,6 +313,7 @@ const ProblemsDetail = () => {
         </Box>
         <Box className={styles.action}>
           <Action
+            isLoad={isLoad}
             problem={problem}
             handleSubmit={handleSubmit}
             setConsole={setConsoleP}
@@ -335,7 +349,17 @@ const ProblemsDetail = () => {
               }}
               value="3"
             >
-              {resultCheck && (
+              {isLoad.run && (
+                <Box
+                  sx={{
+                    marginTop: '6px',
+                    p: 1,
+                  }}
+                >
+                  <LinearProgress />
+                </Box>
+              )}
+              {resultCheck && !isLoad.run && (
                 <Box
                   sx={{
                     marginTop: '6px',
