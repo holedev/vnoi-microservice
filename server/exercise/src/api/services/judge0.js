@@ -10,7 +10,7 @@ import { decode } from "../../utils/judge0.js";
 import { BadRequestError } from "../responses/errors/BadRequestError.js";
 import { InternalServerError } from "../responses/errors/InternalServerError.js";
 import { ProblemHandle } from "./Problem.js";
-import { SubmissionService } from "./Submission.js";
+import { SubmissionHandle } from "./Submission.js";
 
 export const _COMPILER_STATUS = {
   IN_QUEUE: 1,
@@ -189,7 +189,7 @@ const judge0Service = {
             langIdSolution: code.langIdSolution
           };
 
-          await SubmissionService.updateSubmissionByUUID({
+          await SubmissionHandle.updateSubmissionByUUID({
             result,
             tokens: tokens.map((t) => t.token),
             requestId,

@@ -10,6 +10,62 @@ import { gRPCRequest } from "./gRPC.js";
 import { judge0Service } from "./judge0.js";
 
 const SubmissionHandle = {
+  updateSubmissionByUUID: async ({ result, tokens, requestId, _id, requestReceivedAt, uuid, problemId, code }) => {
+    const userGRPC = await gRPCRequest.getUserByIdAsync(requestId, _id);
+
+    const submission = await SubmissionModel.create({
+      uuid,
+      author: userGRPC,
+      problem: problemId,
+      langIdSolution: code.langIdSolution,
+      solution: code.text.trim(),
+      pass: `${result.pass}/${result.total}`,
+      score: result.score,
+      timeAvg: result.timeAvg,
+      memoryAvg: result.memoryAvg,
+      requestReceivedAt,
+      tokens: tokens
+    });
+
+    if (!submission) {
+      throw new ConflictError("Submit failed!");
+    }
+
+    const problemDoc = await ProblemModel.findOne({
+      _id: problemId,
+      isDeleted: false
+    });
+
+    if (!problemDoc) {
+      throw new NotFoundError("Problem not found!");
+    }
+
+    if (!problemDoc.alwayOpen) {
+      if (requestReceivedAt < new Date(problemDoc.timeStart) || requestReceivedAt > new Date(problemDoc.timeEnd)) {
+        throw new ConflictError("Problem is not available now!");
+      }
+    }
+
+    const userSubmission = problemDoc.submitList.find((s) => s.userId?.toString() === _id);
+
+    if (userSubmission) {
+      userSubmission.submissionTotal += 1;
+      if (result.score > userSubmission.maxScore) {
+        userSubmission.maxScore = result.score;
+        userSubmission.submissionId = submission._id;
+      }
+    } else {
+      const obj = {
+        userId: _id,
+        submissionId: submission._id,
+        submissionTotal: 1,
+        maxScore: result.score
+      };
+      problemDoc.submitList.push(obj);
+    }
+
+    await problemDoc.save();
+  },
   getBestSubmission: async (userId, problemId, withoutSubmissionId) => {
     const submissions = await SubmissionModel.find({
       "author._id": userId,
@@ -145,62 +201,7 @@ const SubmissionService = {
       }
     });
   },
-  updateSubmissionByUUID: async ({ result, tokens, requestId, _id, requestReceivedAt, uuid, problemId, code }) => {
-    const userGRPC = await gRPCRequest.getUserByIdAsync(requestId, _id);
 
-    const submission = await SubmissionModel.create({
-      uuid,
-      author: userGRPC,
-      problem: problemId,
-      langIdSolution: code.langIdSolution,
-      solution: code.text.trim(),
-      pass: `${result.pass}/${result.total}`,
-      score: result.score,
-      timeAvg: result.timeAvg,
-      memoryAvg: result.memoryAvg,
-      requestReceivedAt,
-      tokens: tokens
-    });
-
-    if (!submission) {
-      throw new ConflictError("Submit failed!");
-    }
-
-    const problemDoc = await ProblemModel.findOne({
-      _id: problemId,
-      isDeleted: false
-    });
-
-    if (!problemDoc) {
-      throw new NotFoundError("Problem not found!");
-    }
-
-    if (!problemDoc.alwayOpen) {
-      if (requestReceivedAt < new Date(problemDoc.timeStart) || requestReceivedAt > new Date(problemDoc.timeEnd)) {
-        throw new ConflictError("Problem is not available now!");
-      }
-    }
-
-    const userSubmission = problemDoc.submitList.find((s) => s.userId?.toString() === _id);
-
-    if (userSubmission) {
-      userSubmission.submissionTotal += 1;
-      if (result.score > userSubmission.maxScore) {
-        userSubmission.maxScore = result.score;
-        userSubmission.submissionId = submission._id;
-      }
-    } else {
-      const obj = {
-        userId: _id,
-        submissionId: submission._id,
-        submissionTotal: 1,
-        maxScore: result.score
-      };
-      problemDoc.submitList.push(obj);
-    }
-
-    await problemDoc.save();
-  },
   getSubmissionOfUser: async (req, res) => {
     const _id = req.headers["x-user-id"];
     const { problem } = req.body;
@@ -305,4 +306,4 @@ const SubmissionService = {
   }
 };
 
-export { SubmissionService };
+export { SubmissionService, SubmissionHandle };
