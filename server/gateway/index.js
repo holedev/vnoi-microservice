@@ -4,6 +4,7 @@ import proxy from "express-http-proxy";
 import "express-async-errors";
 import compression from "compression";
 import helmet from "helmet";
+import serveStatic from "serve-static";
 import { _PROCESS_ENV } from "./src/configs/env/index.js";
 import { _PROXY_CONFIG } from "./src/configs/proxy/index.js";
 import { VerifyToken } from "./src/api/middlewares/VerifyToken.js";
@@ -23,15 +24,22 @@ const corsOptions = {
   credentials: true
 };
 
+// TODO: static file from 9000 -> 9004
+// app.use(serveStatic("videos", {
+
+// }));
+
 app.use(RateLimit);
 
 app.use(
   cors(corsOptions),
   helmet(),
   express.json(),
-  express.urlencoded({ extended: true, limit: "20mb" }),
+  express.urlencoded({ extended: false, limit: "20mb" }),
   compression()
 );
+
+app.use("/videos");
 
 app.use(VerifyToken);
 
@@ -42,15 +50,22 @@ app.use((req, res, next) => {
 
 app.use(apiFilter);
 
+const isMultipartRequest = (req) => {
+  const contentTypeHeader = req.headers["content-type"];
+  return contentTypeHeader && contentTypeHeader.indexOf("multipart") > -1;
+};
+
 _PROXY_CONFIG.forEach(({ path, target }) => {
-  app.use(
-    path,
-    proxy(target, {
+  const proxyMiddleware = (req, res, next) => {
+    return proxy(target, {
+      parseReqBody: !isMultipartRequest(req),
       proxyErrorHandler: (err, res, next) => {
         next(err);
       }
-    })
-  );
+    })(req, res, next);
+  };
+
+  app.use(path, proxyMiddleware);
 });
 
 app.use(ErrorHandler);

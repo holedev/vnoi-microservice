@@ -1,14 +1,16 @@
-import axios from "axios";
-import { getAuth } from "firebase/auth";
-import "~/configs/firebase";
+import axios from 'axios';
+import { getAuth } from 'firebase/auth';
+import '~/configs/firebase';
 
-const SERVER_CONTEXT = "/api";
+const SERVER_CONTEXT = '/api';
 
 const endpoints = {
   users: `${SERVER_CONTEXT}/user`,
   classes: `${SERVER_CONTEXT}/common/classes`,
   problems: `${SERVER_CONTEXT}/exercise/problems`,
   submissions: `${SERVER_CONTEXT}/exercise/submissions`,
+  videos: `${SERVER_CONTEXT}/media/videos`,
+  files: `${SERVER_CONTEXT}/media/files`,
 };
 
 // axios
@@ -37,7 +39,7 @@ const getFirebaseToken = async () => {
 const axiosAPI = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
@@ -52,7 +54,7 @@ axiosAPI.interceptors.request.use(async (config) => {
 axiosAPI.interceptors.response.use(
   (response) => response,
   (error) => {
-    import.meta.env.VITE_MODE === "development" && console.log(error.message);
+    import.meta.env.VITE_MODE === 'development' && console.log(error.message);
     return Promise.reject(error);
   }
 );

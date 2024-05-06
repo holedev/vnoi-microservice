@@ -7,7 +7,7 @@ import './index.css';
 import App from './App.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-    <React.StrictMode>
+    // <React.StrictMode>
         <>
             <App />
             <ToastContainer
@@ -22,5 +22,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 theme="colored"
             />
         </>
-    </React.StrictMode>
+    // </React.StrictMode>
 );

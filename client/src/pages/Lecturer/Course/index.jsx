@@ -99,7 +99,7 @@ export default function Course() {
         <>
           <Box
             sx={{
-              padding: '12px 0',
+              padding: '24px 0',
               display: 'flex',
               justifyContent: 'center',
             }}
