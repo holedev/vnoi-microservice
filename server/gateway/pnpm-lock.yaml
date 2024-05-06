@@ -44,6 +44,9 @@ dependencies:
   nodemon:
     specifier: ^3.0.2
     version: 3.1.0
+  serve-static:
+    specifier: ^1.15.0
+    version: 1.15.0
   uuid4:
     specifier: ^2.0.3
     version: 2.0.3

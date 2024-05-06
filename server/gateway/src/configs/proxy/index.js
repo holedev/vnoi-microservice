@@ -14,6 +14,10 @@ const _PROXY_CONFIG = [
   {
     path: _SERVICE.EXERCISE_SERVICE.PATH,
     target: "http://localhost:" + _SERVICE.EXERCISE_SERVICE.PORT
+  },
+  {
+    path: _SERVICE.MEDIA_SERVICE.PATH,
+    target: "http://localhost:" + _SERVICE.MEDIA_SERVICE.PORT
   }
 ];
 

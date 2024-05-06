@@ -54,7 +54,7 @@ function Step1() {
             tabIndex={-1}
             startIcon={<CloudUploadIcon />}
           >
-            Upload Cover Image
+            Upload Cover Image (16:9)
             <VisuallyHiddenInput
               type="file"
               accept=".png, .jpg"

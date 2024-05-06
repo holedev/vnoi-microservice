@@ -154,6 +154,10 @@ export default function Dashboard() {
     nav('/lecturer/problems/__new');
   };
 
+  const handleNewCourse = () => {
+    nav('/lecturer/courses');
+  };
+
   const getSubmissionsDetail = async (id) => {
     await axiosAPI
       .get(endpoints.problems + '/get-detail-submissions/' + id)
@@ -202,8 +206,23 @@ export default function Dashboard() {
               gap: '4px',
             }}
           >
-            <Fab onClick={handleNewProblem} color="primary" size="small">
-              +
+            <Fab
+              onClick={handleNewCourse}
+              variant="extended"
+              color="primary"
+              size="small"
+              sx={{ textTransform: 'capitalize', p: 2 }}
+            >
+              New Course
+            </Fab>
+            <Fab
+              onClick={handleNewProblem}
+              variant="extended"
+              color="primary"
+              size="small"
+              sx={{ textTransform: 'capitalize', p: 2 }}
+            >
+              New Problem
             </Fab>
             <SearchDebounce
               search={search}

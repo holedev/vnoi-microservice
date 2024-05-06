@@ -28,13 +28,10 @@
     "GRPC_HOST": "localhost",
     "GRPC_PORT": 50003
   },
-  "COMPILER_SERVICE": {
-    "NAME": "COMPILER-SERVICE",
+  "MEDIA_SERVICE": {
+    "NAME": "MEDIA-SERVICE",
     "PORT": 9004,
-    "GRPC_PROTO_PATH": "../protos/compiler.proto",
-    "GRPC_SERVICE_NAME": "Compiler",
-    "GRPC_HOST": "localhost",
-    "GRPC_PORT": 50004
+    "PATH": "/media"
   },
   "LOGGING_SERVICE": {
     "NAME": "LOGGING-SERVICE",
