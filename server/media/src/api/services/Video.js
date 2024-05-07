@@ -2,7 +2,7 @@ import { VideoModel } from "../models/Video.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 import { gRPCRequest } from "./gRPC.js";
 
-const _VIDEO_PATH = "videos/";
+const _VIDEO_PATH = "http://localhost:9004/videos/";
 
 const VideoService = {
   createVideo: async (req, res) => {
@@ -27,7 +27,7 @@ const VideoService = {
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       data: {
-        uuid: video.uuid,
+        _id: video._id,
         title: video.title,
         path: _VIDEO_PATH + video.source
       }

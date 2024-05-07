@@ -54,6 +54,7 @@ function App() {
                   <Route path="dashboard" element={<LecturerDashboard />} />
                   <Route path="problems/:slug" element={<LecturerProblem />} />
                   <Route path="problems/__new" element={<LecturerProblem />} />
+                  <Route path="courses/:id" element={<LecturerCourse />} />
                   <Route path="courses" element={<LecturerCourse />} />
                 </Route>
                 <Route path="profile/:id" element={<Profile />} />

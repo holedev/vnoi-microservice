@@ -24,11 +24,6 @@ const corsOptions = {
   credentials: true
 };
 
-// TODO: static file from 9000 -> 9004
-// app.use(serveStatic("videos", {
-
-// }));
-
 app.use(RateLimit);
 
 app.use(
@@ -38,8 +33,6 @@ app.use(
   express.urlencoded({ extended: false, limit: "20mb" }),
   compression()
 );
-
-app.use("/videos");
 
 app.use(VerifyToken);
 

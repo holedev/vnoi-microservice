@@ -4,6 +4,7 @@ import { VerifyRole } from "../middlewares/VerifyRole.js";
 
 const router = Router();
 
+router.get("/findLecturerByEmail/:email", VerifyRole.lecturer, UserService.findLecturerByEmail);
 router.get("/:id", UserService.getById);
 router.get("/", VerifyRole.admin, UserService.getAllByAdmin);
 router.post("/auth", UserService.auth);

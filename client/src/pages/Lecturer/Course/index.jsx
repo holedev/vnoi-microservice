@@ -8,14 +8,59 @@ import Typography from '@mui/material/Typography';
 import Step1 from './Step1';
 import Step2 from './Step2';
 import Step3 from './Step3';
+import useUserContext from '~/hook/useUserContext';
+import useAxiosAPI from '~/hook/useAxiosAPI';
+import { useParams } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const steps = ['Course Information', 'Create Content', 'Publish'];
 
 export default function Course() {
+  const [user] = useUserContext();
+
+  const { id } = useParams();
+
+  const { axiosAPI, endpoints } = useAxiosAPI();
+  const [course, setCourse] = useState({
+    _id: null,
+    title: '',
+    desc: '',
+    authors: [
+      {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        isMe: true,
+      },
+    ],
+    coverPath: '',
+    sections: [],
+    lessons: [],
+    activeSection: null,
+    activeLesson: null,
+    lessonData: {
+      video: {},
+      files: [],
+      content: null,
+    },
+  });
   const [activeStep, setActiveStep] = useState(0);
   const [skipped, setSkipped] = useState(new Set());
 
-  const isStepOptional = (step) => {
+  const getCourse = async (id) => {
+    await axiosAPI({
+      method: 'GET',
+      url: endpoints.learning + `/courses/${id}`,
+    })
+      .then((response) => {
+        const data = response.data.data;
+        console.log(data);
+        setCourse(data);
+      })
+      .catch((err) => console.log(err));
+  };
+
+  const isStepOptional = () => {
     return false;
   };
 
@@ -56,6 +101,26 @@ export default function Course() {
   const handleReset = () => {
     setActiveStep(0);
   };
+
+  const createCourse = async () => {
+    await axiosAPI({
+      method: 'POST',
+      url: endpoints.learning + '/courses',
+      data: course,
+    })
+      .then((response) => {})
+      .catch((err) => console.log(err));
+  };
+
+  const handleSaveDraft = async () => {
+    if (!course._id) {
+      await createCourse();
+    }
+  };
+
+  useEffect(() => {
+    if (id) getCourse(id);
+  }, [id]);
 
   return (
     <Box
@@ -104,8 +169,12 @@ export default function Course() {
               justifyContent: 'center',
             }}
           >
-            {activeStep === 0 && <Step1 />}
-            {activeStep === 1 && <Step2 />}
+            {activeStep === 0 && (
+              <Step1 course={course} setCourse={setCourse} />
+            )}
+            {activeStep === 1 && (
+              <Step2 course={course} setCourse={setCourse} />
+            )}
             {activeStep === 2 && <Step3 />}
           </Box>
           <Box
@@ -131,6 +200,9 @@ export default function Course() {
               </Button>
             )}
 
+            <Button onClick={handleSaveDraft} variant="outlined">
+              Save a draft
+            </Button>
             <Button onClick={handleNext}>
               {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
             </Button>
