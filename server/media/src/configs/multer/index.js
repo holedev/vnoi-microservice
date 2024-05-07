@@ -10,8 +10,12 @@ const storage = multer.diskStorage({
       return cb(null, "uploads/videos/");
     }
 
-    if (file.fieldname === "files") {
+    if (file.fieldname === "file") {
       return cb(null, "uploads/files/");
+    }
+
+    if (file.fieldname === "image") {
+      return cb(null, "uploads/images/");
     }
   },
   filename: function (req, file, cb) {
@@ -22,11 +26,10 @@ const storage = multer.diskStorage({
   }
 });
 
-// TODO: limit size
-const multerConfig = multer({ storage });
+const multerConfig = multer({ storage, limits: { fileSize: _MAX_BYTES } });
 
 async function uploadFiles(req, res, next) {
-  const upload = multerConfig.array("files");
+  const upload = multerConfig.array("file");
 
   upload(req, res, function (err) {
     if (err) {
@@ -47,4 +50,15 @@ async function uploadVideo(req, res, next) {
   });
 }
 
-export { uploadFiles, uploadVideo };
+async function uploadImage(req, res, next) {
+  const upload = multerConfig.single("image");
+
+  upload(req, res, function (err) {
+    if (err) {
+      return next(new BadRequestError(err.message));
+    }
+    next();
+  });
+}
+
+export { uploadFiles, uploadVideo, uploadImage };

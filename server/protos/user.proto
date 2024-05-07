@@ -5,6 +5,7 @@ package user;
 service User {
     rpc getUsersAvailable(Emtpy) returns (getUsersAvailableRes) {};
     rpc getUserById(getUserByIdReq) returns (getUserByIdRes) {};
+    rpc getUsersByIds(getUsersByIdsReq) returns (getUsersByIdsRes) {};
 }
 
 message Emtpy {
@@ -16,11 +17,20 @@ message getUserByIdReq {
     string _id = 2;
 }
 
+message getUsersByIdsReq {
+    string requestId = 1;
+    string _ids = 2;
+}
+
 message getUserByIdRes {
     string _id = 1;
     string email = 2;
     string fullName = 3;
     string role = 4;
+}
+
+message getUsersByIdsRes {
+    repeated getUserByIdRes users = 1;
 }
 
 message getUsersAvailableRes {

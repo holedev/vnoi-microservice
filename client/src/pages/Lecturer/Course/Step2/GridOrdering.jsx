@@ -1,15 +1,6 @@
 import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
-// fake data generator
-const data = [
-  { id: '1', content: 'First task' },
-  { id: '2', content: 'Second task' },
-  { id: '3', content: 'Third task' },
-  { id: '4', content: 'Fourth task' },
-  { id: '5', content: 'Fifth task' },
-];
-
 // a little function to help us with reordering the result
 const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list);
@@ -40,8 +31,15 @@ const getListStyle = (isDraggingOver) => ({
   width: 250,
 });
 
-const GridOrdering = () => {
-  const [items, setItems] = useState(data);
+const GridOrdering = ({
+  type,
+  data,
+  setCourse,
+  itemOnClick,
+  itemOnDoubleClick,
+  orderUpdate,
+}) => {
+  const [edit, setEdit] = useState(null);
 
   const onDragEnd = (result) => {
     // dropped outside the list
@@ -50,12 +48,30 @@ const GridOrdering = () => {
     }
 
     const updatedItems = reorder(
-      items,
+      data,
       result.source.index,
       result.destination.index
     );
 
-    setItems(updatedItems);
+    if (type == 'sections') {
+      setCourse((prev) => {
+        return {
+          ...prev,
+          sections: updatedItems,
+        };
+      });
+    }
+
+    if (type == 'lessons') {
+      setCourse((prev) => {
+        return {
+          ...prev,
+          lessons: updatedItems,
+        };
+      });
+    }
+
+    orderUpdate(updatedItems);
   };
 
   return (
@@ -67,8 +83,8 @@ const GridOrdering = () => {
             ref={provided.innerRef}
             style={getListStyle(snapshot.isDraggingOver)}
           >
-            {items.map((item, index) => (
-              <Draggable key={item.id} draggableId={item.id} index={index}>
+            {data?.map((item, index) => (
+              <Draggable key={item._id} draggableId={item._id} index={index}>
                 {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
@@ -78,8 +94,20 @@ const GridOrdering = () => {
                       snapshot.isDragging,
                       provided.draggableProps.style
                     )}
+                    onDoubleClick={() => {
+                      setEdit(item._id == edit ? null : item._id);
+                    }}
+                    contentEditable={edit == item._id}
+                    suppressContentEditableWarning={true}
+                    onBlur={(e) => {
+                      if (edit == item._id) {
+                        itemOnDoubleClick(item._id, e.target.innerText);
+                        setEdit(null);
+                      }
+                    }}
+                    onClick={() => itemOnClick(item._id)}
                   >
-                    {item.content}
+                    {item.title}
                   </div>
                 )}
               </Draggable>

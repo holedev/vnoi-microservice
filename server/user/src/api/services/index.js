@@ -115,6 +115,24 @@ const UserService = {
       data: data
     });
   },
+  findLecturerByEmail: async (req, res) => {
+    // TODO: check role of user
+    const { email } = req.params;
+    const user = await UserModel.findOne({ email }).lean();
+
+    if (!user) {
+      throw new ConflictError("Lecturer not found!");
+    }
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email
+      }
+    });
+  },
   update: async (req, res) => {
     try {
       const requestId = req.headers["x-request-id"];

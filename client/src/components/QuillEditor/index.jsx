@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useQuill } from 'react-quilljs';
 import BlotFormatter from 'quill-blot-formatter';
 import 'react-quill/dist/quill.snow.css';

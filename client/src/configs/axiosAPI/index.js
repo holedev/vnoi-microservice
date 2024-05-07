@@ -9,8 +9,8 @@ const endpoints = {
   classes: `${SERVER_CONTEXT}/common/classes`,
   problems: `${SERVER_CONTEXT}/exercise/problems`,
   submissions: `${SERVER_CONTEXT}/exercise/submissions`,
-  videos: `${SERVER_CONTEXT}/media/videos`,
-  files: `${SERVER_CONTEXT}/media/files`,
+  media: `${SERVER_CONTEXT}/media`,
+  learning: `${SERVER_CONTEXT}/learning`,
 };
 
 // axios

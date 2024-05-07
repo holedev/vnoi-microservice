@@ -33,8 +33,13 @@
     "PORT": 9004,
     "PATH": "/media"
   },
+  "LEARNING_SERVICE": {
+    "NAME": "LEARNING-SERVICE",
+    "PORT": 9005,
+    "PATH": "/learning"
+  },
   "LOGGING_SERVICE": {
     "NAME": "LOGGING-SERVICE",
-    "PORT": 9005
+    "PORT": 9006
   }
 }

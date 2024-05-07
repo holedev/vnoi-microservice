@@ -1,16 +1,16 @@
 import {
   Box,
   FormGroup,
-  Autocomplete,
   TextField,
   Button,
   Chip,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
-import { _AUTHOR_DATA } from './data';
 import { styled } from '@mui/material/styles';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import useAxiosAPI from '~/hook/useAxiosAPI';
+import LinearWithValueLabel from '~/components/LinearWithValueLabel';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -24,18 +24,81 @@ const VisuallyHiddenInput = styled('input')({
   width: 1,
 });
 
-function Step1() {
-  const [authors, setAuthors] = useState([]);
-  const [banner, setBanner] = useState(null);
+function Step1({ course: { title, desc, coverPath, authors }, setCourse }) {
+  const { axiosAPI, endpoints } = useAxiosAPI();
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setBanner(reader.result);
+  const [loadProgress, setLoadProgress] = useState(null);
+
+  const handleData = (value, key) => {
+    setCourse((prev) => {
+      return {
+        ...prev,
+        [key]: value,
       };
-      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleAddAuthor = async (ev) => {
+    if (ev.key === 'Enter') {
+      const email = ev.target.value;
+
+      await axiosAPI
+        .get(endpoints.users + `/findLecturerByEmail/${email}`)
+        .then((response) => {
+          const { _id, fullName, email } = response.data.data;
+
+          const isExistAuthor = authors.some((author) => author._id === _id);
+          if (isExistAuthor) return;
+
+          setCourse((prev) => {
+            return {
+              ...prev,
+              authors: [
+                ...prev.authors,
+                {
+                  _id,
+                  fullName,
+                  email,
+                },
+              ],
+            };
+          });
+        })
+        .catch((err) => console.log(err));
+    }
+  };
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+
+    if (file) {
+      const form = new FormData();
+      form.append('image', file);
+
+      await axiosAPI({
+        method: 'POST',
+        url: endpoints.media + '/images',
+        data: form,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          setLoadProgress(
+            (progressEvent.loaded / progressEvent.total).toFixed(2) * 100
+          );
+        },
+      })
+        .then((response) => {
+          setLoadProgress(null);
+          const { path } = response.data.data;
+          setCourse((prev) => {
+            return {
+              ...prev,
+              coverPath: path,
+            };
+          });
+        })
+        .catch((err) => console.log(err));
     }
   };
 
@@ -62,36 +125,45 @@ function Step1() {
             />
           </Button>
         </FormGroup>
-        {banner && (
+        {loadProgress && (
+          <FormGroup>
+            <LinearWithValueLabel progress={loadProgress} />
+          </FormGroup>
+        )}
+        {coverPath && (
           <FormGroup>
             <img
-              src={banner}
+              src={coverPath}
               alt="Banner Preview"
               style={{ maxWidth: 500, marginTop: '10px' }}
             />
           </FormGroup>
         )}
         <FormGroup sx={{ mt: 2 }}>
-          <TextField label="Title" size="small" />
-        </FormGroup>
-        <FormGroup>
-          <TextField label="Description" size="small" />
-        </FormGroup>
-        <FormGroup>
-          <Autocomplete
+          <TextField
+            label="Title"
+            value={title}
+            onChange={(e) => handleData(e.target.value, 'title')}
             size="small"
-            options={_AUTHOR_DATA}
-            sx={{ minWidth: 300 }}
-            renderInput={(params) => (
-              <TextField {...params} label="Author(s)" />
-            )}
-            getOptionLabel={(option) => option.value}
-            onChange={(e, value) => {
-              const isExist = authors.find((item) => item.id === value.id);
-              if (isExist) return;
-              setAuthors([...authors, value]);
-            }}
           />
+        </FormGroup>
+        <FormGroup>
+          <TextField
+            label="Description"
+            value={desc}
+            onChange={(e) => handleData(e.target.value, 'desc')}
+            size="small"
+          />
+        </FormGroup>
+        <FormGroup>
+          <Box sx={{ width: '100%' }}>
+            <TextField
+              onKeyDown={(ev) => handleAddAuthor(ev)}
+              sx={{ width: '100%' }}
+              label="Authors"
+              size="small"
+            />
+          </Box>
           <Box
             sx={{
               display: 'flex',
@@ -100,18 +172,31 @@ function Step1() {
               mt: 1,
             }}
           >
-            {authors?.map((author) => (
-              <Chip
-                sx={{
-                  userSelect: 'none',
-                }}
-                key={author.id}
-                onDoubleClick={() => {
-                  setAuthors(authors.filter((item) => item.id !== author.id));
-                }}
-                label={author.value}
-              />
-            ))}
+            {authors?.map((author) => {
+              let text = author.fullName;
+              if (author.isMe) text += ' (Me)';
+
+              return (
+                <Chip
+                  sx={{
+                    userSelect: 'none',
+                  }}
+                  key={author._id}
+                  onDoubleClick={() => {
+                    if (author.isMe) return;
+                    setCourse((prev) => {
+                      return {
+                        ...prev,
+                        authors: prev.authors.filter(
+                          (item) => item._id !== author._id
+                        ),
+                      };
+                    });
+                  }}
+                  label={text}
+                />
+              );
+            })}
           </Box>
         </FormGroup>
       </Box>
