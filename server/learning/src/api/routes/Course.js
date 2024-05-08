@@ -10,6 +10,7 @@ router.get("/:id", CourseService.getCourseByLecturer);
 router.post("/", CourseService.createCourse);
 router.post("/sections", CourseService.createSection);
 router.post("/lessons", CourseService.createLesson);
+router.patch("/save-draft/:id", CourseService.saveDraftLesson);
 router.patch("/order-sections/:id", CourseService.updateSectionsOfCourse);
 router.patch("/order-lessons/:id", CourseService.updateLessonsOfCourse);
 router.patch("/sections/:id", CourseService.updateSection);

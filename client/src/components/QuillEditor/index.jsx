@@ -3,7 +3,7 @@ import BlotFormatter from 'quill-blot-formatter';
 import 'react-quill/dist/quill.snow.css';
 import { useEffect } from 'react';
 
-function QuillEditor() {
+function QuillEditor({ value, setValue }) {
   const { quill, quillRef, Quill } = useQuill({
     modules: { blotFormatter: {} },
   });
@@ -14,8 +14,12 @@ function QuillEditor() {
 
   useEffect(() => {
     if (quill) {
+      if (value) {
+        quill.clipboard.dangerouslyPasteHTML(value);
+      }
+
       quill.on('text-change', (delta, oldContents, source) => {
-        console.log(quillRef.current.firstChild.innerHTML);
+        setValue(quillRef.current.firstChild.innerHTML);
       });
     }
   }, [quill, Quill]);
