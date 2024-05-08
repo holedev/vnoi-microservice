@@ -53,9 +53,16 @@ export default function Course() {
       url: endpoints.learning + `/courses/${id}`,
     })
       .then((response) => {
-        const data = response.data.data;
-        console.log(data);
-        setCourse(data);
+        const { _id, title, desc, coverPath, authors, sections } =
+          response.data.data;
+        setCourse({
+          _id,
+          title,
+          desc,
+          coverPath,
+          authors,
+          sections,
+        });
       })
       .catch((err) => console.log(err));
   };
@@ -77,6 +84,13 @@ export default function Course() {
 
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
     setSkipped(newSkipped);
+
+    if (activeStep == 0) {
+      const isNewCourse = !course._id;
+      if (isNewCourse) {
+        createCourse();
+      }
+    }
   };
 
   const handleBack = () => {
@@ -108,14 +122,43 @@ export default function Course() {
       url: endpoints.learning + '/courses',
       data: course,
     })
-      .then((response) => {})
+      .then((response) => {
+        const { _id, title, desc, coverPath, authors, sections } =
+          response.data.data;
+
+        setCourse((prev) => {
+          return {
+            ...prev,
+            _id,
+            title,
+            desc,
+            coverPath,
+            authors,
+            sections,
+          };
+        });
+      })
       .catch((err) => console.log(err));
   };
 
   const handleSaveDraft = async () => {
-    if (!course._id) {
-      await createCourse();
+    const lessonId = course.activeLesson;
+
+    if (!lessonId) {
+      return;
     }
+
+    await axiosAPI({
+      method: 'PATCH',
+      url: endpoints.learning + `/courses/save-draft/${lessonId}`,
+      data: course.lessonData,
+    })
+      .then((response) => {
+        console.log(response.data.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   useEffect(() => {
@@ -200,9 +243,11 @@ export default function Course() {
               </Button>
             )}
 
-            <Button onClick={handleSaveDraft} variant="outlined">
-              Save a draft
-            </Button>
+            {activeStep === 1 && (
+              <Button onClick={handleSaveDraft} variant="outlined">
+                Save a draft
+              </Button>
+            )}
             <Button onClick={handleNext}>
               {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
             </Button>

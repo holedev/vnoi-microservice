@@ -9,11 +9,21 @@ const CourseLesson = new Schema(
     slug: {
       type: String
     },
-    videoId: {
-      type: String
+    video: {
+      type: {
+        _id: String,
+        title: String,
+        path: String
+      }
     },
     files: {
-      type: [String]
+      type: [
+        {
+          _id: String,
+          title: String,
+          path: String
+        }
+      ]
     },
     content: {
       type: String

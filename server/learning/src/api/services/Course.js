@@ -5,20 +5,8 @@ import { gRPCRequest } from "./gRPC.js";
 import { CourseModel } from "../models/Course.js";
 import { CourseSectionModel } from "../models/CourseSection.js";
 import { CourseLessonModel } from "../models/CourseLesson.js";
-import { Types } from "mongoose";
 
 const CourseService = {
-  saveDraft: async (req, res) => {
-    const requestId = req.headers["x-request-id"];
-    const _id = req.headers["x-user-id"];
-
-    const { title, desc, coverPath, sections, authors } = req.body;
-
-    return res.status(httpStatusCodes.OK).json({
-      status: "success",
-      data: "Ok"
-    });
-  },
   createCourse: async (req, res) => {
     const requestId = req.headers["x-request-id"];
     const _id = req.headers["x-user-id"];
@@ -35,9 +23,27 @@ const CourseService = {
 
     const course = await CourseModel.create(data);
 
+    if (!course) throw new BadRequestError("Cannot create course!");
+
+    const formatData = {
+      _id: course._id,
+      title: course.title,
+      desc: course.desc,
+      coverPath: course.coverPath,
+      sections: course.sections,
+      authors: course.authors.map((author) => {
+        return {
+          _id: author._id,
+          fullName: author.fullName,
+          email: author.email,
+          isMe: author._id === _id
+        };
+      })
+    };
+
     return res.status(httpStatusCodes.OK).json({
       status: "success",
-      data: course._doc
+      data: formatData
     });
   },
   updateSectionsOfCourse: async (req, res) => {
@@ -173,6 +179,30 @@ const CourseService = {
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       data: { _id: courseLesson._id, title: courseLesson.title }
+    });
+  },
+  saveDraftLesson: async (req, res) => {
+    const requestId = req.headers["x-request-id"];
+    const _id = req.headers["x-user-id"];
+
+    const { id } = req.params;
+    const { video, files, content } = req.body;
+
+    const lesson = await CourseLessonModel.findById(id);
+
+    if (!lesson) {
+      throw new ConflictError("Lesson not found!");
+    }
+
+    lesson.video = video;
+    lesson.files = files;
+    lesson.content = content;
+
+    await lesson.save();
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: lesson
     });
   },
   getCourseByLecturer: async (req, res) => {

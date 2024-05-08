@@ -1,9 +1,20 @@
-import { Box, Button, Typography, styled } from '@mui/material';
+import {
+  Box,
+  Breadcrumbs,
+  Button,
+  CardMedia,
+  Link,
+  Modal,
+  Typography,
+  styled,
+} from '@mui/material';
 import QuillEditor from '~/components/QuillEditor';
 import GridOrderring from './GridOrdering';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useState } from 'react';
 import useAxiosAPI from '~/hook/useAxiosAPI';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import { useEffect } from 'react';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -26,8 +37,12 @@ function Step2({
     video: null,
     files: null,
   });
+  const [videoEdit, setVideoEdit] = useState({
+    isOpen: false,
+    data: null,
+  });
 
-  const handleVideo = async (event) => {
+  const handleUploadVideo = async (event) => {
     const file = event.target.files[0];
     if (file) {
       const form = new FormData();
@@ -74,7 +89,7 @@ function Step2({
     }
   };
 
-  const handleFilesChange = (event) => {
+  const handleUploadFiles = (event) => {
     const files = event.target.files;
     if (files) {
       const form = new FormData();
@@ -172,6 +187,7 @@ function Step2({
       return {
         ...prev,
         activeSection: id,
+        activeLesson: null,
       };
     });
 
@@ -238,14 +254,6 @@ function Step2({
         activeLesson: id,
       };
     });
-
-    await axiosAPI
-      .get(endpoints.learning + '/courses/lessons/' + id)
-      .then((res) => {
-        const data = res.data.data;
-        console.log(data);
-      })
-      .catch((err) => console.log(err));
   };
 
   const handleAddLesson = async () => {
@@ -265,6 +273,46 @@ function Step2({
       })
       .catch((err) => console.log(err));
   };
+
+  const getVideo = async (id) => {
+    const response = await axiosAPI.get(endpoints.media + '/videos/' + id);
+    return response.data.data;
+  };
+
+  const handleEditVideo = async (id) => {
+    const video = await getVideo(id);
+    setVideoEdit((prev) => {
+      return {
+        ...prev,
+        data: video,
+        isOpen: true,
+      };
+    });
+  };
+
+  useEffect(() => {
+    if (!activeLesson) return;
+    const getLessonData = async () =>
+      await axiosAPI
+        .get(endpoints.learning + '/courses/lessons/' + activeLesson)
+        .then((res) => {
+          const { video, files, content } = res.data.data;
+
+          setCourse((prev) => {
+            return {
+              ...prev,
+              lessonData: {
+                video,
+                files,
+                content,
+              },
+            };
+          });
+        })
+        .catch((err) => console.log(err));
+
+    getLessonData();
+  }, [activeLesson]);
 
   return (
     <Box sx={{ minWidth: 500, width: '100%' }}>
@@ -326,12 +374,21 @@ function Step2({
         </Box>
         {activeLesson && (
           <Box sx={{ flex: 1 }}>
+            <Box>
+              <Breadcrumbs aria-label="breadcrumb">
+                <Typography color="text">
+                  {sections.find((s) => s._id == activeSection)?.title}
+                </Typography>
+                <Typography color="text.primary">
+                  {lessons.find((s) => s._id == activeLesson)?.title}
+                </Typography>
+              </Breadcrumbs>
+            </Box>
             <Box
               sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                mt: 4,
               }}
             >
               <Typography variant="h6">Video</Typography>
@@ -343,14 +400,14 @@ function Step2({
                   variant="contained"
                   tabIndex={-1}
                   startIcon={<CloudUploadIcon />}
-                  disabled={loadProgress.video}
+                  disabled={loadProgress.video ? true : false}
                 >
                   Upload Video{' '}
                   {loadProgress.video && `(${loadProgress.video}%)`}
                   <VisuallyHiddenInput
                     type="file"
                     accept=".mp4"
-                    onChange={handleVideo}
+                    onChange={handleUploadVideo}
                   />
                 </Button>
               )}
@@ -363,14 +420,7 @@ function Step2({
                   }}
                 >
                   <Typography variant="">{lessonData?.video.title}</Typography>
-                  <Button
-                    onClick={() => {
-                      window.open(
-                        `localhost:9004/${lessonData?.video.path}`,
-                        '_blank'
-                      );
-                    }}
-                  >
+                  <Button onClick={() => handleEditVideo(lessonData.video._id)}>
                     Edit
                   </Button>
                   <Button size="small" color="error" variant="outlined">
@@ -398,18 +448,22 @@ function Step2({
                 >
                   Upload Files
                   <VisuallyHiddenInput
-                    onChange={handleFilesChange}
+                    onChange={handleUploadFiles}
                     multiple
                     type="file"
                     accept=".pdf, .doc"
                   />
                 </Button>
               </Box>
-              {lessonData?.files.length > 0 && (
+              {lessonData?.files?.length > 0 && (
                 <Box>
                   {lessonData.files.map((file) => {
                     return (
-                      <Box key={file._id}>
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center' }}
+                        key={file._id}
+                      >
+                        <InsertDriveFileIcon fontSize="large" />
                         <a href={file?.path} target="_blank" rel="noreferrer">
                           {file?.title}
                         </a>
@@ -422,12 +476,70 @@ function Step2({
             <Box sx={{ mt: 2 }}>
               <Typography variant="h6">Content</Typography>
               <Box sx={{ flex: 1 }}>
-                <QuillEditor />
+                <QuillEditor
+                  value={lessonData?.content}
+                  setValue={(value) =>
+                    setCourse((prev) => {
+                      return {
+                        ...prev,
+                        lessonData: {
+                          ...prev.lessonData,
+                          content: value,
+                        },
+                      };
+                    })
+                  }
+                />
               </Box>
             </Box>
           </Box>
         )}
       </Box>
+      <Modal
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        open={videoEdit.isOpen}
+        onClose={() =>
+          setVideoEdit((prev) => {
+            return { ...prev, isOpen: false };
+          })
+        }
+      >
+        <Box sx={{ maxWidth: 800, background: '#ccc', borderRadius: 2 }}>
+          <Typography
+            component="h4"
+            sx={{
+              textAlign: 'center',
+              py: 2,
+              fontWeight: 'bold',
+              borderTopLeftRadius: '4px',
+              borderTopRightRadius: '4px',
+            }}
+          >
+            EDIT VIDEO: {videoEdit.data?.title}
+          </Typography>
+          <Box sx={{ display: 'flex' }}>
+            <Box sx={{ flex: 1 }}>
+              {/* <video src={videoEdit.data?.path} controls width="100%" /> */}
+              <CardMedia
+                component="video"
+                className=".MuiCardMedia-media"
+                image={videoEdit.data?.path}
+                autoPlay
+                controls
+              />
+            </Box>
+            <Box sx={{ minWidth: 200 }}>
+              <Typography component="h6" sx={{}}>
+                Interactive
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      </Modal>
     </Box>
   );
 }
