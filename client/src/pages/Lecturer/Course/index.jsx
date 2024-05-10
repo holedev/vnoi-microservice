@@ -4,7 +4,6 @@ import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
 import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
 import Step1 from './Step1';
 import Step2 from './Step2';
 import Step3 from './Step3';
@@ -12,13 +11,18 @@ import useUserContext from '~/hook/useUserContext';
 import useAxiosAPI from '~/hook/useAxiosAPI';
 import { useParams } from 'react-router-dom';
 import { useEffect } from 'react';
+import Step4 from './Step4';
+import { useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
-const steps = ['Course Information', 'Create Content', 'Publish'];
+const steps = ['Course Information', 'Create Content', 'Review', 'Publish'];
 
 export default function Course() {
   const [user] = useUserContext();
-
   const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const nav = useNavigate();
 
   const { axiosAPI, endpoints } = useAxiosAPI();
   const [course, setCourse] = useState({
@@ -43,17 +47,26 @@ export default function Course() {
       files: [],
       content: null,
     },
+    publish: {
+      classes: [],
+      time: null,
+    },
   });
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStep, setActiveStep] = useState(() => {
+    if (searchParams.get('step')) {
+      return parseInt(searchParams.get('step')) - 1;
+    }
+    return 0;
+  });
   const [skipped, setSkipped] = useState(new Set());
 
   const getCourse = async (id) => {
     await axiosAPI({
       method: 'GET',
-      url: endpoints.learning + `/courses/${id}`,
+      url: endpoints.learning + `/courses/get-course-by-lecturer/${id}`,
     })
       .then((response) => {
-        const { _id, title, desc, coverPath, authors, sections } =
+        const { _id, title, desc, coverPath, authors, sections, publish } =
           response.data.data;
         setCourse({
           _id,
@@ -62,25 +75,14 @@ export default function Course() {
           coverPath,
           authors,
           sections,
+          publish,
         });
       })
       .catch((err) => console.log(err));
   };
 
-  const isStepOptional = () => {
-    return false;
-  };
-
-  const isStepSkipped = (step) => {
-    return skipped.has(step);
-  };
-
-  const handleNext = () => {
+  const handleNext = async () => {
     let newSkipped = skipped;
-    if (isStepSkipped(activeStep)) {
-      newSkipped = new Set(newSkipped.values());
-      newSkipped.delete(activeStep);
-    }
 
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
     setSkipped(newSkipped);
@@ -91,29 +93,30 @@ export default function Course() {
         createCourse();
       }
     }
+
+    if (activeStep == 3) {
+      await handlePublic(course._id, {
+        classes: course.publish.classes,
+        time: new Date(),
+      });
+    }
   };
 
   const handleBack = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
-  const handleSkip = () => {
-    if (!isStepOptional(activeStep)) {
-      // You probably want to guard against something like this,
-      // it should never occur unless someone's actively trying to break something.
-      throw new Error("You can't skip a step that isn't optional.");
-    }
-
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
-    setSkipped((prevSkipped) => {
-      const newSkipped = new Set(prevSkipped.values());
-      newSkipped.add(activeStep);
-      return newSkipped;
-    });
-  };
-
-  const handleReset = () => {
-    setActiveStep(0);
+  const handlePublic = async (_id, publishData) => {
+    await axiosAPI({
+      method: 'PATCH',
+      url: endpoints.learning + `/courses/publish/${_id}`,
+      data: publishData,
+    })
+      .then((response) => {
+        nav('/lecturer/dashboard/courses');
+        toast.success('Publish course successfully');
+      })
+      .catch((err) => console.log(err));
   };
 
   const createCourse = async () => {
@@ -165,6 +168,10 @@ export default function Course() {
     if (id) getCourse(id);
   }, [id]);
 
+  useEffect(() => {
+    setSearchParams({ step: activeStep + 1 });
+  }, [activeStep]);
+
   return (
     <Box
       sx={{
@@ -175,17 +182,10 @@ export default function Course() {
       }}
     >
       <Stepper activeStep={activeStep}>
-        {steps.map((label, index) => {
+        {steps.map((label) => {
           const stepProps = {};
           const labelProps = {};
-          if (isStepOptional(index)) {
-            labelProps.optional = (
-              <Typography variant="caption">Optional</Typography>
-            );
-          }
-          if (isStepSkipped(index)) {
-            stepProps.completed = false;
-          }
+
           return (
             <Step key={label} {...stepProps}>
               <StepLabel {...labelProps}>{label}</StepLabel>
@@ -193,67 +193,46 @@ export default function Course() {
           );
         })}
       </Stepper>
-      {activeStep === steps.length ? (
-        <>
-          <Typography sx={{ mt: 2, mb: 1 }}>
-            All steps completed - finished
-          </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-            <Box sx={{ flex: '1 1 auto' }} />
-            <Button onClick={handleReset}>Reset</Button>
-          </Box>
-        </>
-      ) : (
-        <>
-          <Box
-            sx={{
-              padding: '24px 0',
-              display: 'flex',
-              justifyContent: 'center',
-            }}
-          >
-            {activeStep === 0 && (
-              <Step1 course={course} setCourse={setCourse} />
-            )}
-            {activeStep === 1 && (
-              <Step2 course={course} setCourse={setCourse} />
-            )}
-            {activeStep === 2 && <Step3 />}
-          </Box>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'row',
-              pt: 2,
-              marginTop: 'auto',
-            }}
-          >
-            <Button
-              color="inherit"
-              disabled={activeStep === 0}
-              onClick={handleBack}
-              sx={{ mr: 1 }}
-            >
-              Back
-            </Button>
-            <Box sx={{ flex: '1 1 auto' }} />
-            {isStepOptional(activeStep) && (
-              <Button color="inherit" onClick={handleSkip} sx={{ mr: 1 }}>
-                Skip
-              </Button>
-            )}
 
-            {activeStep === 1 && (
-              <Button onClick={handleSaveDraft} variant="outlined">
-                Save a draft
-              </Button>
-            )}
-            <Button onClick={handleNext}>
-              {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
-            </Button>
-          </Box>
-        </>
-      )}
+      <Box
+        sx={{
+          padding: '24px 0',
+          display: 'flex',
+          justifyContent: 'center',
+        }}
+      >
+        {activeStep === 0 && <Step1 course={course} setCourse={setCourse} />}
+        {activeStep === 1 && <Step2 course={course} setCourse={setCourse} />}
+        {activeStep === 2 && <Step3 courseId={course._id} />}
+        {activeStep === 3 && <Step4 course={course} setCourse={setCourse} />}
+      </Box>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          pt: 2,
+          marginTop: 'auto',
+        }}
+      >
+        <Button
+          color="inherit"
+          disabled={activeStep === 0}
+          onClick={handleBack}
+          sx={{ mr: 1 }}
+        >
+          Back
+        </Button>
+        <Box sx={{ flex: '1 1 auto' }} />
+
+        {activeStep === 1 && (
+          <Button onClick={handleSaveDraft} variant="outlined">
+            Save a draft
+          </Button>
+        )}
+        <Button onClick={handleNext}>
+          {activeStep === steps.length - 1 ? 'Publish' : 'Next'}
+        </Button>
+      </Box>
     </Box>
   );
 }

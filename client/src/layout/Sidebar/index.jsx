@@ -152,12 +152,20 @@ export default function Sidebar() {
         )}
 
         {user.role === 'LECTURER' && (
-          <ListItemButton onClick={() => nav('/lecturer/dashboard')}>
-            <ListItemIcon>
-              <Dashboard />
-            </ListItemIcon>
-            <ListItemText primary="Dashboard" />
-          </ListItemButton>
+          <>
+            <ListItemButton onClick={() => nav('/lecturer/dashboard/courses')}>
+              <ListItemIcon>
+                <Dashboard />
+              </ListItemIcon>
+              <ListItemText primary="ADMIN - Courses" />
+            </ListItemButton>
+            <ListItemButton onClick={() => nav('/lecturer/dashboard/problems')}>
+              <ListItemIcon>
+                <Dashboard />
+              </ListItemIcon>
+              <ListItemText primary="ADMIN - Problems" />
+            </ListItemButton>
+          </>
         )}
         <ListItemButton onClick={() => nav('/courses')}>
           <ListItemIcon>

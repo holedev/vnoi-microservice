@@ -7,6 +7,287 @@ import { CourseSectionModel } from "../models/CourseSection.js";
 import { CourseLessonModel } from "../models/CourseLesson.js";
 
 const CourseService = {
+  getCourseByClass: async (req, res) => {
+    const { id } = req.params;
+
+    const condition = {
+      "publish.classes": { $in: [id] },
+      isDraft: false
+    };
+
+    const courses = await CourseModel.find(condition)
+      .populate({
+        path: "sections._id",
+        select: "_id title lessons",
+        populate: {
+          path: "lessons._id",
+          select: "_id title files video"
+        }
+      })
+      .lean()
+      .select("_id title desc coverPath authors sections isDraft publish updatedAt");
+
+    const formatData = courses.map((course) => {
+      const sections = course.sections.map((section) => {
+        return {
+          _id: section._id._id,
+          title: section._id.title,
+          lessons: section._id.lessons.map((lesson) => {
+            return {
+              _id: lesson._id._id,
+              title: lesson._id.title,
+              files: lesson._id.files,
+              video: lesson._id.video
+            };
+          })
+        };
+      });
+
+      const statistic = {
+        sections: {
+          total: sections.length
+        },
+        lessons: {
+          total: sections.reduce((total, section) => {
+            return total + section.lessons.length;
+          }, 0)
+        },
+        videos: {
+          total: sections.reduce((total, section) => {
+            const videoQuantity = section.lessons.reduce((total, lesson) => {
+              return total + (lesson.video ? 1 : 0);
+            }, 0);
+
+            return total + videoQuantity;
+          }, 0)
+        },
+        files: {
+          total: sections.reduce((total, section) => {
+            const fileQuantity = section.lessons.reduce((total, lesson) => {
+              return total + lesson.files.length;
+            }, 0);
+
+            return total + fileQuantity;
+          }, 0)
+        }
+      };
+
+      return {
+        _id: course._id,
+        title: course.title,
+        desc: course.desc,
+        coverPath: course.coverPath,
+        authors: course.authors.map((author) => {
+          return {
+            _id: author._id,
+            fullName: author.fullName,
+            email: author.email
+          };
+        }),
+        updatedAt: course.updatedAt,
+        statistic
+      };
+    });
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: formatData
+    });
+  },
+  getCoursesOfLecturer: async (req, res) => {
+    const _id = req.headers["x-user-id"];
+
+    const condition = { authors: { $elemMatch: { _id } }, isDeleted: false };
+    const courses = await CourseModel.find(condition).lean().select("_id authors title isDraft updatedAt sections");
+
+    const formatData = courses.map((course) => {
+      return {
+        _id: course._id,
+        title: course.title,
+        authors: course.authors.map((author) => {
+          return {
+            fullName: author.fullName,
+            email: author.email
+          };
+        }),
+        isDraft: course.isDraft,
+        updatedAt: course.updatedAt,
+        sections: course.sections?.length || 0
+      };
+    });
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: formatData
+    });
+  },
+  getCourseById: async (req, res) => {
+    const { id } = req.params;
+
+    const course = await CourseModel.findById(id)
+      .populate({
+        path: "sections._id",
+        select: "_id title lessons",
+        populate: {
+          path: "lessons._id",
+          select: "_id title files video"
+        }
+      })
+      .lean()
+      .select("_id title desc coverPath authors sections isDraft updatedAt");
+
+    if (!course) {
+      throw new ConflictError("Course not found!");
+    }
+
+    const formatData = {
+      ...course,
+      sections: course.sections.map((section) => {
+        return {
+          _id: section._id._id,
+          title: section._id.title,
+          lessons: section._id.lessons.map((lesson) => {
+            return {
+              _id: lesson._id._id,
+              title: lesson._id.title,
+              files: lesson._id.files,
+              video: lesson._id.video
+            };
+          })
+        };
+      })
+    };
+
+    const statistic = {
+      sections: {
+        total: formatData.sections?.length
+      },
+      lessons: {
+        total: formatData.sections?.reduce((total, section) => {
+          return total + section.lessons.length;
+        }, 0)
+      },
+      videos: {
+        total: formatData.sections?.reduce((total, section) => {
+          const videoQuantity = section.lessons.reduce((total, lesson) => {
+            return total + (lesson.video ? 1 : 0);
+          }, 0);
+
+          return total + videoQuantity;
+        }, 0)
+      },
+      files: {
+        total: formatData.sections?.reduce((total, section) => {
+          const fileQuantity = section.lessons.reduce((total, lesson) => {
+            return total + lesson.files.length;
+          }, 0);
+
+          return total + fileQuantity;
+        }, 0)
+      }
+    };
+
+    formatData.statistic = statistic;
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: formatData
+    });
+  },
+  getCourseReview: async (req, res) => {
+    const { id } = req.params;
+
+    const course = await CourseModel.findById(id)
+      .populate({
+        path: "sections._id",
+        select: "_id title lessons",
+        populate: {
+          path: "lessons._id",
+          select: "_id title files video"
+        }
+      })
+      .lean()
+      .select("_id title desc coverPath authors sections isDraft updatedAt");
+
+    if (!course) {
+      throw new ConflictError("Course not found!");
+    }
+
+    const formatData = {
+      ...course,
+      sections: course.sections.map((section) => {
+        return {
+          _id: section._id._id,
+          title: section._id.title,
+          lessons: section._id.lessons.map((lesson) => {
+            return {
+              _id: lesson._id._id,
+              title: lesson._id.title,
+              files: lesson._id.files,
+              video: lesson._id.video
+            };
+          })
+        };
+      })
+    };
+
+    const statistic = {
+      sections: {
+        total: formatData.sections?.length
+      },
+      lessons: {
+        total: formatData.sections?.reduce((total, section) => {
+          return total + section.lessons.length;
+        }, 0)
+      },
+      videos: {
+        total: formatData.sections?.reduce((total, section) => {
+          const videoQuantity = section.lessons.reduce((total, lesson) => {
+            return total + (lesson.video ? 1 : 0);
+          }, 0);
+
+          return total + videoQuantity;
+        }, 0)
+      },
+      files: {
+        total: formatData.sections?.reduce((total, section) => {
+          const fileQuantity = section.lessons.reduce((total, lesson) => {
+            return total + lesson.files.length;
+          }, 0);
+
+          return total + fileQuantity;
+        }, 0)
+      }
+    };
+
+    formatData.statistic = statistic;
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: formatData
+    });
+  },
+  publishCourse: async (req, res) => {
+    const { id } = req.params;
+    const { classes, time } = req.body;
+
+    const course = await CourseModel.findById(id);
+
+    if (!course) {
+      throw new ConflictError("Course not found!");
+    }
+
+    course.publish.classes = classes;
+    course.publish.time = time;
+    course.isDraft = false;
+
+    await course.save();
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: course._id
+    });
+  },
   createCourse: async (req, res) => {
     const requestId = req.headers["x-request-id"];
     const _id = req.headers["x-user-id"];
@@ -281,6 +562,23 @@ const CourseService = {
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       data: courseLesson
+    });
+  },
+  softDelete: async (req, res) => {
+    const { id } = req.params;
+
+    const course = await CourseModel.findById(id);
+
+    if (!course) {
+      throw new ConflictError("Course not found!");
+    }
+
+    course.isDeleted = true;
+    await course.save();
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: course._id
     });
   }
 };
