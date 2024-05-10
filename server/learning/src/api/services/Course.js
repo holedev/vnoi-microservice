@@ -5,6 +5,7 @@ import { gRPCRequest } from "./gRPC.js";
 import { CourseModel } from "../models/Course.js";
 import { CourseSectionModel } from "../models/CourseSection.js";
 import { CourseLessonModel } from "../models/CourseLesson.js";
+import { QuestionModel } from "../models/Question.js";
 
 const CourseService = {
   getCourseByClass: async (req, res) => {
@@ -555,6 +556,18 @@ const CourseService = {
 
     let courseLesson = await CourseLessonModel.findById(id).lean().select("-__v -updatedAt -createdAt");
 
+    if (courseLesson.video?._id) {
+      const videoGRPC = await gRPCRequest.getVideoByIdAsync(req.headers["x-request-id"], courseLesson.video._id);
+      const data = JSON.parse(videoGRPC.jsonStr);
+
+      courseLesson.video = {
+        _id: data._id,
+        title: data.title,
+        path: courseLesson.video?.path,
+        interactives: data.interactives
+      };
+    }
+
     if (!courseLesson) {
       throw new ConflictError("Lesson not found!");
     }
@@ -579,6 +592,77 @@ const CourseService = {
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       data: course._id
+    });
+  },
+  createQuestion: async (req, res) => {
+    const { title, answer1, answer2, answer3, answer4 } = req.body;
+
+    const answers = [
+      { value: answer1, isCorrect: true },
+      { value: answer2, isCorrect: false },
+      { value: answer3, isCorrect: false },
+      { value: answer4, isCorrect: false }
+    ];
+
+    const data = {
+      title,
+      answers
+    };
+
+    const question = await QuestionModel.create(data);
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: question
+    });
+  },
+  getQuestionById: async (req, res) => {
+    const { id } = req.params;
+
+    const question = await QuestionModel.findById(id).lean().select("_id title answers");
+
+    if (!question) {
+      throw new ConflictError("Question not found!");
+    }
+
+    const formatData = {
+      _id: question._id,
+      title: question.title,
+      answers: question.answers
+        .map((answer) => {
+          return {
+            _id: answer._id,
+            value: answer.value
+          };
+        })
+        .sort(() => Math.random() - 0.5)
+    };
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: formatData
+    });
+  },
+  checkResultQuestion: async (req, res) => {
+    const { questionId, answerId } = req.body;
+
+    const question = await QuestionModel.findById(questionId).lean().select("_id answers");
+
+    if (!question) {
+      throw new ConflictError("Question not found!");
+    }
+
+    const answer = question.answers.find((answer) => answer._id == answerId);
+    if (!answer) {
+      throw new ConflictError("Answer not found!");
+    }
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: {
+        result: answer.isCorrect,
+        correctAnswer: question.answers.find((answer) => answer.isCorrect)
+      }
     });
   }
 };

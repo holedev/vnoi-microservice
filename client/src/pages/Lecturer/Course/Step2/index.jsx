@@ -3,11 +3,13 @@ import {
   Breadcrumbs,
   Button,
   CardMedia,
+  FormControl,
+  FormControlLabel,
   Modal,
-  TextField,
+  Radio,
+  RadioGroup,
   Typography,
   styled,
-  Autocomplete,
 } from '@mui/material';
 import QuillEditor from '~/components/QuillEditor';
 import GridOrderring from './GridOrdering';
@@ -17,6 +19,9 @@ import useAxiosAPI from '~/hook/useAxiosAPI';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { useEffect } from 'react';
 import AutocompleteProblems from './AutocompleteProblems';
+import { useRef } from 'react';
+import ChildModal from './ChildModal';
+import Question from './Question';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -35,6 +40,8 @@ function Step2({
   setCourse,
 }) {
   const { axiosAPI, endpoints } = useAxiosAPI();
+  const videoRef = useRef(null);
+
   const [loadProgress, setLoadProgress] = useState({
     video: null,
     files: null,
@@ -42,7 +49,12 @@ function Step2({
   const [videoEdit, setVideoEdit] = useState({
     isOpen: false,
     data: null,
+    timeCurr: 0.0,
+    interactives: [],
   });
+  const [radio, setRadio] = useState('question');
+  const [childModal, setChildModal] = useState(false);
+  const [question, setQuestion] = useState({});
 
   const handleUploadVideo = async (event) => {
     const file = event.target.files[0];
@@ -288,8 +300,66 @@ function Step2({
         ...prev,
         data: video,
         isOpen: true,
+        interactives: video.interactives,
       };
     });
+
+  };
+
+  const handleGetCurrentTime = () => {
+    setVideoEdit((prev) => {
+      return { ...prev, timeCurr: videoRef.current?.currentTime };
+    });
+  };
+
+  const handleRadioChange = (event) => {
+    setRadio(event.target.value);
+  };
+
+  const handleCreateQuestion = async () => {
+    await axiosAPI({
+      method: 'POST',
+      url: endpoints.learning + '/courses/questions',
+      data: question,
+    })
+      .then((res) => {
+        const data = res.data.data;
+        setVideoEdit((prev) => {
+          return {
+            ...prev,
+            interactives: [
+              ...prev.interactives,
+              {
+                type: 'question',
+                time: videoEdit.timeCurr,
+                _id: data._id,
+              },
+            ],
+          };
+        });
+
+        setChildModal(false);
+      })
+      .catch((err) => console.log(err));
+  };
+
+  const handleAddInteractive = () => {
+    setChildModal(true);
+  };
+
+  const handleUpdateVideo = async () => {
+    await axiosAPI({
+      method: 'PATCH',
+      url: endpoints.media + '/videos/' + videoEdit.data._id,
+      data: {
+        interactives: videoEdit.interactives,
+      },
+    })
+      .then((res) => {
+        const data = res.data.data;
+        console.log(data);
+      })
+      .catch((err) => console.log(err));
   };
 
   useEffect(() => {
@@ -315,6 +385,12 @@ function Step2({
 
     getLessonData();
   }, [activeLesson]);
+
+  useEffect(() => {
+    setVideoEdit((prev) => {
+      return { ...prev, timeCurr: videoRef.current?.currentTime };
+    });
+  }, [videoRef.current?.currentTime]);
 
   return (
     <Box sx={{ minWidth: 500, width: '100%' }}>
@@ -526,20 +602,82 @@ function Step2({
           <Box sx={{ display: 'flex' }}>
             <Box sx={{ flex: 1 }}>
               <CardMedia
+                ref={videoRef}
                 component="video"
                 className=".MuiCardMedia-media"
                 image={videoEdit.data?.path}
-                autoPlay
                 controls
+                onTimeUpdate={handleGetCurrentTime}
               />
             </Box>
-            <Box sx={{ minWidth: 300, padding: '0 6px' }}>
-              <Typography component="h6" sx={{ textAlign: 'center' }}>
-                Import Problem
-              </Typography>
-              <AutocompleteProblems />
+            <Box
+              sx={{
+                minWidth: 300,
+                padding: '0 6px',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <FormControl>
+                <RadioGroup
+                  aria-labelledby="interactive"
+                  defaultValue="question"
+                  name="radio-buttons-group"
+                  onChange={handleRadioChange}
+                  value={radio}
+                >
+                  <FormControlLabel
+                    value="question"
+                    control={<Radio />}
+                    label="Create Question"
+                  />
+                  <FormControlLabel
+                    value="problem"
+                    control={<Radio />}
+                    label="Import Problem"
+                  />
+                </RadioGroup>
+                <Button
+                  sx={{ width: '100%' }}
+                  variant="contained"
+                  color="primary"
+                  onClick={handleAddInteractive}
+                >
+                  Add interactive at {videoEdit.timeCurr?.toFixed(2) || '0.00'}
+                </Button>
+              </FormControl>
+              <ChildModal open={childModal} setOpen={setChildModal}>
+                {radio == 'question' && (
+                  <Question
+                    question={question}
+                    setQuestion={setQuestion}
+                    handleCreateQuestion={handleCreateQuestion}
+                  />
+                )}
+              </ChildModal>
+              {videoEdit.interactives.length > 0 && (
+                <Box>
+                  <Box>
+                    {videoEdit.interactives.map((item) => (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                        }}
+                        key={item._id}
+                      >
+                        <Typography>{item.time}</Typography>
+                        <Typography>{item.type}</Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              )}
             </Box>
           </Box>
+          <Button onClick={handleUpdateVideo} sx={{ m: 2 }} variant="outlined">
+            Update Video
+          </Button>
         </Box>
       </Modal>
     </Box>

@@ -25,6 +25,7 @@ const Video = new Schema(
       type: Number,
       required: true
     },
+    interactives: [],
     isDeleted: {
       type: Boolean,
       default: false

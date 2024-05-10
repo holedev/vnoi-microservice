@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package media;
+
+service Media {
+    rpc getVideoById(getVideoByIdReq) returns (getVideoByIdRes) {}
+}
+
+message getVideoByIdReq {
+    string requestId = 1;
+    string _id = 2;
+}
+
+message getVideoByIdRes {
+    string jsonStr = 1;
+}

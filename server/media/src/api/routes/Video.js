@@ -7,5 +7,6 @@ const router = Router();
 
 router.get("/:id", VideoService.getVideo);
 router.post("/", uploadVideo, VideoService.createVideo);
+router.patch("/:id", VideoService.updateVideo);
 
 export { router as VideoRoute };

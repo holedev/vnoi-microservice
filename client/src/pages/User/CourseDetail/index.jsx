@@ -7,22 +7,26 @@ import {
   List,
   ListItemButton,
   ListItemText,
+  Modal,
   Typography,
 } from '@mui/material';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import useAxiosAPI from '~/hook/useAxiosAPI';
+import Question from './Question';
 
 function CourseDetail() {
   const { id } = useParams();
   const { axiosAPI, endpoints } = useAxiosAPI();
+  const videoRef = useRef(null);
 
   const [course, setCourse] = useState({});
   const [lesson, setLesson] = useState({});
-  const [open, setOpen] = useState(false);
+  const [openSidebar, setOpenSidebar] = useState(false);
+  const [questionModal, setQuestionModal] = useState(null);
 
   const getCourse = async () => {
     await axiosAPI({
@@ -30,7 +34,6 @@ function CourseDetail() {
       method: 'GET',
     })
       .then((res) => {
-        console.log(res.data.data);
         setCourse(res.data.data);
       })
       .catch((err) => console.log(err));
@@ -42,14 +45,13 @@ function CourseDetail() {
       method: 'GET',
     })
       .then((res) => {
-        console.log(res.data.data);
         setLesson(res.data.data);
       })
       .catch((err) => console.log(err));
   };
 
   const handleClickSection = (id) => {
-    setOpen((prev) => {
+    setOpenSidebar((prev) => {
       return {
         ...prev,
         [id]: !prev[id],
@@ -59,6 +61,41 @@ function CourseDetail() {
 
   const handleClickLesson = (id) => {
     getLesson(id);
+  };
+
+  const handleTimeUpdate = () => {
+    if (!lesson.video?.interactives || lesson.video.interactives.length === 0)
+      return;
+
+    const currTime = videoRef.current?.currentTime;
+
+    lesson.video.interactives?.forEach((item) => {
+      if (!item.isPass && currTime >= item.time) {
+        videoRef.current.pause();
+        setQuestionModal(item._id);
+      }
+    });
+  };
+
+  const handleAnswered = (_id) => {
+    setLesson((prev) => {
+      return {
+        ...prev,
+        video: {
+          ...prev.video,
+          interactives: prev.video.interactives.map((item) => {
+            if (item._id == _id) {
+              return { ...item, isPass: true };
+            }
+            return item;
+          }),
+        },
+      };
+    });
+  };
+
+  const handleCloseModal = () => {
+    setQuestionModal(null);
   };
 
   useEffect(() => {
@@ -87,7 +124,13 @@ function CourseDetail() {
         >
           {lesson.video && (
             <Box>
-              <CardMedia component="video" image={lesson.video.path} controls />
+              <CardMedia
+                ref={videoRef}
+                component="video"
+                image={lesson.video.path}
+                controls
+                onTimeUpdate={handleTimeUpdate}
+              />
             </Box>
           )}
           <Box sx={{ p: 1 }}>
@@ -121,7 +164,8 @@ function CourseDetail() {
             {course?.sections &&
               course.sections.map((section, idxSection) => {
                 const title =
-                  `0${idxSection + 1}`.slice(-2) + `. ${section.title} (${section.lessons?.length || 0})`;
+                  `0${idxSection + 1}`.slice(-2) +
+                  `. ${section.title} (${section.lessons?.length || 0})`;
 
                 return (
                   <Box key={section._id}>
@@ -130,7 +174,11 @@ function CourseDetail() {
                       sx={{ background: '#bbb' }}
                     >
                       <ListItemText primary={title} />
-                      {open[section._id] ? <ExpandLess /> : <ExpandMore />}
+                      {openSidebar[section._id] ? (
+                        <ExpandLess />
+                      ) : (
+                        <ExpandMore />
+                      )}
                     </ListItemButton>
                     {section.lessons &&
                       section.lessons.length > 0 &&
@@ -139,7 +187,7 @@ function CourseDetail() {
 
                         return (
                           <Collapse
-                            in={open[section._id]}
+                            in={openSidebar[section._id]}
                             timeout="auto"
                             unmountOnExit
                             key={lesson._id}
@@ -160,6 +208,9 @@ function CourseDetail() {
           </List>
         </Box>
       </Box>
+      <Modal open={questionModal} onClose={handleCloseModal}>
+        <Question id={questionModal} handleAnswered={handleAnswered} />
+      </Modal>
     </Box>
   );
 }

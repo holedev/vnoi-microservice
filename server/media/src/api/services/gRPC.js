@@ -1,4 +1,8 @@
 import { grpCClientCommon, grpCClientUser } from "../../configs/grpc/index.js";
+import { logInfo } from "../../configs/rabiitmq/log.js";
+import { VideoModel } from "../models/Video.js";
+
+const logGRPCHandle = (requestId, method, body) => logInfo(null, { requestId, method, body });
 
 const gRPCRequest = {
   getUserByIdAsync: (requestId, _id) => {
@@ -45,4 +49,17 @@ const gRPCRequest = {
   }
 };
 
-export { gRPCRequest };
+const gRPCHandle = {
+  getVideoById: async (call, callback) => {
+    try {
+      logGRPCHandle(call.request.requestId, "GRPC-HANDLE", call.request);
+      const _id = call.request._id;
+      const result = await VideoModel.findById(_id).lean().select("-__v -updatedAt -createdAt");
+      callback(null, { jsonStr: JSON.stringify(result) });
+    } catch (error) {
+      callback(error, null);
+    }
+  }
+};
+
+export { gRPCRequest, gRPCHandle };
