@@ -1,4 +1,4 @@
-import { grpCClientCommon, grpCClientUser } from "../../configs/grpc/index.js";
+import { grpCClientCommon, grpCClientMedia, grpCClientUser } from "../../configs/grpc/index.js";
 
 const gRPCRequest = {
   getUserByIdAsync: (requestId, _id) => {
@@ -32,6 +32,20 @@ const gRPCRequest = {
   getClassByIdAsync: (requestId, _id) => {
     return new Promise((resolve, reject) => {
       grpCClientCommon.getClassById({ requestId, _id }, (err, res) => {
+        if (err) {
+          reject({
+            statusCode: "GRPC",
+            message: err
+          });
+        } else {
+          resolve(res);
+        }
+      });
+    });
+  },
+  getVideoByIdAsync: (requestId, _id) => {
+    return new Promise((resolve, reject) => {
+      grpCClientMedia.getVideoById({ requestId, _id }, (err, res) => {
         if (err) {
           reject({
             statusCode: "GRPC",

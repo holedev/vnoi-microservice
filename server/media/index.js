@@ -8,6 +8,7 @@ import { logInfo } from "./src/configs/rabiitmq/log.js";
 import { VideoRoute } from "./src/api/routes/Video.js";
 import { FileRoute } from "./src/api/routes/File.js";
 import { ImageRoute } from "./src/api/routes/Image.js";
+import { gRPCServerMedia } from "./src/configs/grpc/index.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
@@ -19,6 +20,8 @@ app.use("/images", express.static("uploads/images"));
 app.use(cors({ origin: "*", credentials: true }), express.json(), express.urlencoded({ extended: true }));
 
 await databaseConnection();
+
+gRPCServerMedia();
 
 // TODO: check request headers have x-request-id and x-user-id
 

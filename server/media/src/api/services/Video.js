@@ -50,6 +50,30 @@ const VideoService = {
         path: _VIDEO_PATH + video.source
       }
     });
+  },
+  updateVideo: async (req, res) => {
+    const { id } = req.params;
+    const { interactives } = req.body;
+
+    console.log(interactives);
+
+    const video = await VideoModel.findById(id);
+
+    if (!video) {
+      throw new ConflictError("Video not found!");
+    }
+
+    video.interactives = interactives;
+    await video.save();
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: {
+        _id: video._id,
+        title: video.title,
+        interactives: video.interactives
+      }
+    });
   }
 };
 

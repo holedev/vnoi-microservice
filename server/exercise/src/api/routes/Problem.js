@@ -9,6 +9,7 @@ router.get("/edit/:slug", VerifyRole.lecturer, ProblemService.getProblemByLectur
 router.get("/get-by-admin", VerifyRole.admin, ProblemService.getAllProblemByAdmin);
 router.get("/get-problems-without-author", VerifyRole.admin, ProblemService.getProblemsWithoutAuthor);
 router.get("/get-by-lecturer", VerifyRole.lecturer, ProblemService.getAllProblemByLecturer);
+router.get("/get-problems-of-lecturer", VerifyRole.lecturer, ProblemService.getProblemsOfLecturer);
 router.get("/get-competition", ProblemService.getCompetitionProblem);
 router.get("/get-rank-competition", ProblemService.getRankCompetition);
 router.get("/get-result/:id", VerifyRole.lecturer, ProblemService.getResultByLecturer);

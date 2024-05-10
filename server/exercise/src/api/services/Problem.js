@@ -548,6 +548,21 @@ const ProblemService = {
       data: problem
     });
   },
+  getProblemsOfLecturer: async (req, res) => {
+    const _id = req.headers["x-user-id"];
+
+    const condition = {
+      "author._id": _id,
+      isDeleted: false
+    };
+
+    let problems = await ProblemModel.find(condition).select("_id title").lean().sort({ updatedAt: 1 });
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: problems
+    });
+  },
   getAllProblemByLecturer: async (req, res) => {
     const _id = req.headers["x-user-id"];
     const { search, class: classCurr, status, page = 1, limit = _PROCESS_ENV.PAGE_SIZE } = req.query;

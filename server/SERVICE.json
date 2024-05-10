@@ -31,7 +31,11 @@
   "MEDIA_SERVICE": {
     "NAME": "MEDIA-SERVICE",
     "PORT": 9004,
-    "PATH": "/media"
+    "PATH": "/media",
+    "GRPC_PROTO_PATH": "../protos/media.proto",
+    "GRPC_SERVICE_NAME": "Media",
+    "GRPC_HOST": "localhost",
+    "GRPC_PORT": 50004
   },
   "LEARNING_SERVICE": {
     "NAME": "LEARNING-SERVICE",
