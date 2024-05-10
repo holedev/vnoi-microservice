@@ -3,10 +3,11 @@ import {
   Breadcrumbs,
   Button,
   CardMedia,
-  Link,
   Modal,
+  TextField,
   Typography,
   styled,
+  Autocomplete,
 } from '@mui/material';
 import QuillEditor from '~/components/QuillEditor';
 import GridOrderring from './GridOrdering';
@@ -15,6 +16,7 @@ import { useState } from 'react';
 import useAxiosAPI from '~/hook/useAxiosAPI';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { useEffect } from 'react';
+import AutocompleteProblems from './AutocompleteProblems';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -523,7 +525,6 @@ function Step2({
           </Typography>
           <Box sx={{ display: 'flex' }}>
             <Box sx={{ flex: 1 }}>
-              {/* <video src={videoEdit.data?.path} controls width="100%" /> */}
               <CardMedia
                 component="video"
                 className=".MuiCardMedia-media"
@@ -532,10 +533,11 @@ function Step2({
                 controls
               />
             </Box>
-            <Box sx={{ minWidth: 200 }}>
-              <Typography component="h6" sx={{}}>
-                Interactive
+            <Box sx={{ minWidth: 300, padding: '0 6px' }}>
+              <Typography component="h6" sx={{ textAlign: 'center' }}>
+                Import Problem
               </Typography>
+              <AutocompleteProblems />
             </Box>
           </Box>
         </Box>

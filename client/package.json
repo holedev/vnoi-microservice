@@ -19,6 +19,7 @@
     "@mui/material": "^5.15.12",
     "@mui/system": "^5.15.12",
     "@mui/x-date-pickers": "^6.11.2",
+    "@mui/x-tree-view": "^7.3.1",
     "@uiw/codemirror-theme-okaidia": "^4.21.9",
     "@uiw/react-codemirror": "^4.21.9",
     "axios": "^1.5.1",

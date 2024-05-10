@@ -13,10 +13,12 @@ import Login from '~/pages/Common/Login';
 import Signup from '~/pages/Common/Signup';
 import Profile from '~/pages/Common/Profile';
 import Problems from '~/pages/User/Problems';
-import Course from '~/pages/User/Course';
+import Courses from '~/pages/User/Courses';
+import CourseDetail from '~/pages/User/CourseDetail';
 import Competition from '~/pages/User/Competition';
 import ProblemsDetail from '~/pages/User/ProblemDetail';
-import LecturerDashboard from '~/pages/Lecturer/Dashboard';
+import LecturerDashboardProblems from '~/pages/Lecturer/Dashboard/Problems';
+import LecturerDashboardCourses from '~/pages/Lecturer/Dashboard/Courses';
 import LecturerProblem from '~/pages/Lecturer/Problem';
 import LecturerCourse from '~/pages/Lecturer/Course';
 import AdminDashboardUser from '~/pages/Admin/User';
@@ -46,12 +48,13 @@ function App() {
                 </Route>
                 <Route path="lecturer">
                   <Route
-                    index
-                    element={
-                      <Navigate to="/lecturer/dashboard" replace={true} />
-                    }
+                    path="dashboard/courses"
+                    element={<LecturerDashboardCourses />}
                   />
-                  <Route path="dashboard" element={<LecturerDashboard />} />
+                  <Route
+                    path="dashboard/problems"
+                    element={<LecturerDashboardProblems />}
+                  />
                   <Route path="problems/:slug" element={<LecturerProblem />} />
                   <Route path="problems/__new" element={<LecturerProblem />} />
                   <Route path="courses/:id" element={<LecturerCourse />} />
@@ -72,7 +75,8 @@ function App() {
                   <Route path="classes" element={<AdminDashboardClass />} />
                 </Route>
                 <Route path="competition" element={<Competition />} />
-                <Route path="courses" element={<Course />} />
+                <Route path="courses/:id" element={<CourseDetail />} />
+                <Route path="courses" element={<Courses />} />
                 <Route path="*" element={<Navigate to="/auth" />} />
               </Routes>
             </DefaultLayout>

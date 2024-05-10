@@ -556,7 +556,6 @@ const ProblemService = {
       "author._id": _id,
       isDeleted: false
     })
-
       .lean()
       .select("title uuid author class timeStart testTime timeEnd slug submitList status")
       .sort({

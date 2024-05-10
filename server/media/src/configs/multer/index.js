@@ -2,7 +2,7 @@ import multer from "multer";
 import { BadRequestError } from "../../api/responses/errors/BadRequestError.js";
 import uuidv4 from "uuid4";
 
-const _MAX_BYTES = 20000000;
+const _MAX_BYTES = 50000000;
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
