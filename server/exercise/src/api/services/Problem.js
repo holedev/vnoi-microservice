@@ -548,6 +548,32 @@ const ProblemService = {
       data: problem
     });
   },
+  getProblemById: async (req, res) => {
+    const _id = req.headers["x-user-id"];
+    const { id } = req.params;
+
+    const problem = await ProblemModel.findOne({
+      _id: id,
+      isDeleted: false
+    })
+      .lean()
+      .select(
+        "author class desc initCode level slug langIdSolution solution testTime timeStart title uuid alwayOpen testcases timeLimit memoryLimit stackLimit availableLanguages"
+      );
+
+    if (!problem) {
+      throw new ConflictError("Problem not found!");
+    }
+
+    if (problem.author?._id !== _id) {
+      throw new ForbiddenError("Forbidden!");
+    }
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: problem
+    });
+  },
   getProblemsOfLecturer: async (req, res) => {
     const _id = req.headers["x-user-id"];
 

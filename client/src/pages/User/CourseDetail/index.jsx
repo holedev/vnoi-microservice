@@ -27,6 +27,7 @@ function CourseDetail() {
   const [lesson, setLesson] = useState({});
   const [openSidebar, setOpenSidebar] = useState(false);
   const [questionModal, setQuestionModal] = useState(null);
+  const [problemQuestion, setProblemQuestion] = useState(null);
 
   const getCourse = async () => {
     await axiosAPI({
@@ -72,7 +73,11 @@ function CourseDetail() {
     lesson.video.interactives?.forEach((item) => {
       if (!item.isPass && currTime >= item.time) {
         videoRef.current.pause();
-        setQuestionModal(item._id);
+
+        item.type === 'question' && setQuestionModal(item._id);
+        item.type === 'problem' && setProblemQuestion(item);
+
+        return;
       }
     });
   };
@@ -102,6 +107,15 @@ function CourseDetail() {
     if (id) getCourse(id);
   }, [id]);
 
+  useEffect(() => {
+    if (problemQuestion?.slug) {
+      window.open(
+        'http://localhost:5173/problems/' + problemQuestion.slug,
+        '_blank'
+      );
+    }
+  }, [problemQuestion]);
+
   return (
     <Box>
       <AppBar
@@ -115,51 +129,76 @@ function CourseDetail() {
         <Typography variant="h6">{course.title}</Typography>
       </AppBar>
       <Box sx={{ height: 'calc(100vh - 32px)', display: 'flex' }}>
-        <Box
-          sx={{
-            height: '100%',
-            overflow: 'auto',
-            flex: 1,
-          }}
-        >
-          {lesson.video && (
-            <Box>
-              <CardMedia
-                ref={videoRef}
-                component="video"
-                image={lesson.video.path}
-                controls
-                onTimeUpdate={handleTimeUpdate}
-              />
-            </Box>
-          )}
-          <Box sx={{ p: 1 }}>
-            <Typography sx={{ mt: 1 }} variant="h6">
-              Files ({lesson.files?.length || 0})
-            </Typography>
-            {lesson.files && (
+        {lesson?._id ? (
+          <Box
+            sx={{
+              height: '100%',
+              overflow: 'auto',
+              flex: 1,
+            }}
+          >
+            {lesson.video && (
               <Box>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  {lesson.files.map((file) => (
-                    <Link key={file._id} href={file.path} download>
-                      {file.title}
-                    </Link>
-                  ))}
-                </Box>
+                <CardMedia
+                  ref={videoRef}
+                  component="video"
+                  image={lesson.video.path}
+                  controls
+                  onTimeUpdate={handleTimeUpdate}
+                />
               </Box>
             )}
-            <Typography sx={{ mt: 2 }} variant="h6">
-              Content
-            </Typography>
-            {lesson.content && (
-              <>
-                <Box dangerouslySetInnerHTML={{ __html: lesson.content }}></Box>
-              </>
-            )}
-          </Box>
-        </Box>
+            <Box sx={{ p: 1 }}>
+              <Typography sx={{ mt: 1 }} variant="h6">
+                Files ({lesson.files?.length || 0})
+              </Typography>
 
-        <Box sx={{ minWidth: 350 }}>
+              {lesson.files?.length == 0 && (
+                <Typography>There is no file for this lesson!</Typography>
+              )}
+
+              {lesson.files && (
+                <Box>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    {lesson.files.map((file) => (
+                      <Link key={file._id} href={file.path} download>
+                        {file.title}
+                      </Link>
+                    ))}
+                  </Box>
+                </Box>
+              )}
+              <Typography sx={{ mt: 2 }} variant="h6">
+                Content
+              </Typography>
+              {!lesson.content?.trim() && (
+                <Typography>There is no content for this lesson!</Typography>
+              )}
+              {lesson.content && (
+                <>
+                  <Box
+                    dangerouslySetInnerHTML={{ __html: lesson.content }}
+                  ></Box>
+                </>
+              )}
+            </Box>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              height: '100%',
+              overflow: 'auto',
+              flex: 1,
+            }}
+          >
+            <CardMedia component="img" image={course.coverPath} />
+            <Typography sx={{ p: 1 }} variant="body2">
+              {course.desc}
+            </Typography>
+          </Box>
+        )}
+
+        <Box sx={{ minWidth: 350, borderLeft: '1px solid #ccc' }}>
           <List disablePadding>
             {course?.sections &&
               course.sections.map((section, idxSection) => {
@@ -209,7 +248,11 @@ function CourseDetail() {
         </Box>
       </Box>
       <Modal open={questionModal} onClose={handleCloseModal}>
-        <Question id={questionModal} handleAnswered={handleAnswered} />
+        <Question
+          id={questionModal}
+          handleCloseModal={handleCloseModal}
+          handleAnswered={handleAnswered}
+        />
       </Modal>
     </Box>
   );

@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useState } from 'react';
 import useAxiosAPI from '~/hook/useAxiosAPI';
 
-function AutocompleteProblems() {
+function AutocompleteProblems({ handeProblemChange }) {
   const { axiosAPI, endpoints } = useAxiosAPI();
   const [problems, setProblems] = useState([]);
 
@@ -11,7 +11,6 @@ function AutocompleteProblems() {
     const res = await axiosAPI.get(
       endpoints.problems + '/get-problems-of-lecturer'
     );
-    console.log(res.data.data);
     setProblems(res.data.data);
   };
 
@@ -26,6 +25,7 @@ function AutocompleteProblems() {
       sx={{ minWidth: 300 }}
       renderInput={(params) => <TextField {...params} label="Problem" />}
       getOptionLabel={(option) => option.title}
+      onChange={(e, value) => handeProblemChange(value)}
     />
   );
 }

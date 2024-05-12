@@ -18,10 +18,10 @@ import { useState } from 'react';
 import useAxiosAPI from '~/hook/useAxiosAPI';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { useEffect } from 'react';
-import AutocompleteProblems from './AutocompleteProblems';
 import { useRef } from 'react';
 import ChildModal from './ChildModal';
 import Question from './Question';
+import ImportProblem from './ImportProblem';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -55,6 +55,7 @@ function Step2({
   const [radio, setRadio] = useState('question');
   const [childModal, setChildModal] = useState(false);
   const [question, setQuestion] = useState({});
+  const [problem, setProblem] = useState({});
 
   const handleUploadVideo = async (event) => {
     const file = event.target.files[0];
@@ -303,7 +304,6 @@ function Step2({
         interactives: video.interactives,
       };
     });
-
   };
 
   const handleGetCurrentTime = () => {
@@ -341,6 +341,27 @@ function Step2({
         setChildModal(false);
       })
       .catch((err) => console.log(err));
+  };
+
+  const handleAddInteractiveProblem = () => {
+    if (!problem._id) return;
+
+    setVideoEdit((prev) => {
+      return {
+        ...prev,
+        interactives: [
+          ...prev.interactives,
+          {
+            type: 'problem',
+            time: videoEdit.timeCurr,
+            _id: problem._id,
+            slug: problem.slug,
+          },
+        ],
+      };
+    });
+
+    setChildModal(false);
   };
 
   const handleAddInteractive = () => {
@@ -654,6 +675,14 @@ function Step2({
                     handleCreateQuestion={handleCreateQuestion}
                   />
                 )}
+
+                {radio == 'problem' && (
+                  <ImportProblem
+                    problem={problem}
+                    setProblem={setProblem}
+                    handleAddInteractiveProblem={handleAddInteractiveProblem}
+                  />
+                )}
               </ChildModal>
               {videoEdit.interactives.length > 0 && (
                 <Box>
@@ -666,7 +695,9 @@ function Step2({
                         }}
                         key={item._id}
                       >
-                        <Typography>{item.time}</Typography>
+                        <Typography>
+                          {parseFloat(item.time).toFixed(2)}
+                        </Typography>
                         <Typography>{item.type}</Typography>
                       </Box>
                     ))}

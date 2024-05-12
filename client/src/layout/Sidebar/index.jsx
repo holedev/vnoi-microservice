@@ -34,6 +34,7 @@ export default function Sidebar() {
     return localStorage.getItem('sidebar') === 'true' ? true : false;
   });
   const [adminDashboardOpen, setAdminDashboardOpen] = useState(false);
+  const [lecturerDashboardOpen, setLecturerDashboardOpen] = useState(false);
 
   const handleOpenSidebar = () => {
     setOpen(!open);
@@ -42,6 +43,10 @@ export default function Sidebar() {
 
   const handleAdminDashBoard = () => {
     setAdminDashboardOpen(!adminDashboardOpen);
+  };
+
+  const handleLecturerDashBoard = () => {
+    setLecturerDashboardOpen(!lecturerDashboardOpen);
   };
 
   const handleAdminNav = (path) => {
@@ -153,18 +158,31 @@ export default function Sidebar() {
 
         {user.role === 'LECTURER' && (
           <>
-            <ListItemButton onClick={() => nav('/lecturer/dashboard/courses')}>
+            <ListItemButton onClick={handleLecturerDashBoard}>
               <ListItemIcon>
                 <Dashboard />
               </ListItemIcon>
-              <ListItemText primary="ADMIN - Courses" />
+              <ListItemText primary="Dashboard" />
+              {lecturerDashboardOpen ? <ExpandLess /> : <ExpandMore />}
             </ListItemButton>
-            <ListItemButton onClick={() => nav('/lecturer/dashboard/problems')}>
-              <ListItemIcon>
-                <Dashboard />
-              </ListItemIcon>
-              <ListItemText primary="ADMIN - Problems" />
-            </ListItemButton>
+            <Collapse in={lecturerDashboardOpen} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                <ListItemButton
+                  onClick={() => nav('/lecturer/dashboard/courses')}
+                  sx={{ paddingLeft: '72px' }}
+                >
+                  <ListItemText primary="Courses" />
+                </ListItemButton>
+              </List>
+              <List component="div" disablePadding>
+                <ListItemButton
+                  onClick={() => nav('/lecturer/dashboard/problems')}
+                  sx={{ paddingLeft: '72px' }}
+                >
+                  <ListItemText primary="Problems" />
+                </ListItemButton>
+              </List>
+            </Collapse>
           </>
         )}
         <ListItemButton onClick={() => nav('/courses')}>

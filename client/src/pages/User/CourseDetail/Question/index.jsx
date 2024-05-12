@@ -1,4 +1,5 @@
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Button, Chip, Typography } from '@mui/material';
+import { borderRadius } from '@mui/system';
 import { useEffect } from 'react';
 import { useState } from 'react';
 import useAxiosAPI from '~/hook/useAxiosAPI';
@@ -13,10 +14,11 @@ const style = {
   boxShadow: 24,
   pt: 2,
   px: 4,
-  pb: 3,
+  pb: 2,
+  borderRadius: 2,
 };
 
-function Question({ id, handleAnswered }) {
+function Question({ id, handleAnswered, handleCloseModal }) {
   const { axiosAPI, endpoints } = useAxiosAPI();
 
   const [question, setQuestion] = useState(null);
@@ -51,7 +53,9 @@ function Question({ id, handleAnswered }) {
 
   return (
     <Box sx={{ ...style }}>
-      <Typography variant="h6">{question?.title}</Typography>
+      <Typography sx={{ textAlign: 'center' }} variant="h6">
+        {question?.title}
+      </Typography>
 
       <Box
         sx={{
@@ -74,11 +78,24 @@ function Question({ id, handleAnswered }) {
           ))}
       </Box>
       {result && (
-        <Typography sx={{ mt: 2 }}>
-          {result.result ? 'Correct' : 'Incorrect'} - Correct Answer:{' '}
-          {result?.correctAnswer.value}
+        <Typography sx={{ mt: 2, textAlign: 'center' }}>
+          {result.result ? (
+            <Chip label="Correct" color="success" />
+          ) : (
+            <Chip label="Incorrect" color="error" />
+          )}{' '}
+          - Correct Answer:{' '}
+          <Chip label={result?.correctAnswer.value} color="info" />
         </Typography>
       )}
+
+      <Button
+        onClick={handleCloseModal}
+        color="error"
+        sx={{ width: '100%', mt: 2 }}
+      >
+        Close
+      </Button>
     </Box>
   );
 }
