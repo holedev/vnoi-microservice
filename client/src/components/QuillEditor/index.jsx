@@ -1,5 +1,5 @@
 import { useQuill } from 'react-quilljs';
-import BlotFormatter from 'quill-blot-formatter';
+import BlotFormatter from 'quill-blot-formatter/dist/BlotFormatter';
 import 'react-quill/dist/quill.snow.css';
 import { useEffect } from 'react';
 

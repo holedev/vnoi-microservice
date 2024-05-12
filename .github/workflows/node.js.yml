@@ -1,0 +1,266 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Continuous Integration With PNPM
+
+on:
+  push:
+    branches: ['dev']
+  pull_request:
+    branches: ['main']
+
+env:
+  REDIS_PORT: demo
+  REDIS_HOST: demo
+  RABBITMQ_URL: demo
+  BOT_TELEGRAM_TOKEN: demo
+  BOT_TELEGRAM_CHAT_ID: demo
+  MONGODB_URL: demo
+
+jobs:
+  client_test:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./client/
+    strategy:
+      matrix:
+        node-version: ['18.18.2']
+
+    steps:
+      - name: Checkout code from GitHub
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run test
+        run: pnpm test
+
+  gateway_test:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./server/gateway/
+
+    strategy:
+      matrix:
+        node-version: ['18.18.2']
+
+    steps:
+      - name: Checkout code from GitHub
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run test
+        run: pnpm test
+
+  common_test:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./server/common/
+
+    strategy:
+      matrix:
+        node-version: ['18.18.2']
+
+    steps:
+      - name: Checkout code from GitHub
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run test
+        run: pnpm test
+
+  user_test:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./server/user/
+
+    strategy:
+      matrix:
+        node-version: ['18.18.2']
+
+    steps:
+      - name: Checkout code from GitHub
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run test
+        run: pnpm test
+
+  exercise_test:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./server/exercise/
+
+    strategy:
+      matrix:
+        node-version: ['18.18.2']
+
+    steps:
+      - name: Checkout code from GitHub
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run test
+        run: pnpm test
+
+  media_test:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./server/media/
+
+    strategy:
+      matrix:
+        node-version: ['18.18.2']
+
+    steps:
+      - name: Checkout code from GitHub
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run test
+        run: pnpm test
+
+  learning_test:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./server/learning/
+
+    strategy:
+      matrix:
+        node-version: ['18.18.2']
+
+    steps:
+      - name: Checkout code from GitHub
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run test
+        run: pnpm test
+
+  logging_test:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./server/logging/
+
+    strategy:
+      matrix:
+        node-version: ['18.18.2']
+
+    steps:
+      - name: Checkout code from GitHub
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run test
+        run: pnpm test
