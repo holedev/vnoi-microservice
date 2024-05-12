@@ -6,6 +6,7 @@ const router = Router();
 
 router.get("/get-detail-submissions/:id", VerifyRole.lecturer, ProblemService.getDetailsSubmissions);
 router.get("/edit/:slug", VerifyRole.lecturer, ProblemService.getProblemByLecturer);
+router.get("/get-by-id/:id", VerifyRole.lecturer, ProblemService.getProblemById);
 router.get("/get-by-admin", VerifyRole.admin, ProblemService.getAllProblemByAdmin);
 router.get("/get-problems-without-author", VerifyRole.admin, ProblemService.getProblemsWithoutAuthor);
 router.get("/get-by-lecturer", VerifyRole.lecturer, ProblemService.getAllProblemByLecturer);

@@ -58,15 +58,15 @@ const Course = new Schema(
 
 Course.pre("save", async function (next) {
   if (this.isModified("title") || this.isNew) {
-    this.slug = slugify(this.title, { lower: true });
-
-    const slugRegex = new RegExp(`^(${this.slug})((-[0-9]*$)?)$`, "i");
-    const docsWithSimilarSlug = await this.constructor.find({
-      slug: slugRegex
-    });
+    const dynamicSlug = slugify(this.title, { lower: true });
+    const escapedSlug = dynamicSlug.replace(/\+/g, "\\+");
+    const slugRegex = new RegExp(`^(${escapedSlug})(-([0-9]*))?$`, "i");
+    const docsWithSimilarSlug = await this.constructor.find({ slug: slugRegex });
 
     if (docsWithSimilarSlug.length) {
-      this.slug = `${this.slug}-${docsWithSimilarSlug.length}`;
+      this.slug = `${dynamicSlug}-${docsWithSimilarSlug.length}`;
+    } else {
+      this.slug = dynamicSlug;
     }
   }
   next();

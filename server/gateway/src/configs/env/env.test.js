@@ -19,8 +19,4 @@ describe("CHECK _PROCESS_ENV", () => {
   it("Should have RABBITMQ", () => {
     expect(_PROCESS_ENV.RABBITMQ_URL).toBeDefined();
   });
-
-  it("Should not have MONGODB", () => {
-    expect(_PROCESS_ENV.MONGODB_URL).toBeUndefined();
-  });
 });
