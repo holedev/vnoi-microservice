@@ -10,12 +10,12 @@ on:
     branches: ['main']
 
 env:
-  REDIS_PORT=demo
-  REDIS_HOST=demo
-  RABBITMQ_URL=demo
-  BOT_TELEGRAM_TOKEN=demo
-  BOT_TELEGRAM_CHAT_ID=demo
-  MONGODB_URL=demo
+  REDIS_PORT: demo
+  REDIS_HOST: demo
+  RABBITMQ_URL: demo
+  BOT_TELEGRAM_TOKEN: demo
+  BOT_TELEGRAM_CHAT_ID: demo
+  MONGODB_URL: demo
 
 jobs:
   client_test:
