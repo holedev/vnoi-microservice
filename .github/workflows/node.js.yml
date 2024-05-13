@@ -4,8 +4,6 @@
 name: Continuous Integration With PNPM
 
 on:
-  push:
-    branches: ['dev']
   pull_request:
     branches: ['main']
 
