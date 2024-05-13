@@ -16,6 +16,7 @@ module.exports = {
         'revert', // Reverts a previous commit
         'perf', // A code change that improves performance
         'emotion', // A code change depend on emotion
+        
       ],
     ],
   },
