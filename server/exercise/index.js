@@ -9,6 +9,7 @@ import { ProblemRoute } from "./src/api/routes/Problem.js";
 import { SubmissionRoute } from "./src/api/routes/Submission.js";
 import { ExerciseService } from "./src/api/services/index.js";
 import { logInfo } from "./src/configs/rabiitmq/log.js";
+import { VerifyRequestFromGateway } from "./src/api/middlewares/VerifyRequestFromGateway.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
@@ -26,6 +27,8 @@ app.use(
 );
 
 app.use(express.json(), express.urlencoded({ extended: true }));
+
+app.use(VerifyRequestFromGateway);
 
 app.use((req, res, next) => {
   logInfo(req, null);

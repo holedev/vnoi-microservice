@@ -1,6 +1,7 @@
 import admin from "firebase-admin";
 import uuidv4 from "uuid4";
 import { UnauthorizeError } from "../responses/errors/UnauthorizeError.js";
+import { _PROCESS_ENV } from "../../configs/env/index.js";
 
 const VerifyToken = async (req, res, next) => {
   if (req.method === "OPTIONS") return next();

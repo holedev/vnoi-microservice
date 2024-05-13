@@ -303,7 +303,7 @@ function AdminProblem() {
     await axiosAPI[method](endpoint, data)
       .then((res) => {
         const { uuid } = res.data.data;
-        nav('/lecturer/dashboard', {
+        nav('/lecturer/dashboard/problems', {
           state: { problemUuidLoadingStatus: uuid },
         });
       })
