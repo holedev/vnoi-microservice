@@ -1,9 +1,10 @@
+import { _PROCESS_ENV } from "../../configs/env/index.js";
 import { VideoModel } from "../models/Video.js";
 import { ConflictError } from "../responses/errors/ConflictError.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 import { gRPCRequest } from "./gRPC.js";
 
-const _VIDEO_PATH = "http://localhost:9004/videos/";
+const _VIDEO_PATH = _PROCESS_ENV.STATIC_FILE_URL + "videos/";
 
 const VideoService = {
   createVideo: async (req, res) => {
