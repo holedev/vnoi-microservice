@@ -10,6 +10,7 @@ import { firebaseInit } from "./src/configs/firebase/index.js";
 import { UserService } from "./src/api/services/index.js";
 import { gRPCServerUser } from "./src/configs/grpc/index.js";
 import { logInfo } from "./src/configs/rabiitmq/log.js";
+import { VerifyRequestFromGateway } from "./src/api/middlewares/VerifyRequestFromGateway.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
@@ -24,13 +25,14 @@ gRPCServerUser();
 
 app.use(
   cors({
-    // client can access this service without gateway
     origin: "*",
     credentials: true
   }),
   express.json(),
   express.urlencoded({ extended: true })
 );
+
+app.use(VerifyRequestFromGateway);
 
 app.use((req, res, next) => {
   logInfo(req, null);

@@ -9,21 +9,27 @@ import { VideoRoute } from "./src/api/routes/Video.js";
 import { FileRoute } from "./src/api/routes/File.js";
 import { ImageRoute } from "./src/api/routes/Image.js";
 import { gRPCServerMedia } from "./src/configs/grpc/index.js";
+import { VerifyRequestFromGateway } from "./src/api/middlewares/VerifyRequestFromGateway.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
+
+app.use(
+  cors({ origin: "*", credentials: true }),
+  express.json(),
+  express.urlencoded({ extended: true, limit: "50mb" })
+);
 
 app.use("/videos", express.static("uploads/videos"));
 app.use("/files", express.static("uploads/files"));
 app.use("/images", express.static("uploads/images"));
 
-app.use(cors({ origin: "*", credentials: true }), express.json(), express.urlencoded({ extended: true }));
-
 await databaseConnection();
 
 gRPCServerMedia();
 
-// TODO: check request headers have x-request-id and x-user-id
+
+// app.use(VerifyRequestFromGateway);
 
 app.use((req, res, next) => {
   logInfo(req, null);

@@ -47,9 +47,15 @@ dependencies:
   nodemon:
     specifier: ^3.1.0
     version: 3.1.0
+  slash:
+    specifier: ^5.1.0
+    version: 5.1.0
   uuid4:
     specifier: ^2.0.3
     version: 2.0.3
+  zx:
+    specifier: ^8.1.0
+    version: 8.1.0
 
 packages:
 
@@ -1659,6 +1665,15 @@ packages:
       '@babel/types': 7.24.5
     dev: false
 
+  /@types/fs-extra@11.0.4:
+    resolution: {integrity: sha512-yTbItCNreRooED33qjunPthRcSjERP1r4MqCZc7wv0u2sUkzTFp45tgUfS5+r7FrZPdmCCNflLhVSP/o+SemsQ==}
+    requiresBuild: true
+    dependencies:
+      '@types/jsonfile': 6.1.4
+      '@types/node': 20.12.11
+    dev: false
+    optional: true
+
   /@types/graceful-fs@4.1.9:
     resolution: {integrity: sha512-olP3sd1qOEe5dXTSaFvQG+02VdRXcdytWLAZsAq1PecU8uqQAhkrnbli7DagjtXKW/Bl7YJbUsa8MPcuc8LHEQ==}
     dependencies:
@@ -1680,6 +1695,22 @@ packages:
     dependencies:
       '@types/istanbul-lib-report': 3.0.3
     dev: false
+
+  /@types/jsonfile@6.1.4:
+    resolution: {integrity: sha512-D5qGUYwjvnNNextdU59/+fI+spnwtTFmyQP0h+PfIOSkNfpU6AOICUOkm4i0OnSk+NyjdPJrxCDro0sJsWlRpQ==}
+    requiresBuild: true
+    dependencies:
+      '@types/node': 20.12.11
+    dev: false
+    optional: true
+
+  /@types/node@20.12.11:
+    resolution: {integrity: sha512-vDg9PZ/zi+Nqp6boSOT7plNuthRugEKixDv5sFTIpkE89MmNtEArAShI4mxuX2+UrLEe9pxC1vm2cjm9YlWbJw==}
+    requiresBuild: true
+    dependencies:
+      undici-types: 5.26.5
+    dev: false
+    optional: true
 
   /@types/node@20.12.9:
     resolution: {integrity: sha512-o93r47yu04MHumPBCFg0bMPBMNgtMg3jzbhl7e68z50+BMHmRMGDJv13eBlUgOdc9i/uoJXGMGYLtJV4ReTXEg==}
@@ -3921,6 +3952,11 @@ packages:
     engines: {node: '>=8'}
     dev: false
 
+  /slash@5.1.0:
+    resolution: {integrity: sha512-ZA6oR3T/pEyuqwMgAKT0/hAv8oAXckzbkmR0UkUosQ+Mc4RxGoJkRmwHgHufaenlyAgE1Mxgpdcrf75y6XcnDg==}
+    engines: {node: '>=14.16'}
+    dev: false
+
   /source-map-support@0.5.13:
     resolution: {integrity: sha512-SHSKFHadjVA5oR4PPqhtAVdcBWwRYVd6g6cAXnIbRiIwc2EhPrTuKUBdSLvlEKyIP3GCf89fltvcZiP9MMFA1w==}
     dependencies:
@@ -4269,4 +4305,13 @@ packages:
   /yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+    dev: false
+
+  /zx@8.1.0:
+    resolution: {integrity: sha512-2BCoOK6JTWikAkwPCV2dFr+1ou29WoY+6XltLu+Ou9dvxrqm/p+HuHCgBtMRMIVFexQzUSGfB5VbYeY8XmGBPQ==}
+    engines: {node: '>= 12.17.0'}
+    hasBin: true
+    optionalDependencies:
+      '@types/fs-extra': 11.0.4
+      '@types/node': 20.12.11
     dev: false

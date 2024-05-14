@@ -17,6 +17,11 @@ import { useParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import useAxiosAPI from '~/hook/useAxiosAPI';
 import Question from './Question';
+import { MediaPlayer, MediaProvider } from '@vidstack/react';
+import {
+  PlyrLayout,
+  plyrLayoutIcons,
+} from '@vidstack/react/player/layouts/plyr';
 
 function CourseDetail() {
   const { id } = useParams();
@@ -139,13 +144,18 @@ function CourseDetail() {
           >
             {lesson.video && (
               <Box>
-                <CardMedia
+                <MediaPlayer
                   ref={videoRef}
-                  component="video"
-                  image={lesson.video.path}
-                  controls
+                  title="Sprite Fight"
+                  src={lesson.video.path}
                   onTimeUpdate={handleTimeUpdate}
-                />
+                >
+                  <MediaProvider />
+                  <PlyrLayout
+                    thumbnails="https://files.vidstack.io/sprite-fight/thumbnails.vtt"
+                    icons={plyrLayoutIcons}
+                  />
+                </MediaPlayer>
               </Box>
             )}
             <Box sx={{ p: 1 }}>

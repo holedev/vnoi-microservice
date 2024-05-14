@@ -30,7 +30,7 @@ app.use(
   cors(corsOptions),
   helmet(),
   express.json(),
-  express.urlencoded({ extended: false, limit: "20mb" }),
+  express.urlencoded({ extended: false, limit: "50mb" }),
   compression()
 );
 

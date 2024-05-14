@@ -1,4 +1,5 @@
 import { _PROCESS_ENV } from "../../configs/env/index.js";
+import { encodeHLSWithMultipleVideoStreams } from "../../utils/ffmpeg.js";
 import { VideoModel } from "../models/Video.js";
 import { ConflictError } from "../responses/errors/ConflictError.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
@@ -11,13 +12,19 @@ const VideoService = {
     const requestId = req.headers["x-request-id"];
     const _id = req.headers["x-user-id"];
 
-    const { originalname, mimetype, size, filename } = req.file;
+    const { originalname, mimetype, size, filename, path } = req.file;
+
+    console.log(req.file);
 
     const userGRPC = await gRPCRequest.getUserByIdAsync(requestId, _id);
 
+    const uuid = filename.split(".")[0];
+
+    await encodeHLSWithMultipleVideoStreams(path, uuid);
+
     const data = {
       author: userGRPC,
-      uuid: filename.split(".")[0],
+      uuid,
       title: originalname,
       source: `${filename}`,
       mimetype,
@@ -31,24 +38,7 @@ const VideoService = {
       data: {
         _id: video._id,
         title: video.title,
-        path: _VIDEO_PATH + video.source
-      }
-    });
-  },
-  getVideo: async (req, res) => {
-    const { id } = req.params;
-
-    const video = await VideoModel.findById(id).lean().select("-__v -updatedAt -createdAt");
-
-    if (!video) {
-      throw new ConflictError("Video not found!");
-    }
-
-    return res.status(httpStatusCodes.OK).json({
-      status: "success",
-      data: {
-        ...video,
-        path: _VIDEO_PATH + video.source
+        path: _VIDEO_PATH + uuid + "/master.m3u8"
       }
     });
   },
@@ -73,6 +63,23 @@ const VideoService = {
         _id: video._id,
         title: video.title,
         interactives: video.interactives
+      }
+    });
+  },
+  getVideo: async (req, res) => {
+    const { id } = req.params;
+
+    const video = await VideoModel.findById(id).lean().select("-__v -updatedAt -createdAt");
+
+    if (!video) {
+      throw new ConflictError("Video not found!");
+    }
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: {
+        ...video,
+        path: _VIDEO_PATH + video.uuid + "/master.m3u8"
       }
     });
   }

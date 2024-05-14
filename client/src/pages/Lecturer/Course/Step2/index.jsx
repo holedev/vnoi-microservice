@@ -2,7 +2,6 @@ import {
   Box,
   Breadcrumbs,
   Button,
-  CardMedia,
   FormControl,
   FormControlLabel,
   Modal,
@@ -22,6 +21,13 @@ import { useRef } from 'react';
 import ChildModal from './ChildModal';
 import Question from './Question';
 import ImportProblem from './ImportProblem';
+import '@vidstack/react/player/styles/base.css';
+import '@vidstack/react/player/styles/plyr/theme.css';
+import { MediaPlayer, MediaProvider } from '@vidstack/react';
+import {
+  PlyrLayout,
+  plyrLayoutIcons,
+} from '@vidstack/react/player/layouts/plyr';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -100,7 +106,12 @@ function Step2({
             };
           });
         })
-        .catch((err) => console.log(err));
+        .catch((err) => console.log(err))
+        .finally(() => {
+          setLoadProgress((prev) => {
+            return { ...prev, video: null };
+          });
+        });
     }
   };
 
@@ -290,7 +301,9 @@ function Step2({
   };
 
   const getVideo = async (id) => {
-    const response = await axiosAPI.get(endpoints.media + '/videos/' + id);
+    const response = await axiosAPI
+      .get(endpoints.media + '/videos/' + id)
+      .catch((err) => console.log(err.message));
     return response.data.data;
   };
 
@@ -622,14 +635,18 @@ function Step2({
           </Typography>
           <Box sx={{ display: 'flex' }}>
             <Box sx={{ flex: 1 }}>
-              <CardMedia
+              <MediaPlayer
                 ref={videoRef}
-                component="video"
-                className=".MuiCardMedia-media"
-                image={videoEdit.data?.path}
-                controls
+                title="Sprite Fight"
+                src={videoEdit.data?.path}
                 onTimeUpdate={handleGetCurrentTime}
-              />
+              >
+                <MediaProvider />
+                <PlyrLayout
+                  thumbnails="https://files.vidstack.io/sprite-fight/thumbnails.vtt"
+                  icons={plyrLayoutIcons}
+                />
+              </MediaPlayer>
             </Box>
             <Box
               sx={{
