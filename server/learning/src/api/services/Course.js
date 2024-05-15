@@ -487,6 +487,37 @@ const CourseService = {
       data: lesson
     });
   },
+  updateCourseInfo: async (req, res) => {
+    const { id } = req.params;
+    const { title, desc, coverPath, authors } = req.body;
+
+    const condition = {
+      _id: id,
+      isDeleted: false
+    };
+
+    const course = await CourseModel.findOne(condition);
+
+    if (!course) {
+      throw new ConflictError("Course not found!");
+    }
+
+    const newAuthors =
+      authors?.map((author) => {
+        return { _id: author._id, fullName: author.fullName, email: author.email };
+      }) || [];
+
+    course.title = title;
+    course.desc = desc;
+    course.coverPath = coverPath;
+    course.authors = newAuthors;
+    await course.save();
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: course._id
+    });
+  },
   getCourseByLecturer: async (req, res) => {
     const _id = req.headers["x-user-id"];
     const { id } = req.params;
@@ -527,7 +558,9 @@ const CourseService = {
   getSectionById: async (req, res) => {
     const { id } = req.params;
 
-    let courseSection = await CourseSectionModel.findById(id)
+    const condition = { _id: id, isDeleted: false };
+
+    let courseSection = await CourseSectionModel.findOne(condition)
       .populate({
         path: "lessons._id",
         select: "_id title"
@@ -554,7 +587,9 @@ const CourseService = {
   getLessonById: async (req, res) => {
     const { id } = req.params;
 
-    let courseLesson = await CourseLessonModel.findById(id).lean().select("-__v -updatedAt -createdAt");
+    const condition = { _id: id, isDeleted: false };
+
+    let courseLesson = await CourseLessonModel.findOne(condition).lean().select("-__v -updatedAt -createdAt");
 
     if (courseLesson.video?._id) {
       const videoGRPC = await gRPCRequest.getVideoByIdAsync(req.headers["x-request-id"], courseLesson.video._id);
@@ -663,6 +698,56 @@ const CourseService = {
         result: answer.isCorrect,
         correctAnswer: question.answers.find((answer) => answer.isCorrect)
       }
+    });
+  },
+  deleteSectionOfCourse: async (req, res) => {
+    const { courseId, sectionId } = req.body;
+
+    const section = await CourseSectionModel.findOne({ _id: sectionId, isDeleted: false });
+
+    if (!section) {
+      throw new ConflictError("Section not found!");
+    }
+
+    section.isDeleted = true;
+    await section.save();
+
+    const course = await CourseModel.findOne({ _id: courseId, isDeleted: false });
+
+    if (!course) {
+      throw new ConflictError("Course not found!");
+    }
+
+    course.sections = course.sections.filter((section) => section._id.toString() != sectionId);
+    await course.save();
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success"
+    });
+  },
+  deleteLessonOfSection: async (req, res) => {
+    const { sectionId, lessonId } = req.body;
+
+    const lesson = await CourseLessonModel.findOne({ _id: lessonId, isDeleted: false });
+
+    if (!lesson) {
+      throw new ConflictError("Lesson not found!");
+    }
+
+    lesson.isDeleted = true;
+    await lesson.save();
+
+    const section = await CourseSectionModel.findOne({ _id: sectionId, isDeleted: false });
+
+    if (!section) {
+      throw new ConflictError("Section not found!");
+    }
+
+    section.lessons = section.lessons.filter((lesson) => lesson._id.toString() != lessonId);
+    await section.save();
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success"
     });
   }
 };

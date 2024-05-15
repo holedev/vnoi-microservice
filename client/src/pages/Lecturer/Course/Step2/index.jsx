@@ -2,6 +2,7 @@ import {
   Box,
   Breadcrumbs,
   Button,
+  CircularProgress,
   FormControl,
   FormControlLabel,
   Modal,
@@ -28,6 +29,8 @@ import {
   PlyrLayout,
   plyrLayoutIcons,
 } from '@vidstack/react/player/layouts/plyr';
+import { toast } from 'react-toastify';
+import { useDebouncedCallback } from 'use-debounce';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -41,6 +44,8 @@ const VisuallyHiddenInput = styled('input')({
   width: 1,
 });
 
+const _DEBOUNCE_TIME = 5000;
+
 function Step2({
   course: { _id, sections, lessons, activeSection, activeLesson, lessonData },
   setCourse,
@@ -49,7 +54,7 @@ function Step2({
   const videoRef = useRef(null);
 
   const [loadProgress, setLoadProgress] = useState({
-    video: null,
+    video: false, // cannot get upload processing percentage with axios
     files: null,
   });
   const [videoEdit, setVideoEdit] = useState({
@@ -64,6 +69,22 @@ function Step2({
   const [problem, setProblem] = useState({});
 
   const handleUploadVideo = async (event) => {
+    if (event.target.files.length > 1) {
+      toast.error('Please select only one video');
+      return;
+    }
+
+    if (loadProgress.video) {
+      return;
+    }
+
+    setLoadProgress((prev) => {
+      return {
+        ...prev,
+        video: true,
+      };
+    });
+
     const file = event.target.files[0];
     if (file) {
       const form = new FormData();
@@ -75,15 +96,6 @@ function Step2({
         data: form,
         headers: {
           'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (progressEvent) => {
-          setLoadProgress((prev) => {
-            return {
-              ...prev,
-              video:
-                (progressEvent.loaded / progressEvent.total).toFixed(2) * 100,
-            };
-          });
         },
       })
         .then((response) => {
@@ -99,17 +111,15 @@ function Step2({
             };
           });
 
+          toast.success('Video uploaded successfully');
+        })
+        .catch((err) => toast.error(err.message))
+        .finally(() => {
           setLoadProgress((prev) => {
             return {
               ...prev,
-              video: null,
+              video: false,
             };
-          });
-        })
-        .catch((err) => console.log(err))
-        .finally(() => {
-          setLoadProgress((prev) => {
-            return { ...prev, video: null };
           });
         });
     }
@@ -148,7 +158,7 @@ function Step2({
     }
   };
 
-  const orderSections = async (sections) => {
+  const orderSections = useDebouncedCallback(async (sections) => {
     const data = sections.map((section) => {
       return {
         _id: section._id,
@@ -159,9 +169,8 @@ function Step2({
       .patch(endpoints.learning + '/courses/order-sections/' + _id, {
         sections: data,
       })
-      .then((res) => console.log(res.data.data))
-      .catch((err) => console.log(err));
-  };
+      .catch((err) => toast.error(err.message));
+  }, _DEBOUNCE_TIME);
 
   const handleDoubleClickSection = async (id, value) => {
     await axiosAPI
@@ -231,7 +240,42 @@ function Step2({
       .catch((err) => console.log(err));
   };
 
-  const orderLessons = async (lessons) => {
+  const handleDeleteSection = async (id) => {
+    setCourse((prev) => {
+      return {
+        ...prev,
+        sections: prev.sections.filter((section) => section._id !== id),
+      };
+    });
+
+    await axiosAPI
+      .patch(
+        endpoints.learning + '/courses/sections/delete-section-of-course',
+        {
+          courseId: _id,
+          sectionId: id,
+        }
+      )
+      .catch((err) => toast.error(err.message));
+  };
+
+  const handleDeleteLesson = async (id) => {
+    setCourse((prev) => {
+      return {
+        ...prev,
+        lessons: prev.lessons.filter((lesson) => lesson._id !== id),
+      };
+    });
+
+    await axiosAPI
+      .patch(
+        endpoints.learning + '/courses/lessons/delete-lesson-of-section',
+        { sectionId: activeSection, lessonId: id }
+      )
+      .catch((err) => toast.error(err.message));
+  };
+
+  const orderLessons = useDebouncedCallback(async (lessons) => {
     const data = lessons.map((lesson) => {
       return {
         _id: lesson._id,
@@ -242,9 +286,8 @@ function Step2({
       .patch(endpoints.learning + '/courses/order-lessons/' + activeSection, {
         lessons: data,
       })
-      .then((res) => console.log(res.data.data))
-      .catch((err) => console.log(err));
-  };
+      .catch((err) => toast.error(err.message));
+  }, _DEBOUNCE_TIME);
 
   const handleDoubleClickLesson = async (id, value) => {
     await axiosAPI
@@ -384,7 +427,7 @@ function Step2({
   const handleUpdateVideo = async () => {
     await axiosAPI({
       method: 'PATCH',
-      url: endpoints.media + '/videos/' + videoEdit.data._id,
+      url: endpoints.media + '/videos/update-interactive/' + videoEdit.data._id,
       data: {
         interactives: videoEdit.interactives,
       },
@@ -392,6 +435,29 @@ function Step2({
       .then((res) => {
         const data = res.data.data;
         console.log(data);
+      })
+      .catch((err) => console.log(err));
+  };
+
+  const handleDeleteVideo = async (id) => {
+    await axiosAPI
+      .patch(endpoints.media + '/videos/delete-by-lecturer/' + id)
+      .then((res) => {
+        const { isDeleted } = res.data.data;
+
+        if (!isDeleted) return toast.error('Cannot delete video!');
+
+        if (isDeleted) {
+          setCourse((prev) => {
+            return {
+              ...prev,
+              lessonData: {
+                ...prev.lessonData,
+                video: null,
+              },
+            };
+          });
+        }
       })
       .catch((err) => console.log(err));
   };
@@ -440,10 +506,15 @@ function Step2({
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                padding: '4px 14px',
               }}
             >
               <Typography variant="h6">Sections</Typography>
-              <Button onClick={handleAddSection} size="small">
+              <Button
+                variant="outlined"
+                onClick={handleAddSection}
+                size="small"
+              >
                 +
               </Button>
             </Box>
@@ -455,6 +526,7 @@ function Step2({
                 itemOnClick={handleOnClickSection}
                 itemOnDoubleClick={handleDoubleClickSection}
                 orderUpdate={orderSections}
+                handleDeleteItem={handleDeleteSection}
               />
             </Box>
           </Box>
@@ -465,6 +537,7 @@ function Step2({
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                padding: '4px 14px',
               }}
             >
               <Typography variant="h6">Lessons</Typography>
@@ -480,6 +553,7 @@ function Step2({
                 itemOnClick={handleOnClickLesson}
                 itemOnDoubleClick={handleDoubleClickLesson}
                 orderUpdate={orderLessons}
+                handleDeleteItem={handleDeleteLesson}
               />
             </Box>
           </Box>
@@ -515,7 +589,13 @@ function Step2({
                   disabled={loadProgress.video ? true : false}
                 >
                   Upload Video{' '}
-                  {loadProgress.video && `(${loadProgress.video}%)`}
+                  {loadProgress.video && (
+                    <CircularProgress
+                      sx={{ ml: 1 }}
+                      color="secondary"
+                      size={25}
+                    />
+                  )}
                   <VisuallyHiddenInput
                     type="file"
                     accept=".mp4"
@@ -535,7 +615,12 @@ function Step2({
                   <Button onClick={() => handleEditVideo(lessonData.video._id)}>
                     Edit
                   </Button>
-                  <Button size="small" color="error" variant="outlined">
+                  <Button
+                    onClick={() => handleDeleteVideo(lessonData.video._id)}
+                    size="small"
+                    color="error"
+                    variant="outlined"
+                  >
                     Delete
                   </Button>
                 </Box>

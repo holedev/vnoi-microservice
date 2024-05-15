@@ -14,13 +14,15 @@ const VideoService = {
 
     const { originalname, mimetype, size, filename, path } = req.file;
 
-    console.log(req.file);
-
     const userGRPC = await gRPCRequest.getUserByIdAsync(requestId, _id);
 
     const uuid = filename.split(".")[0];
 
-    await encodeHLSWithMultipleVideoStreams(path, uuid);
+    const isCreateHLS = await encodeHLSWithMultipleVideoStreams(path, uuid);
+
+    if (!isCreateHLS) {
+      throw new ConflictError("Failed to create HLS video!");
+    }
 
     const data = {
       author: userGRPC,
@@ -42,13 +44,16 @@ const VideoService = {
       }
     });
   },
-  updateVideo: async (req, res) => {
+  updateVideoInteractive: async (req, res) => {
     const { id } = req.params;
     const { interactives } = req.body;
 
-    console.log(interactives);
+    const condition = {
+      _id: id,
+      isDeleted: false
+    };
 
-    const video = await VideoModel.findById(id);
+    const video = await VideoModel.findOne(condition);
 
     if (!video) {
       throw new ConflictError("Video not found!");
@@ -80,6 +85,31 @@ const VideoService = {
       data: {
         ...video,
         path: _VIDEO_PATH + video.uuid + "/master.m3u8"
+      }
+    });
+  },
+  softDeleteVideoByLecturer: async (req, res) => {
+    const { id } = req.params;
+
+    const condition = {
+      _id: id,
+      isDeleted: false
+    };
+
+    const video = await VideoModel.findOne(condition);
+
+    if (!video) {
+      throw new ConflictError("Video not found!");
+    }
+
+    video.isDeleted = true;
+    await video.save();
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: {
+        _id: video._id,
+        isDeleted: video.isDeleted
       }
     });
   }

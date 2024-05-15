@@ -1,9 +1,11 @@
 import path from "path";
 import fs from "fs";
 
-const MAXIMUM_BITRATE_720P = 5 * 10 ** 6; // 5Mbps
-const MAXIMUM_BITRATE_1080P = 8 * 10 ** 6; // 8Mbps
-const MAXIMUM_BITRATE_1440P = 16 * 10 ** 6; // 16Mbps
+const _MAXIMUM_BITRATE_720P = 5 * 10 ** 6; // 5Mbps
+const _MAXIMUM_BITRATE_1080P = 8 * 10 ** 6; // 8Mbps
+const _MAXIMUM_BITRATE_1440P = 16 * 10 ** 6; // 16Mbps
+
+const _SEGMENT_DURATION = 30;
 
 export const checkVideoHasAudio = async (filePath) => {
   const { $ } = await import("zx");
@@ -112,7 +114,7 @@ const encodeMax720 = async ({ bitrate, inputPath, isHasAudio, outputPath, output
     "-f",
     "hls",
     "-hls_time",
-    "6",
+    _SEGMENT_DURATION,
     "-hls_list_size",
     "0",
     "-hls_segment_filename",
@@ -162,7 +164,7 @@ const encodeMax1080 = async ({ bitrate, inputPath, isHasAudio, outputPath, outpu
     "-f",
     "hls",
     "-hls_time",
-    "6",
+    _SEGMENT_DURATION,
     "-hls_list_size",
     "0",
     "-hls_segment_filename",
@@ -218,7 +220,7 @@ const encodeMax1440 = async ({ bitrate, inputPath, isHasAudio, outputPath, outpu
     "-f",
     "hls",
     "-hls_time",
-    "6",
+    _SEGMENT_DURATION,
     "-hls_list_size",
     "0",
     "-hls_segment_filename",
@@ -274,7 +276,7 @@ const encodeMaxOriginal = async ({ bitrate, inputPath, isHasAudio, outputPath, o
     "-f",
     "hls",
     "-hls_time",
-    "6",
+    _SEGMENT_DURATION,
     "-hls_list_size",
     "0",
     "-hls_segment_filename",
@@ -295,11 +297,11 @@ export const encodeHLSWithMultipleVideoStreams = async (inputPath, uuid) => {
     fs.mkdirSync(parent_folder);
   }
 
-  const outputSegmentPath = path.join(parent_folder, "v%v/fileSequence%d.ts");
+  const outputSegmentPath = path.join(parent_folder, "v%v/segment%d.ts");
   const outputPath = path.join(parent_folder, "v%v/prog_index.m3u8");
-  const bitrate720 = bitrate > MAXIMUM_BITRATE_720P ? MAXIMUM_BITRATE_720P : bitrate;
-  const bitrate1080 = bitrate > MAXIMUM_BITRATE_1080P ? MAXIMUM_BITRATE_1080P : bitrate;
-  const bitrate1440 = bitrate > MAXIMUM_BITRATE_1440P ? MAXIMUM_BITRATE_1440P : bitrate;
+  const bitrate720 = bitrate > _MAXIMUM_BITRATE_720P ? _MAXIMUM_BITRATE_720P : bitrate;
+  const bitrate1080 = bitrate > _MAXIMUM_BITRATE_1080P ? _MAXIMUM_BITRATE_1080P : bitrate;
+  const bitrate1440 = bitrate > _MAXIMUM_BITRATE_1440P ? _MAXIMUM_BITRATE_1440P : bitrate;
   const isHasAudio = await checkVideoHasAudio(inputPath);
   let encodeFunc = encodeMax720;
   if (resolution.height > 720) {

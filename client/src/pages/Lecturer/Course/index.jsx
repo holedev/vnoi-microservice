@@ -89,9 +89,13 @@ export default function Course() {
 
     if (activeStep == 0) {
       const isNewCourse = !course._id;
+
       if (isNewCourse) {
         createCourse();
+        return;
       }
+
+      updateCourseInfo();
     }
 
     if (activeStep == 3) {
@@ -142,6 +146,14 @@ export default function Course() {
         });
       })
       .catch((err) => console.log(err));
+  };
+
+  const updateCourseInfo = async () => {
+    await axiosAPI({
+      method: 'PATCH',
+      url: endpoints.learning + `/courses/update-info/${course._id}`,
+      data: course,
+    }).catch((err) => console.log(err));
   };
 
   const handleSaveDraft = async () => {

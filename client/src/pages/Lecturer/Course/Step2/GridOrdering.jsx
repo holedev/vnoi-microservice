@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import DeleteIcon from '@mui/icons-material/Delete';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import { Box } from '@mui/material';
 
 // a little function to help us with reordering the result
 const reorder = (list, startIndex, endIndex) => {
@@ -17,6 +20,8 @@ const getItemStyle = (isDragging, draggableStyle) => ({
   userSelect: 'none',
   padding: grid * 2,
   margin: `0 0 ${grid}px 0`,
+  display: 'flex',
+  alignItems: 'center',
 
   // change background colour if dragging
   background: isDragging ? 'lightgreen' : 'grey',
@@ -38,6 +43,7 @@ const GridOrdering = ({
   itemOnClick,
   itemOnDoubleClick,
   orderUpdate,
+  handleDeleteItem
 }) => {
   const [edit, setEdit] = useState(null);
 
@@ -86,7 +92,7 @@ const GridOrdering = ({
             {data?.map((item, index) => (
               <Draggable key={item._id} draggableId={item._id} index={index}>
                 {(provided, snapshot) => (
-                  <div
+                  <Box
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
@@ -97,18 +103,38 @@ const GridOrdering = ({
                     onDoubleClick={() => {
                       setEdit(item._id == edit ? null : item._id);
                     }}
-                    contentEditable={edit == item._id}
-                    suppressContentEditableWarning={true}
-                    onBlur={(e) => {
-                      if (edit == item._id) {
-                        itemOnDoubleClick(item._id, e.target.innerText);
-                        setEdit(null);
-                      }
-                    }}
-                    onClick={() => itemOnClick(item._id)}
                   >
-                    {item.title}
-                  </div>
+                    <Box
+                      onBlur={(e) => {
+                        if (edit == item._id) {
+                          itemOnDoubleClick(item._id, e.target.innerText);
+                          setEdit(null);
+                        }
+                      }}
+                      contentEditable={edit == item._id}
+                      suppressContentEditableWarning={true}
+                      sx={{ flex: 1, border: 'none', outline: 'none' }}
+                      variant="body1"
+                    >
+                      {item.title}
+                    </Box>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      <FolderOpenIcon
+                        sx={{ cursor: 'pointer' }}
+                        onClick={() => itemOnClick(item._id)}
+                      />
+                      <DeleteIcon
+                        sx={{ cursor: 'pointer' }}
+                        onClick={() => handleDeleteItem(item._id)}
+                      />
+                    </Box>
+                  </Box>
                 )}
               </Draggable>
             ))}

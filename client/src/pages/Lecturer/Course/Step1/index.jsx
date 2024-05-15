@@ -68,6 +68,29 @@ function Step1({ course: { title, desc, coverPath, authors }, setCourse }) {
     }
   };
 
+  const handleDeleteAuthor = (id) => {
+    setCourse((prev) => {
+      return {
+        ...prev,
+        authors: prev.authors.filter((item) => item._id !== id),
+      };
+    });
+  };
+
+  const handleDeleteCover = async () => {
+    setCourse((prev) => {
+      return {
+        ...prev,
+        coverPath: '',
+      };
+    });
+
+    await axiosAPI({
+      method: 'DELETE',
+      url: endpoints.media + '/images/' + coverPath.split('/images/')[1],
+    });
+  };
+
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
 
@@ -110,20 +133,22 @@ function Step1({ course: { title, desc, coverPath, authors }, setCourse }) {
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <FormGroup>
-          <Button
-            component="label"
-            role={undefined}
-            variant="contained"
-            tabIndex={-1}
-            startIcon={<CloudUploadIcon />}
-          >
-            Upload Cover Image (16:9)
-            <VisuallyHiddenInput
-              type="file"
-              accept=".png, .jpg"
-              onChange={handleFileChange}
-            />
-          </Button>
+          {!coverPath && (
+            <Button
+              component="label"
+              role={undefined}
+              variant="contained"
+              tabIndex={-1}
+              startIcon={<CloudUploadIcon />}
+            >
+              Upload Cover Image (16:9)
+              <VisuallyHiddenInput
+                type="file"
+                accept=".png, .jpg"
+                onChange={handleFileChange}
+              />
+            </Button>
+          )}
         </FormGroup>
         {loadProgress && (
           <FormGroup>
@@ -135,9 +160,19 @@ function Step1({ course: { title, desc, coverPath, authors }, setCourse }) {
             <img
               src={coverPath}
               alt="Banner Preview"
-              style={{ maxWidth: 500, marginTop: '10px' }}
+              style={{ maxWidth: 500, borderRadius: 8 }}
             />
           </FormGroup>
+        )}
+        {coverPath && (
+          <Button
+            sx={{ width: 'fit-content', margin: 'auto' }}
+            variant="outlined"
+            color="error"
+            onClick={handleDeleteCover}
+          >
+            Delete Cover
+          </Button>
         )}
         <FormGroup sx={{ mt: 2 }}>
           <TextField
@@ -160,7 +195,7 @@ function Step1({ course: { title, desc, coverPath, authors }, setCourse }) {
             <TextField
               onKeyDown={(ev) => handleAddAuthor(ev)}
               sx={{ width: '100%' }}
-              label="Authors"
+              label="Email author"
               size="small"
             />
           </Box>
@@ -182,18 +217,12 @@ function Step1({ course: { title, desc, coverPath, authors }, setCourse }) {
                     userSelect: 'none',
                   }}
                   key={author._id}
-                  onDoubleClick={() => {
-                    if (author.isMe) return;
-                    setCourse((prev) => {
-                      return {
-                        ...prev,
-                        authors: prev.authors.filter(
-                          (item) => item._id !== author._id
-                        ),
-                      };
-                    });
-                  }}
                   label={text}
+                  onDelete={
+                    author.isMe
+                      ? undefined
+                      : () => handleDeleteAuthor(author._id)
+                  }
                 />
               );
             })}
