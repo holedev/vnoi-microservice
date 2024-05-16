@@ -6,6 +6,8 @@ import { CourseModel } from "../models/Course.js";
 import { CourseSectionModel } from "../models/CourseSection.js";
 import { CourseLessonModel } from "../models/CourseLesson.js";
 import { QuestionModel } from "../models/Question.js";
+import { sendToQueue } from "../../configs/rabiitmq/index.js";
+import { _ACTION, _SERVICE } from "../../configs/env/index.js";
 
 const CourseService = {
   getCourseByClass: async (req, res) => {
@@ -585,21 +587,32 @@ const CourseService = {
     });
   },
   getLessonById: async (req, res) => {
+    const _id = req.headers["x-user-id"];
+    const requestId = req.headers["x-request-id"];
     const { id } = req.params;
+
+    console.log(_id);
 
     const condition = { _id: id, isDeleted: false };
 
     let courseLesson = await CourseLessonModel.findOne(condition).lean().select("-__v -updatedAt -createdAt");
 
     if (courseLesson.video?._id) {
-      const videoGRPC = await gRPCRequest.getVideoByIdAsync(req.headers["x-request-id"], courseLesson.video._id);
+      const videoGRPC = await gRPCRequest.getVideoByIdAsync(requestId, courseLesson.video._id);
       const data = JSON.parse(videoGRPC.jsonStr);
 
       courseLesson.video = {
         _id: data._id,
         title: data.title,
         path: courseLesson.video?.path,
-        interactives: data.interactives
+        interactives: data.interactives.map((i) => {
+          return {
+            _id: i._id,
+            type: i.type,
+            time: i.time,
+            isAnswered: i.answerList?.find((answer) => answer == _id) ? true : false
+          };
+        })
       };
     }
 
@@ -652,9 +665,10 @@ const CourseService = {
     });
   },
   getQuestionById: async (req, res) => {
+    const _id = req.headers["x-user-id"];
     const { id } = req.params;
 
-    const question = await QuestionModel.findById(id).lean().select("_id title answers");
+    const question = await QuestionModel.findById(id).lean().select("_id title answers answersList");
 
     if (!question) {
       throw new ConflictError("Question not found!");
@@ -673,15 +687,27 @@ const CourseService = {
         .sort(() => Math.random() - 0.5)
     };
 
+    const isAnswered = question.answersList.find((answer) => answer._id == _id);
+
+    if (isAnswered) {
+      formatData.isAnswered = {
+        value: formatData.answers.find((answer) => answer._id == isAnswered.value).value,
+        time: isAnswered.time
+      };
+    }
+
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       data: formatData
     });
   },
   checkResultQuestion: async (req, res) => {
-    const { questionId, answerId } = req.body;
+    const _id = req.headers["x-user-id"];
+    const requestId = req.headers["x-request-id"];
 
-    const question = await QuestionModel.findById(questionId).lean().select("_id answers");
+    const { questionId, answerId, videoId } = req.body;
+
+    let question = await QuestionModel.findById(questionId).select("_id answers answersList");
 
     if (!question) {
       throw new ConflictError("Question not found!");
@@ -691,6 +717,28 @@ const CourseService = {
     if (!answer) {
       throw new ConflictError("Answer not found!");
     }
+
+    const answerIsExist = question.answersList.find((answer) => answer._id == _id);
+    if (answerIsExist) {
+      answerIsExist.value = answerId;
+      answerIsExist.time = new Date();
+    } else {
+      question.answersList.push({ _id, value: answerId, time: new Date() });
+    }
+
+    await question.save();
+
+    const payload = {
+      requestId,
+      action: _ACTION.ANSWER_QUESION,
+      data: {
+        videoId,
+        interactiveId: questionId,
+        userId: _id
+      }
+    };
+
+    sendToQueue(_SERVICE.MEDIA_SERVICE.NAME, payload);
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",

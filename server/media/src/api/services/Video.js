@@ -1,5 +1,6 @@
 import { _PROCESS_ENV } from "../../configs/env/index.js";
 import { encodeHLSWithMultipleVideoStreams } from "../../utils/ffmpeg.js";
+import { deleteFile } from "../../utils/file.js";
 import { VideoModel } from "../models/Video.js";
 import { ConflictError } from "../responses/errors/ConflictError.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
@@ -35,6 +36,8 @@ const VideoService = {
 
     const video = await VideoModel.create(data);
 
+    deleteFile(path);
+
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       data: {
@@ -67,7 +70,8 @@ const VideoService = {
       data: {
         _id: video._id,
         title: video.title,
-        interactives: video.interactives
+        interactives: video.interactives,
+        answerList: []
       }
     });
   },
@@ -84,6 +88,7 @@ const VideoService = {
       status: "success",
       data: {
         ...video,
+        interactives: video.interactives || [],
         path: _VIDEO_PATH + video.uuid + "/master.m3u8"
       }
     });

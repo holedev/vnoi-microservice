@@ -2,9 +2,14 @@ import fs from "fs";
 
 const deleteFile = (filePath) => {
   if (fs.existsSync(filePath)) {
-    console.log("delete");
     fs.unlinkSync(filePath);
   }
 };
 
-export { deleteFile };
+const deleteFolder = (folderPath) => {
+  if (fs.existsSync(folderPath)) {
+    fs.rmdirSync(folderPath, { recursive: true });
+  }
+};
+
+export { deleteFile, deleteFolder };

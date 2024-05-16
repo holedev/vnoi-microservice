@@ -10,9 +10,14 @@ import { FileRoute } from "./src/api/routes/File.js";
 import { ImageRoute } from "./src/api/routes/Image.js";
 import { gRPCServerMedia } from "./src/configs/grpc/index.js";
 import { VerifyRequestFromGateway } from "./src/api/middlewares/VerifyRequestFromGateway.js";
+import { getSubscribeChannel, subscribeMessage } from "./src/configs/rabiitmq/index.js";
+import { MediaService } from "./src/api/services/index.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
+
+const channel = await getSubscribeChannel();
+subscribeMessage(channel, MediaService);
 
 app.use(
   cors({ origin: "*", credentials: true }),
@@ -27,7 +32,6 @@ app.use("/images", express.static("uploads/images"));
 await databaseConnection();
 
 gRPCServerMedia();
-
 
 // app.use(VerifyRequestFromGateway);
 

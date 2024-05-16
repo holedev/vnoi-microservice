@@ -8,11 +8,12 @@ const style = {
   transform: 'translate(-50%, -50%)',
   width: 500,
   bgcolor: 'background.paper',
-  border: '2px solid #000',
+  border: '1px solid #ccc',
   boxShadow: 24,
   pt: 2,
   px: 4,
   pb: 3,
+  borderRadius: '6px',
 };
 
 export default function ChildModal({ open, setOpen, children }) {

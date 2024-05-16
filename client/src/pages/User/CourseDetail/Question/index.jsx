@@ -1,8 +1,9 @@
-import { Box, Button, Chip, Typography } from '@mui/material';
-import { borderRadius } from '@mui/system';
+import { Box, Button, Chip, Typography, Alert } from '@mui/material';
 import { useEffect } from 'react';
 import { useState } from 'react';
+import { toast } from 'react-toastify';
 import useAxiosAPI from '~/hook/useAxiosAPI';
+import { handleDatetime } from '~/utils/datetime';
 
 const style = {
   position: 'absolute',
@@ -16,9 +17,11 @@ const style = {
   px: 4,
   pb: 2,
   borderRadius: 2,
+  display: 'flex',
+  flexDirection: 'column',
 };
 
-function Question({ id, handleAnswered, handleCloseModal }) {
+function Question({ id, videoId, handleAnswered, handleCloseModal }) {
   const { axiosAPI, endpoints } = useAxiosAPI();
 
   const [question, setQuestion] = useState(null);
@@ -38,13 +41,14 @@ function Question({ id, handleAnswered, handleCloseModal }) {
       .post(endpoints.learning + '/courses/questions/check-result', {
         questionId: question._id,
         answerId: id,
+        videoId: videoId,
       })
       .then((res) => {
         const data = res.data.data;
         setResult(data);
         handleAnswered(question._id);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => toast.error(err.message));
   };
 
   useEffect(() => {
@@ -85,14 +89,25 @@ function Question({ id, handleAnswered, handleCloseModal }) {
             <Chip label="Incorrect" color="error" />
           )}{' '}
           - Correct Answer:{' '}
-          <Chip label={result?.correctAnswer.value} color="info" />
+          <Chip
+            label={result?.correctAnswer.value}
+            variant="outlined"
+            color="info"
+          />
         </Typography>
+      )}
+      {question?.isAnswered && (
+        <Alert sx={{ mt: 2 }} severity="info">
+          You have select {question?.isAnswered.value} at{' '}
+          {handleDatetime(question?.isAnswered.time, true)}
+        </Alert>
       )}
 
       <Button
         onClick={handleCloseModal}
         color="error"
-        sx={{ width: '100%', mt: 2 }}
+        variant="outlined"
+        sx={{ width: 'fit-content', margin: '20px auto 0' }}
       >
         Close
       </Button>

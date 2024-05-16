@@ -168,11 +168,11 @@ export default function Course() {
       url: endpoints.learning + `/courses/save-draft/${lessonId}`,
       data: course.lessonData,
     })
-      .then((response) => {
-        console.log(response.data.data);
+      .then(() => {
+        toast.success('Save draft successfully');
       })
       .catch((err) => {
-        console.log(err);
+        toast.error(err.message);
       });
   };
 

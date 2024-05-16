@@ -22,6 +22,7 @@ import {
   PlyrLayout,
   plyrLayoutIcons,
 } from '@vidstack/react/player/layouts/plyr';
+import { toast } from 'react-toastify';
 
 function CourseDetail() {
   const { id } = useParams();
@@ -30,6 +31,7 @@ function CourseDetail() {
 
   const [course, setCourse] = useState({});
   const [lesson, setLesson] = useState({});
+  const [activeLesson, setActiveLesson] = useState(null);
   const [openSidebar, setOpenSidebar] = useState(false);
   const [questionModal, setQuestionModal] = useState(null);
   const [problemQuestion, setProblemQuestion] = useState(null);
@@ -42,7 +44,7 @@ function CourseDetail() {
       .then((res) => {
         setCourse(res.data.data);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => toast.error(err.message));
   };
 
   const getLesson = async (id) => {
@@ -52,8 +54,9 @@ function CourseDetail() {
     })
       .then((res) => {
         setLesson(res.data.data);
+        setActiveLesson(id);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => toast.error(err.message));
   };
 
   const handleClickSection = (id) => {
@@ -65,8 +68,8 @@ function CourseDetail() {
     });
   };
 
-  const handleClickLesson = (id) => {
-    getLesson(id);
+  const handleClickLesson = async (id) => {
+    await getLesson(id);
   };
 
   const handleTimeUpdate = () => {
@@ -76,7 +79,7 @@ function CourseDetail() {
     const currTime = videoRef.current?.currentTime;
 
     lesson.video.interactives?.forEach((item) => {
-      if (!item.isPass && currTime >= item.time) {
+      if (!item.isAnswered && currTime >= item.time) {
         videoRef.current.pause();
 
         item.type === 'question' && setQuestionModal(item._id);
@@ -151,10 +154,7 @@ function CourseDetail() {
                   onTimeUpdate={handleTimeUpdate}
                 >
                   <MediaProvider />
-                  <PlyrLayout
-                    thumbnails="https://files.vidstack.io/sprite-fight/thumbnails.vtt"
-                    icons={plyrLayoutIcons}
-                  />
+                  <PlyrLayout icons={plyrLayoutIcons} />
                 </MediaPlayer>
               </Box>
             )}
@@ -185,11 +185,7 @@ function CourseDetail() {
                 <Typography>There is no content for this lesson!</Typography>
               )}
               {lesson.content && (
-                <>
-                  <Box
-                    dangerouslySetInnerHTML={{ __html: lesson.content }}
-                  ></Box>
-                </>
+                <Box dangerouslySetInnerHTML={{ __html: lesson.content }}></Box>
               )}
             </Box>
           </Box>
@@ -236,7 +232,7 @@ function CourseDetail() {
 
                         return (
                           <Collapse
-                            in={openSidebar[section._id]}
+                            in={openSidebar[section._id] || false}
                             timeout="auto"
                             unmountOnExit
                             key={lesson._id}
@@ -244,6 +240,10 @@ function CourseDetail() {
                             <List component="div" disablePadding>
                               <ListItemButton
                                 onClick={() => handleClickLesson(lesson._id)}
+                                sx={{
+                                  background:
+                                    lesson._id === activeLesson ? '#ccc' : '',
+                                }}
                               >
                                 <ListItemText primary={title} />
                               </ListItemButton>
@@ -257,9 +257,10 @@ function CourseDetail() {
           </List>
         </Box>
       </Box>
-      <Modal open={questionModal} onClose={handleCloseModal}>
+      <Modal open={questionModal || false} onClose={handleCloseModal}>
         <Question
           id={questionModal}
+          videoId={lesson.video?._id}
           handleCloseModal={handleCloseModal}
           handleAnswered={handleAnswered}
         />

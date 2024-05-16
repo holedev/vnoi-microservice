@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
-import { Box } from '@mui/material';
+import { Box, IconButton, Tooltip } from '@mui/material';
+import Alert from '@mui/material/Alert';
 
 // a little function to help us with reordering the result
 const reorder = (list, startIndex, endIndex) => {
@@ -13,7 +14,7 @@ const reorder = (list, startIndex, endIndex) => {
   return result;
 };
 
-const grid = 8;
+const grid = 6;
 
 const getItemStyle = (isDragging, draggableStyle) => ({
   // some basic styles to make the items look a bit nicer
@@ -25,6 +26,7 @@ const getItemStyle = (isDragging, draggableStyle) => ({
 
   // change background colour if dragging
   background: isDragging ? 'lightgreen' : 'grey',
+  borderRadius: '4px',
 
   // styles we need to apply on draggables
   ...draggableStyle,
@@ -40,10 +42,10 @@ const GridOrdering = ({
   type,
   data,
   setCourse,
-  itemOnClick,
-  itemOnDoubleClick,
+  handleOpenItem,
+  handleRenameItem,
   orderUpdate,
-  handleDeleteItem
+  handleDeleteItem,
 }) => {
   const [edit, setEdit] = useState(null);
 
@@ -107,14 +109,13 @@ const GridOrdering = ({
                     <Box
                       onBlur={(e) => {
                         if (edit == item._id) {
-                          itemOnDoubleClick(item._id, e.target.innerText);
+                          handleRenameItem(item._id, e.target.innerText);
                           setEdit(null);
                         }
                       }}
                       contentEditable={edit == item._id}
                       suppressContentEditableWarning={true}
                       sx={{ flex: 1, border: 'none', outline: 'none' }}
-                      variant="body1"
                     >
                       {item.title}
                     </Box>
@@ -122,22 +123,28 @@ const GridOrdering = ({
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '4px',
                       }}
                     >
-                      <FolderOpenIcon
-                        sx={{ cursor: 'pointer' }}
-                        onClick={() => itemOnClick(item._id)}
-                      />
-                      <DeleteIcon
-                        sx={{ cursor: 'pointer' }}
-                        onClick={() => handleDeleteItem(item._id)}
-                      />
+                      <Tooltip title="Open">
+                        <IconButton onClick={() => handleOpenItem(item._id)}>
+                          <FolderOpenIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton onClick={() => handleDeleteItem(item._id)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
                     </Box>
                   </Box>
                 )}
               </Draggable>
             ))}
+            {data?.length == 0 && (
+              <Alert variant="outlined" severity="info">
+                No items to show.
+              </Alert>
+            )}
             {provided.placeholder}
           </div>
         )}

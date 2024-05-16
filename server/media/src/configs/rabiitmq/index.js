@@ -63,7 +63,6 @@ const subscribeMessage = async (channel, service) => {
     });
 
     await channel.bindQueue(q.queue, _EXCHANGE.CLASS_EXCHANGE, "");
-
     console.log(`${_PROCESS_ENV.SERVICE_NAME} ${_PROCESS_ENV.SERVICE_PORT} | QUEUE ${q.queue} waiting`);
 
     channel.consume(

@@ -5,9 +5,11 @@ import {
   CircularProgress,
   FormControl,
   FormControlLabel,
+  IconButton,
   Modal,
   Radio,
   RadioGroup,
+  Tooltip,
   Typography,
   styled,
 } from '@mui/material';
@@ -16,7 +18,6 @@ import GridOrderring from './GridOrdering';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useState } from 'react';
 import useAxiosAPI from '~/hook/useAxiosAPI';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { useEffect } from 'react';
 import { useRef } from 'react';
 import ChildModal from './ChildModal';
@@ -31,6 +32,9 @@ import {
 } from '@vidstack/react/player/layouts/plyr';
 import { toast } from 'react-toastify';
 import { useDebouncedCallback } from 'use-debounce';
+import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
+import ClearIcon from '@mui/icons-material/Clear';
+import { file as FileIcon } from '~/assets/images';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -51,7 +55,7 @@ function Step2({
   setCourse,
 }) {
   const { axiosAPI, endpoints } = useAxiosAPI();
-  const videoRef = useRef(null);
+  const videoRef = useRef({});
 
   const [loadProgress, setLoadProgress] = useState({
     video: false, // cannot get upload processing percentage with axios
@@ -172,7 +176,7 @@ function Step2({
       .catch((err) => toast.error(err.message));
   }, _DEBOUNCE_TIME);
 
-  const handleDoubleClickSection = async (id, value) => {
+  const handleRenameSection = async (id, value) => {
     await axiosAPI
       .patch(endpoints.learning + '/courses/sections/' + id, {
         title: value,
@@ -217,7 +221,7 @@ function Step2({
       .catch((err) => console.log(err));
   };
 
-  const handleOnClickSection = async (id) => {
+  const handleOpenSection = async (id) => {
     setCourse((prev) => {
       return {
         ...prev,
@@ -268,10 +272,10 @@ function Step2({
     });
 
     await axiosAPI
-      .patch(
-        endpoints.learning + '/courses/lessons/delete-lesson-of-section',
-        { sectionId: activeSection, lessonId: id }
-      )
+      .patch(endpoints.learning + '/courses/lessons/delete-lesson-of-section', {
+        sectionId: activeSection,
+        lessonId: id,
+      })
       .catch((err) => toast.error(err.message));
   };
 
@@ -289,7 +293,7 @@ function Step2({
       .catch((err) => toast.error(err.message));
   }, _DEBOUNCE_TIME);
 
-  const handleDoubleClickLesson = async (id, value) => {
+  const handleRenameLesson = async (id, value) => {
     await axiosAPI
       .patch(endpoints.learning + '/courses/lessons/' + id, {
         title: value,
@@ -364,7 +368,7 @@ function Step2({
 
   const handleGetCurrentTime = () => {
     setVideoEdit((prev) => {
-      return { ...prev, timeCurr: videoRef.current?.currentTime };
+      return { ...prev, timeCurr: videoRef?.current?.currentTime };
     });
   };
 
@@ -395,6 +399,7 @@ function Step2({
         });
 
         setChildModal(false);
+        setQuestion({});
       })
       .catch((err) => console.log(err));
   };
@@ -418,6 +423,7 @@ function Step2({
     });
 
     setChildModal(false);
+    setProblem({});
   };
 
   const handleAddInteractive = () => {
@@ -432,11 +438,10 @@ function Step2({
         interactives: videoEdit.interactives,
       },
     })
-      .then((res) => {
-        const data = res.data.data;
-        console.log(data);
+      .then(() => {
+        toast.success('Video updated successfully');
       })
-      .catch((err) => console.log(err));
+      .catch((err) => toast.error(err.message));
   };
 
   const handleDeleteVideo = async (id) => {
@@ -460,6 +465,15 @@ function Step2({
         }
       })
       .catch((err) => console.log(err));
+  };
+
+  const handleDeleteInteractive = (id) => {
+    setVideoEdit((prev) => {
+      return {
+        ...prev,
+        interactives: prev.interactives.filter((item) => item._id !== id),
+      };
+    });
   };
 
   useEffect(() => {
@@ -486,12 +500,6 @@ function Step2({
     getLessonData();
   }, [activeLesson]);
 
-  useEffect(() => {
-    setVideoEdit((prev) => {
-      return { ...prev, timeCurr: videoRef.current?.currentTime };
-    });
-  }, [videoRef.current?.currentTime]);
-
   return (
     <Box sx={{ minWidth: 500, width: '100%' }}>
       <Typography variant="h5" sx={{ textAlign: 'center', mb: 1 }}>
@@ -510,21 +518,19 @@ function Step2({
               }}
             >
               <Typography variant="h6">Sections</Typography>
-              <Button
-                variant="outlined"
-                onClick={handleAddSection}
-                size="small"
-              >
-                +
-              </Button>
+              <Tooltip title="New Section" placement="top">
+                <IconButton onClick={handleAddSection} size="small">
+                  <CreateNewFolderIcon />
+                </IconButton>
+              </Tooltip>
             </Box>
             <Box>
               <GridOrderring
                 type="sections"
                 data={sections}
                 setCourse={setCourse}
-                itemOnClick={handleOnClickSection}
-                itemOnDoubleClick={handleDoubleClickSection}
+                handleOpenItem={handleOpenSection}
+                handleRenameItem={handleRenameSection}
                 orderUpdate={orderSections}
                 handleDeleteItem={handleDeleteSection}
               />
@@ -541,17 +547,19 @@ function Step2({
               }}
             >
               <Typography variant="h6">Lessons</Typography>
-              <Button onClick={handleAddLesson} size="small">
-                +
-              </Button>
+              <Tooltip title="New Lesson" placement="top">
+                <IconButton onClick={handleAddLesson} size="small">
+                  <CreateNewFolderIcon />
+                </IconButton>
+              </Tooltip>
             </Box>
             <Box>
               <GridOrderring
                 type="lessons"
                 data={lessons}
                 setCourse={setCourse}
-                itemOnClick={handleOnClickLesson}
-                itemOnDoubleClick={handleDoubleClickLesson}
+                handleOpenItem={handleOnClickLesson}
+                handleRenameItem={handleRenameLesson}
                 orderUpdate={orderLessons}
                 handleDeleteItem={handleDeleteLesson}
               />
@@ -653,17 +661,38 @@ function Step2({
                 </Button>
               </Box>
               {lessonData?.files?.length > 0 && (
-                <Box>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                   {lessonData.files.map((file) => {
                     return (
                       <Box
-                        sx={{ display: 'flex', alignItems: 'center' }}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          flexDirection: 'column',
+                        }}
                         key={file._id}
                       >
-                        <InsertDriveFileIcon fontSize="large" />
-                        <a href={file?.path} target="_blank" rel="noreferrer">
-                          {file?.title}
-                        </a>
+                        <Box>
+                          <img
+                            style={{
+                              width: 60,
+                              height: 60,
+                            }}
+                            src={FileIcon}
+                            loading="lazy"
+                            alt={file.title}
+                          />
+                        </Box>
+                        <Box>
+                          <a
+                            style={{ display: 'block' }}
+                            href={file?.path}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {file?.title}
+                          </a>
+                        </Box>
                       </Box>
                     );
                   })}
@@ -705,40 +734,46 @@ function Step2({
           })
         }
       >
-        <Box sx={{ maxWidth: 800, background: '#ccc', borderRadius: 2 }}>
+        <Box
+          sx={{
+            maxWidth: 800,
+            background: '#ddd',
+            borderRadius: 2,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
           <Typography
             component="h4"
             sx={{
               textAlign: 'center',
               py: 2,
               fontWeight: 'bold',
-              borderTopLeftRadius: '4px',
-              borderTopRightRadius: '4px',
             }}
           >
-            EDIT VIDEO: {videoEdit.data?.title}
+            {videoEdit.data?.title}
           </Typography>
-          <Box sx={{ display: 'flex' }}>
-            <Box sx={{ flex: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ flex: 1, ml: 1 }}>
               <MediaPlayer
                 ref={videoRef}
-                title="Sprite Fight"
+                title="Video"
                 src={videoEdit.data?.path}
                 onTimeUpdate={handleGetCurrentTime}
               >
                 <MediaProvider />
-                <PlyrLayout
-                  thumbnails="https://files.vidstack.io/sprite-fight/thumbnails.vtt"
-                  icons={plyrLayoutIcons}
-                />
+                <PlyrLayout icons={plyrLayoutIcons} />
               </MediaPlayer>
             </Box>
             <Box
               sx={{
-                minWidth: 300,
+                minWidth: 280,
                 padding: '0 6px',
                 display: 'flex',
                 flexDirection: 'column',
+                border: '1px solid #ccc',
+                borderRadius: '6px',
+                mr: 1,
               }}
             >
               <FormControl>
@@ -748,6 +783,7 @@ function Step2({
                   name="radio-buttons-group"
                   onChange={handleRadioChange}
                   value={radio}
+                  sx={{ display: 'flex' }}
                 >
                   <FormControlLabel
                     value="question"
@@ -766,7 +802,7 @@ function Step2({
                   color="primary"
                   onClick={handleAddInteractive}
                 >
-                  Add interactive at {videoEdit.timeCurr?.toFixed(2) || '0.00'}
+                  New interactive at {videoEdit?.timeCurr?.toFixed(2) || '0.00'}
                 </Button>
               </FormControl>
               <ChildModal open={childModal} setOpen={setChildModal}>
@@ -786,21 +822,29 @@ function Step2({
                   />
                 )}
               </ChildModal>
-              {videoEdit.interactives.length > 0 && (
-                <Box>
+              {videoEdit.interactives?.length > 0 && (
+                <Box sx={{ mt: 1 }}>
                   <Box>
                     {videoEdit.interactives.map((item) => (
                       <Box
                         sx={{
                           display: 'flex',
                           justifyContent: 'space-between',
+                          alignItems: 'center',
                         }}
                         key={item._id}
                       >
-                        <Typography>
-                          {parseFloat(item.time).toFixed(2)}
+                        <Typography variant="body">
+                          {parseFloat(item.time).toFixed(2)} -{' '}
+                          {item.type?.toUpperCase()}
                         </Typography>
-                        <Typography>{item.type}</Typography>
+                        <Tooltip title="Delete" placement="right">
+                          <IconButton
+                            onClick={() => handleDeleteInteractive(item._id)}
+                          >
+                            <ClearIcon />
+                          </IconButton>
+                        </Tooltip>
                       </Box>
                     ))}
                   </Box>
@@ -808,7 +852,11 @@ function Step2({
               )}
             </Box>
           </Box>
-          <Button onClick={handleUpdateVideo} sx={{ m: 2 }} variant="outlined">
+          <Button
+            onClick={handleUpdateVideo}
+            variant="outlined"
+            sx={{ flex: 1, m: 2 }}
+          >
             Update Video
           </Button>
         </Box>

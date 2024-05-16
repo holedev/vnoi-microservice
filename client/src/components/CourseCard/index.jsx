@@ -24,7 +24,10 @@ function CourseCard({ course }) {
   }
 
   return (
-    <Card onClick={() => handleNav(course._id)} sx={{ maxWidth: 345, minWidth: 300 }}>
+    <Card
+      onClick={() => handleNav(course._id)}
+      sx={{ width: 340 }}
+    >
       <CardActionArea>
         <CardMedia
           component="img"
@@ -34,10 +37,33 @@ function CourseCard({ course }) {
           alt="Cover Image"
         />
         <CardContent>
-          <Typography gutterBottom variant="h5" component="div">
+          <Typography
+            sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: '1',
+              WebkitBoxOrient: 'vertical',
+              height: '32px',
+            }}
+            gutterBottom
+            variant="h5"
+            component="div"
+          >
             {course.title}
           </Typography>
-          <Typography variant="body2" color="text.primary">
+          <Typography
+            sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: '2',
+              WebkitBoxOrient: 'vertical',
+              height: '40px',
+            }}
+            variant="body2"
+            color="text.primary"
+          >
             {course.desc}
           </Typography>
           <Typography

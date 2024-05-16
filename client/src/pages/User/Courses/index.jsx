@@ -1,6 +1,7 @@
 import { Box, Divider, Typography } from '@mui/material';
 import { useEffect } from 'react';
 import { useState } from 'react';
+import { toast } from 'react-toastify';
 import CourseCard from '~/components/CourseCard';
 import useAxiosAPI from '~/hook/useAxiosAPI';
 import useUserContext from '~/hook/useUserContext';
@@ -13,12 +14,16 @@ function Courses() {
 
   const getCourses = async () => {
     await axiosAPI
-      .get(endpoints.learning + '/courses/get-course-by-class/' + user.classCurr._id)
+      .get(
+        endpoints.learning +
+          '/courses/get-course-by-class/' +
+          user.classCurr._id
+      )
       .then((res) => {
         const data = res.data.data;
         setCourses(data);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => toast.error(err.message));
   };
 
   useEffect(() => {

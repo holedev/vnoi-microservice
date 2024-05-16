@@ -8,5 +8,6 @@
   "PROBLEM_RUN": "run_problem",
   "PROBLEM_SUBMIT": "submit_problem",
   "LOGGING_INFO": "logging_info",
-  "LOGGING_ERROR": "logging_error"
+  "LOGGING_ERROR": "logging_error",
+  "ANSWER_QUESION": "answer_question"
 }

@@ -2,6 +2,7 @@ import { Box, Button, Typography } from '@mui/material';
 import AutocompleteProblems from '../AutocompleteProblems';
 import useAxiosAPI from '~/hook/useAxiosAPI';
 import DetailTestCase from '~/components/DetailTestCase';
+import { toast } from 'react-toastify';
 
 function ImportProblem({ problem, setProblem, handleAddInteractiveProblem }) {
   const { axiosAPI, endpoints } = useAxiosAPI();
@@ -16,12 +17,12 @@ function ImportProblem({ problem, setProblem, handleAddInteractiveProblem }) {
         const data = res.data.data;
         setProblem(data);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => toast.error(err.message));
   };
 
   return (
     <Box>
-      <Typography sx={{ mb: 2 }} variant="h6">
+      <Typography sx={{ mb: 2, textAlign: 'center' }} variant="h5">
         Import Problem
       </Typography>
       <AutocompleteProblems handeProblemChange={handeProblemChange} />
@@ -39,7 +40,7 @@ function ImportProblem({ problem, setProblem, handleAddInteractiveProblem }) {
               variant="outlined"
               color="info"
             >
-              Add Interactive
+              Import
             </Button>
           </Box>
         </>

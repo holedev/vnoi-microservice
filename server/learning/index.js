@@ -11,10 +11,6 @@ import { VerifyRequestFromGateway } from "./src/api/middlewares/VerifyRequestFro
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
 
-app.use("/videos", express.static("uploads/videos"));
-app.use("/files", express.static("uploads/files"));
-app.use("/images", express.static("uploads/images"));
-
 app.use(cors({ origin: "*", credentials: true }), express.json(), express.urlencoded({ extended: true }));
 
 await databaseConnection();
