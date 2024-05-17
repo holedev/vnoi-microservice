@@ -135,7 +135,7 @@ const CourseService = {
         select: "_id title lessons",
         populate: {
           path: "lessons._id",
-          select: "_id title files video"
+          select: "_id title files video userDoneList"
         }
       })
       .lean()
@@ -145,9 +145,6 @@ const CourseService = {
       throw new ConflictError("Course not found!");
     }
 
-    const { jsonStr } = await gRPCRequest.getListLessonIdDoneAsync(requestId, _id, course._id);
-    const lessonDoneList = JSON.parse(jsonStr) || [];
-
     const formatData = {
       ...course,
       sections: course.sections.map((section) => {
@@ -155,7 +152,8 @@ const CourseService = {
           _id: section._id._id,
           title: section._id.title,
           lessons: section._id.lessons.map((lesson) => {
-            const isDone = lessonDoneList.find((lessonId) => lessonId == lesson._id._id);
+            const userDoneList = lesson._id.userDoneList || [];
+            const isDone = userDoneList.find((userId) => userId == _id);
 
             return {
               _id: lesson._id._id,
@@ -528,6 +526,57 @@ const CourseService = {
       data: course._id
     });
   },
+  updateUserDoneListOfLesson: async (req, res) => {
+    const _id = req.headers["x-user-id"];
+    const requestId = req.headers["x-request-id"];
+    const { id } = req.params;
+    const { courseId, status } = req.body;
+
+    const condition = {
+      _id: id,
+      isDeleted: false
+    };
+
+    const lesson = await CourseLessonModel.findOne(condition);
+
+    if (!lesson) {
+      throw new ConflictError("Lesson not found!");
+    }
+
+    let userDoneList = lesson.userDoneList || [];
+    const isDone = userDoneList.find((userId) => userId == _id);
+
+    if (status && !isDone) {
+      userDoneList.push(_id);
+    }
+
+    if (!status && isDone) {
+      userDoneList = userDoneList.filter((userId) => userId != _id);
+    }
+
+    lesson.userDoneList = userDoneList;
+    await lesson.save();
+
+    const payload = {
+      requestId,
+      action: _ACTION.UPDATE_LESSON_DONE_LIST,
+      data: {
+        courseId,
+        requestId,
+        lessonId: id,
+        userId: _id,
+        status: status
+      }
+    };
+    sendToQueue(_SERVICE.STATISTICS_SERVICE.NAME, payload);
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: {
+        status
+      }
+    });
+  },
   getCourseByLecturer: async (req, res) => {
     const _id = req.headers["x-user-id"];
     const { id } = req.params;
@@ -622,13 +671,20 @@ const CourseService = {
       };
     }
 
+    const formatData = {
+      ...courseLesson,
+      isDone: courseLesson.userDoneList?.find((userId) => userId == _id) ? true : false
+    };
+
+    delete formatData.userDoneList;
+
     if (!courseLesson) {
       throw new ConflictError("Lesson not found!");
     }
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",
-      data: courseLesson
+      data: formatData
     });
   },
   softDelete: async (req, res) => {

@@ -58,15 +58,7 @@ function CourseDetail() {
     })
       .then((res) => {
         const data = res.data.data;
-
-        const isDone = course.sections.some((section) =>
-          section.lessons.some((lesson) => lesson._id == id && lesson.isDone)
-        );
-
-        setLesson({
-          ...data,
-          isDone,
-        });
+        setLesson(data);
         setActiveLesson(id);
       })
       .catch((err) => toast.error(err.message));
@@ -138,7 +130,7 @@ function CourseDetail() {
 
     await axiosAPI({
       method: 'PATCH',
-      url: endpoints.statistics + '/courses/lessons/' + _id,
+      url: endpoints.learning + '/courses/lessons/update-user-done-list/' + _id,
       data: {
         courseId: course._id,
         status,

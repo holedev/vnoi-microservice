@@ -9,5 +9,6 @@
   "PROBLEM_SUBMIT": "submit_problem",
   "LOGGING_INFO": "logging_info",
   "LOGGING_ERROR": "logging_error",
-  "ANSWER_QUESION": "answer_question"
+  "ANSWER_QUESION": "answer_question",
+  "UPDATE_LESSON_DONE_LIST": "update_lesson_done_list"
 }

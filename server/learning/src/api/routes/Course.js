@@ -24,6 +24,7 @@ router.patch("/order-sections/:id", CourseService.updateSectionsOfCourse);
 router.patch("/order-lessons/:id", CourseService.updateLessonsOfCourse);
 router.patch("/sections/delete-section-of-course", CourseService.deleteSectionOfCourse);
 router.patch("/sections/:id", CourseService.updateSection);
+router.patch("/lessons/update-user-done-list/:id", CourseService.updateUserDoneListOfLesson);
 router.patch("/lessons/delete-lesson-of-section", CourseService.deleteLessonOfSection);
 router.patch("/lessons/:id", CourseService.updateLesson);
 router.patch("/:id", CourseService.softDelete);

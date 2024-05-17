@@ -1,9 +1,8 @@
-const StatisticsService = {
-  handleEvent: async (payload) => {
-    const { action, data } = payload;
+import { ConflictError } from "../responses/errors/ConflictError.js";
+import { _ACTION } from "../../configs/env/index.js";
+import { CourseStatisticModel } from "../models/CourseStatistics.js";
+import { gRPCRequest } from "./gRPC.js";
 
-    console.log(action, data);
-  }
-};
+const StatisticsService = {};
 
 export { StatisticsService };
