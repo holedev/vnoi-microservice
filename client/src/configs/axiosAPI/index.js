@@ -11,6 +11,7 @@ const endpoints = {
   submissions: `${SERVER_CONTEXT}/exercise/submissions`,
   media: `${SERVER_CONTEXT}/media`,
   learning: `${SERVER_CONTEXT}/learning`,
+  statistics: `${SERVER_CONTEXT}/statistics`,
 };
 
 // axios

@@ -40,10 +40,23 @@
   "LEARNING_SERVICE": {
     "NAME": "LEARNING-SERVICE",
     "PORT": 9005,
-    "PATH": "/learning"
+    "PATH": "/learning",
+    "GRPC_PROTO_PATH": "../protos/learning.proto",
+    "GRPC_SERVICE_NAME": "Learning",
+    "GRPC_HOST": "localhost",
+    "GRPC_PORT": 50005
+  },
+  "STATISTICS_SERVICE": {
+    "NAME": "STATISTICS-SERVICE",
+    "PORT": 9006,
+    "PATH": "/statistics",
+    "GRPC_PROTO_PATH": "../protos/statistics.proto",
+    "GRPC_SERVICE_NAME": "Statistics",
+    "GRPC_HOST": "localhost",
+    "GRPC_PORT": 50006
   },
   "LOGGING_SERVICE": {
     "NAME": "LOGGING-SERVICE",
-    "PORT": 9006
+    "PORT": 9007
   }
 }

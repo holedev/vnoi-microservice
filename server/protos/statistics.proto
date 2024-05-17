@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package statistics;
+
+service Statistics {
+    rpc getListLessonIdDone(getListLessonIdDoneReq) returns (getListLessonIdDoneRes) {}
+}
+
+message getListLessonIdDoneReq {
+    string requestId = 1;
+    string userId = 2;
+    string courseId = 3;
+}
+
+message getListLessonIdDoneRes {
+    string jsonStr = 1;
+}

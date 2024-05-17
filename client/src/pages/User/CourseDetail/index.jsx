@@ -2,6 +2,7 @@ import {
   AppBar,
   Box,
   CardMedia,
+  Checkbox,
   Collapse,
   Link,
   List,
@@ -9,6 +10,7 @@ import {
   ListItemText,
   Modal,
   Typography,
+  Alert,
 } from '@mui/material';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
@@ -17,12 +19,14 @@ import { useParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import useAxiosAPI from '~/hook/useAxiosAPI';
 import Question from './Question';
-import { MediaPlayer, MediaProvider } from '@vidstack/react';
+import { MediaPlayer, MediaProvider, Time, TimeSlider } from '@vidstack/react';
 import {
   PlyrLayout,
   plyrLayoutIcons,
 } from '@vidstack/react/player/layouts/plyr';
 import { toast } from 'react-toastify';
+
+const _LESSON_PROGRESS_DONE = 90;
 
 function CourseDetail() {
   const { id } = useParams();
@@ -53,7 +57,16 @@ function CourseDetail() {
       method: 'GET',
     })
       .then((res) => {
-        setLesson(res.data.data);
+        const data = res.data.data;
+
+        const isDone = course.sections.some((section) =>
+          section.lessons.some((lesson) => lesson._id == id && lesson.isDone)
+        );
+
+        setLesson({
+          ...data,
+          isDone,
+        });
         setActiveLesson(id);
       })
       .catch((err) => toast.error(err.message));
@@ -69,25 +82,82 @@ function CourseDetail() {
   };
 
   const handleClickLesson = async (id) => {
-    await getLesson(id);
+    if (activeLesson == id) return;
+    setActiveLesson(id);
   };
 
-  const handleTimeUpdate = () => {
+  const checkProgressVideo = (currentTime, duration) => {
+    if (!currentTime || !duration) return;
+
+    const progress = (currentTime / duration).toFixed(2) * 100;
+
+    return progress >= _LESSON_PROGRESS_DONE;
+  };
+
+  const checkInteractivesVideo = (currentTime) => {
     if (!lesson.video?.interactives || lesson.video.interactives.length === 0)
       return;
 
-    const currTime = videoRef.current?.currentTime;
-
     lesson.video.interactives?.forEach((item) => {
-      if (!item.isAnswered && currTime >= item.time) {
+      if (!item.isAnswered && currentTime >= item.time) {
         videoRef.current.pause();
-
         item.type === 'question' && setQuestionModal(item._id);
         item.type === 'problem' && setProblemQuestion(item);
-
         return;
       }
     });
+  };
+
+  const handleLessonStatus = async (_id, status) => {
+    setLesson((prev) => {
+      return {
+        ...prev,
+        isDone: status,
+      };
+    });
+
+    setCourse((prev) => {
+      return {
+        ...prev,
+        sections: prev.sections.map((section) => {
+          return {
+            ...section,
+            lessons: section.lessons.map((lesson) => {
+              if (lesson._id == _id) {
+                return {
+                  ...lesson,
+                  isDone: status,
+                };
+              }
+              return lesson;
+            }),
+          };
+        }),
+      };
+    });
+
+    await axiosAPI({
+      method: 'PATCH',
+      url: endpoints.statistics + '/courses/lessons/' + _id,
+      data: {
+        courseId: course._id,
+        status,
+      },
+    }).catch((err) => toast.error(err.message));
+  };
+
+  const handleTimeUpdate = () => {
+    const duration = videoRef.current.duration;
+    const currTime = videoRef.current.currentTime;
+
+    const isDoneLesson =
+      !lesson.isDone && checkProgressVideo(currTime, duration);
+
+    if (isDoneLesson) {
+      handleLessonStatus(lesson._id, true);
+    }
+
+    checkInteractivesVideo(currTime);
   };
 
   const handleAnswered = (_id) => {
@@ -98,7 +168,7 @@ function CourseDetail() {
           ...prev.video,
           interactives: prev.video.interactives.map((item) => {
             if (item._id == _id) {
-              return { ...item, isPass: true };
+              return { ...item, isAnswered: true };
             }
             return item;
           }),
@@ -107,9 +177,35 @@ function CourseDetail() {
     });
   };
 
+  const handleLoadedMetadata = () => {
+    const duration = videoRef.current.duration;
+    const positions = lesson.video.interactives.map((i) => i.time);
+
+    positions.forEach((pos) => {
+      if (pos <= duration) {
+        const left = (pos / duration) * 100 + '%';
+        const marker = document.createElement('div');
+        marker.style.position = 'absolute';
+        marker.style.left = left;
+        marker.style.width = '5px';
+        marker.style.height = '5px';
+        marker.style.background = 'red';
+        document.querySelector('.plyr__slider__track').appendChild(marker);
+      }
+    });
+  };
+
   const handleCloseModal = () => {
     setQuestionModal(null);
   };
+
+  useEffect(() => {
+    const sliderTrack = document.querySelector('.plyr__slider__track');
+    if (sliderTrack) {
+      sliderTrack.innerHTML = '';
+    }
+    if (activeLesson) getLesson(activeLesson);
+  }, [activeLesson]);
 
   useEffect(() => {
     if (id) getCourse(id);
@@ -149,9 +245,10 @@ function CourseDetail() {
               <Box>
                 <MediaPlayer
                   ref={videoRef}
-                  title="Sprite Fight"
+                  title="video"
                   src={lesson.video.path}
                   onTimeUpdate={handleTimeUpdate}
+                  onLoadedMetadata={handleLoadedMetadata}
                 >
                   <MediaProvider />
                   <PlyrLayout icons={plyrLayoutIcons} />
@@ -164,7 +261,9 @@ function CourseDetail() {
               </Typography>
 
               {lesson.files?.length == 0 && (
-                <Typography>There is no file for this lesson!</Typography>
+                <Alert sx={{ mt: 1 }} variant="outlined" severity="info">
+                  There is no file for this lesson!
+                </Alert>
               )}
 
               {lesson.files && (
@@ -182,7 +281,9 @@ function CourseDetail() {
                 Content
               </Typography>
               {!lesson.content?.trim() && (
-                <Typography>There is no content for this lesson!</Typography>
+                <Alert sx={{ mt: 1 }} variant="outlined" severity="info">
+                  There is no content for this lesson!
+                </Alert>
               )}
               {lesson.content && (
                 <Box dangerouslySetInnerHTML={{ __html: lesson.content }}></Box>
@@ -246,6 +347,16 @@ function CourseDetail() {
                                 }}
                               >
                                 <ListItemText primary={title} />
+                                <Checkbox
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleLessonStatus(
+                                      lesson._id,
+                                      !lesson?.isDone || false
+                                    );
+                                  }}
+                                  checked={lesson?.isDone}
+                                />
                               </ListItemButton>
                             </List>
                           </Collapse>

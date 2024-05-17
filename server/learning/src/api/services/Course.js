@@ -125,6 +125,8 @@ const CourseService = {
     });
   },
   getCourseById: async (req, res) => {
+    const _id = req.headers["x-user-id"];
+    const requestId = req.headers["x-request-id"];
     const { id } = req.params;
 
     const course = await CourseModel.findById(id)
@@ -143,6 +145,9 @@ const CourseService = {
       throw new ConflictError("Course not found!");
     }
 
+    const { jsonStr } = await gRPCRequest.getListLessonIdDoneAsync(requestId, _id, course._id);
+    const lessonDoneList = JSON.parse(jsonStr) || [];
+
     const formatData = {
       ...course,
       sections: course.sections.map((section) => {
@@ -150,11 +155,14 @@ const CourseService = {
           _id: section._id._id,
           title: section._id.title,
           lessons: section._id.lessons.map((lesson) => {
+            const isDone = lessonDoneList.find((lessonId) => lessonId == lesson._id._id);
+
             return {
               _id: lesson._id._id,
               title: lesson._id.title,
               files: lesson._id.files,
-              video: lesson._id.video
+              video: lesson._id.video,
+              isDone: isDone ? true : false
             };
           })
         };
@@ -590,8 +598,6 @@ const CourseService = {
     const _id = req.headers["x-user-id"];
     const requestId = req.headers["x-request-id"];
     const { id } = req.params;
-
-    console.log(_id);
 
     const condition = { _id: id, isDeleted: false };
 

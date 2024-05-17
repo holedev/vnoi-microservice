@@ -1,6 +1,6 @@
-import { grpCClientCommon, grpCClientMedia, grpCClientStatistics, grpCClientUser } from "../../configs/grpc/index.js";
+import { grpCClientCommon, grpCClientLearning, grpCClientUser } from "../../configs/grpc/index.js";
 import { logInfo } from "../../configs/rabiitmq/log.js";
-import { CourseModel } from "../models/Course.js";
+import { CourseStatisticModel } from "../models/CourseStatistics.js";
 
 const logGRPCHandle = (requestId, method, body) => logInfo(null, { requestId, method, body });
 
@@ -47,23 +47,9 @@ const gRPCRequest = {
       });
     });
   },
-  getVideoByIdAsync: (requestId, _id) => {
+  getCourseByIdAsync: (requestId, _id) => {
     return new Promise((resolve, reject) => {
-      grpCClientMedia.getVideoById({ requestId, _id }, (err, res) => {
-        if (err) {
-          reject({
-            statusCode: "GRPC",
-            message: err
-          });
-        } else {
-          resolve(res);
-        }
-      });
-    });
-  },
-  getListLessonIdDoneAsync: (requestId, userId, courseId) => {
-    return new Promise((resolve, reject) => {
-      grpCClientStatistics.getListLessonIdDone({ requestId, userId, courseId }, (err, res) => {
+      grpCClientLearning.getCourseById({ requestId, _id }, (err, res) => {
         if (err) {
           reject({
             statusCode: "GRPC",
@@ -78,12 +64,19 @@ const gRPCRequest = {
 };
 
 const gRPCHandle = {
-  getCourseById: async (call, callback) => {
+  getListLessonIdDone: async (call, callback) => {
     try {
       logGRPCHandle(call.request.requestId, "GRPC-HANDLE", call.request);
-      const _id = call.request._id;
-      const result = await CourseModel.findById(_id).lean().select("-__v -createdAt");
-      callback(null, { jsonStr: JSON.stringify(result) });
+      const { userId, courseId } = call.request;
+      const result = await CourseStatisticModel.findOne({
+        "user._id": userId,
+        "course._id": courseId
+      })
+        .select("lessonDoneList")
+        .lean();
+
+      const data = result?.lessonDoneList || [];
+      callback(null, { jsonStr: JSON.stringify(data) });
     } catch (error) {
       callback(error, null);
     }
