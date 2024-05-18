@@ -8,12 +8,15 @@ const ExerciseStatistic = new Schema(
       fullName: String,
       role: String
     },
-    exerciseDoneList: [
-      {
-        _id: String,
-        title: String
-      }
-    ]
+    exerciseDoneList: {
+      type: [
+        {
+          _id: String,
+          title: String
+        }
+      ],
+      default: []
+    }
   },
   {
     timestamps: true

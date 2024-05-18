@@ -109,6 +109,18 @@ function removeSubmissionStatus(uuid) {
   remove(consolesRef);
 }
 
+function handleUserSubmitProblem(userId, handleDoneProblemOfVideo) {
+  const userSubmitProblem = ref(realtimeDB, `userSubmitList/${userId}`);
+
+  onChildAdded(userSubmitProblem, (snap) => {
+    handleDoneProblemOfVideo({
+      problemId: snap.val(),
+    });
+
+    remove(userSubmitProblem);
+  });
+}
+
 export {
   handleUserOnlineFirebase,
   handleUserOfflineFirebase,
@@ -118,4 +130,5 @@ export {
   removeRunConsoleStatus,
   checkSubmissionsQueue,
   removeSubmissionStatus,
+  handleUserSubmitProblem,
 };

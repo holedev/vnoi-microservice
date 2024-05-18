@@ -2,6 +2,27 @@ import { _ACTION } from "../../configs/env/index.js";
 import { VideoModel } from "../models/Video.js";
 
 const MediaService = {
+  handleSubmissionCreate: async (data) => {
+    const { problem, submissionId, userId, requestId } = data;
+
+    if (!requestId || !problem || !submissionId || !userId) {
+      throw new Error("Not enough data!");
+    }
+
+    await VideoModel.updateMany(
+      {},
+      {
+        $push: { "interactives.$[i].answerList": userId }
+      },
+      {
+        arrayFilters: [
+          {
+            "i._id": problem._id
+          }
+        ]
+      }
+    );
+  },
   updateInteractiveStatus: async (data) => {
     const { videoId, interactiveId, userId } = data;
 
@@ -50,6 +71,10 @@ const MediaService = {
     switch (action) {
       case _ACTION.ANSWER_QUESION:
         await MediaService.updateInteractiveStatus(data);
+        return;
+
+      case _ACTION.SUBMISSION_CREATE:
+        await MediaService.handleSubmissionCreate(data);
         return;
 
       default:

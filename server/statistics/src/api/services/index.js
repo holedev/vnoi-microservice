@@ -1,8 +1,51 @@
 import { ConflictError } from "../responses/errors/ConflictError.js";
 import { _ACTION } from "../../configs/env/index.js";
-import { CourseStatisticModel } from "../models/CourseStatistics.js";
 import { gRPCRequest } from "./gRPC.js";
+import { ExerciseStatisticModel } from "../models/ExerciseStatistics.js";
 
-const StatisticsService = {};
+const StatisticsService = {
+  handleSubmissionCreate: async (data) => {
+    try {
+      const { requestId, userId, problem, submissionId } = data;
+
+      if (!requestId || !userId || !problem) {
+        throw new ConflictError("Not enough data!");
+      }
+
+      let exerciseStatistics = await ExerciseStatisticModel.findOne({ "user._id": userId });
+
+      if (!exerciseStatistics) {
+        const userGRPC = await gRPCRequest.getUserByIdAsync(requestId, userId);
+        exerciseStatistics = await ExerciseStatisticModel.create({
+          user: userGRPC
+        });
+      }
+
+      console.log(exerciseStatistics);
+
+      exerciseStatistics.exerciseDoneList.push({
+        _id: problem._id,
+        title: problem.title
+      });
+
+      await exerciseStatistics.save();
+    } catch (error) {
+      console.log(error);
+    }
+  },
+
+  handleEvent: async (payload) => {
+    const { action, data } = payload;
+
+    switch (action) {
+      case _ACTION.SUBMISSION_CREATE:
+        await StatisticsService.handleSubmissionCreate(data);
+        return;
+
+      default:
+        throw new ConflictError("Action not found");
+    }
+  }
+};
 
 export { StatisticsService };

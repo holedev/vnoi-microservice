@@ -59,7 +59,11 @@ export default function Dashboard() {
     if (filter.status) params.append('status', filter.status);
 
     await axiosAPI
-      .get(endpoints.learning + '/courses/get-courses-by-lecturer?' + params.toString())
+      .get(
+        endpoints.learning +
+          '/courses/get-courses-by-lecturer?' +
+          params.toString()
+      )
       .then((res) => {
         let response = res.data.data;
         setData(response);
@@ -151,15 +155,15 @@ export default function Dashboard() {
               gap: '4px',
             }}
           >
-            <Fab
+            <Button
               onClick={handleNewCourse}
-              variant="extended"
+              variant="outlined"
               color="primary"
               size="small"
-              sx={{ textTransform: 'capitalize', p: 2 }}
+              sx={{ textTransform: 'capitalize', p: 1 }}
             >
               New Course
-            </Fab>
+            </Button>
             <SearchDebounce
               search={search}
               setSearch={setSearch}

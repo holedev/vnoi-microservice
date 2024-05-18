@@ -1,4 +1,4 @@
-import { Box, Divider, Typography } from '@mui/material';
+import { Box, Divider, Typography, Alert } from '@mui/material';
 import { useEffect } from 'react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
@@ -51,6 +51,7 @@ function Courses() {
         {courses.map((course) => (
           <CourseCard key={course._id} course={course} />
         ))}
+        {!courses.length && <Alert severity="info">No course available!</Alert>}
       </Box>
     </Box>
   );

@@ -143,4 +143,13 @@ const requestAsync = async (QUEUE_NAME, requestPayload) => {
   return await requestData(QUEUE_NAME, requestPayload, uuid);
 };
 
-export { subscribeMessage, requestAsync, getChannel, getSubscribeChannel };
+const publishMessage = async (msg) => {
+  try {
+    const channel = await getChannel();
+    channel.publish(_EXCHANGE.EXERCISE_EXCHANGE, "", Buffer.from(JSON.stringify(msg)));
+  } catch (err) {
+    sendLogTelegram("RABBITMQ::PUBLISH\n" + err);
+  }
+};
+
+export { subscribeMessage, requestAsync, getChannel, getSubscribeChannel, publishMessage };

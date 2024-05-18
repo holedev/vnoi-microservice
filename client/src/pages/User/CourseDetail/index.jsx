@@ -25,12 +25,15 @@ import {
   plyrLayoutIcons,
 } from '@vidstack/react/player/layouts/plyr';
 import { toast } from 'react-toastify';
+import { handleUserSubmitProblem } from '~/utils/firebase';
+import useUserContext from '~/hook/useUserContext';
 
 const _LESSON_PROGRESS_DONE = 90;
 
 function CourseDetail() {
   const { id } = useParams();
   const { axiosAPI, endpoints } = useAxiosAPI();
+  const [user] = useUserContext();
   const videoRef = useRef(null);
 
   const [course, setCourse] = useState({});
@@ -169,19 +172,26 @@ function CourseDetail() {
     });
   };
 
-  const handleLoadedMetadata = () => {
+  const handleLoadedMetadata = (interactives) => {
+    if (!interactives || interactives.length === 0) return;
+
     const duration = videoRef.current.duration;
-    const positions = lesson.video.interactives.map((i) => i.time);
+    const positions = interactives.map((i) => {
+      return {
+        time: i.time,
+        isAnswered: i.isAnswered,
+      };
+    });
 
     positions.forEach((pos) => {
-      if (pos <= duration) {
-        const left = (pos / duration) * 100 + '%';
+      if (pos.time <= duration) {
+        const left = (pos.time / duration) * 100 + '%';
         const marker = document.createElement('div');
         marker.style.position = 'absolute';
         marker.style.left = left;
         marker.style.width = '5px';
         marker.style.height = '5px';
-        marker.style.background = 'red';
+        marker.style.background = pos.isAnswered ? 'green' : 'red';
         document.querySelector('.plyr__slider__track').appendChild(marker);
       }
     });
@@ -189,6 +199,32 @@ function CourseDetail() {
 
   const handleCloseModal = () => {
     setQuestionModal(null);
+  };
+
+  const handleDoneProblemOfVideo = ({ problemId }) => {
+    if (!problemId) return;
+    if (!lesson.video?.interactives || lesson.video?.interactives?.length === 0)
+      return;
+
+    const newInteractives = lesson.video.interactives.map((item) => {
+      if (item._id == problemId) {
+        return { ...item, isAnswered: true };
+      }
+      return item;
+    });
+
+    setLesson((prev) => {
+      return {
+        ...prev,
+        video: {
+          ...prev.video,
+          interactives: newInteractives,
+        },
+      };
+    });
+
+    handleLoadedMetadata(newInteractives);
+    videoRef.current.play();
   };
 
   useEffect(() => {
@@ -211,6 +247,10 @@ function CourseDetail() {
       );
     }
   }, [problemQuestion]);
+
+  useEffect(() => {
+    handleUserSubmitProblem(user._id, handleDoneProblemOfVideo);
+  }, []);
 
   return (
     <Box>
@@ -240,7 +280,9 @@ function CourseDetail() {
                   title="video"
                   src={lesson.video.path}
                   onTimeUpdate={handleTimeUpdate}
-                  onLoadedMetadata={handleLoadedMetadata}
+                  onLoadedMetadata={() =>
+                    handleLoadedMetadata(lesson.video?.interactives)
+                  }
                 >
                   <MediaProvider />
                   <PlyrLayout icons={plyrLayoutIcons} />

@@ -202,15 +202,15 @@ export default function Dashboard() {
               gap: '4px',
             }}
           >
-            <Fab
+            <Button
               onClick={handleNewProblem}
-              variant="extended"
+              variant="outlined"
               color="primary"
               size="small"
-              sx={{ textTransform: 'capitalize', p: 2 }}
+              sx={{ textTransform: 'capitalize', p: 1 }}
             >
               New Problem
-            </Fab>
+            </Button>
             <SearchDebounce
               search={search}
               setSearch={setSearch}

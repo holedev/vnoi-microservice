@@ -57,12 +57,12 @@ const publishMessage = async (msg) => {
 
 const subscribeMessage = async (channel, service) => {
   try {
-    await channel.assertExchange(_EXCHANGE.CLASS_EXCHANGE, "fanout", { durable: true });
+    await channel.assertExchange(_EXCHANGE.EXERCISE_EXCHANGE, "fanout", { durable: true });
     const q = await channel.assertQueue(_PROCESS_ENV.SERVICE_NAME, {
       durable: true
     });
 
-    await channel.bindQueue(q.queue, _EXCHANGE.CLASS_EXCHANGE, "");
+    await channel.bindQueue(q.queue, _EXCHANGE.EXERCISE_EXCHANGE, "");
     console.log(`${_PROCESS_ENV.SERVICE_NAME} ${_PROCESS_ENV.SERVICE_PORT} | QUEUE ${q.queue} waiting`);
 
     channel.consume(

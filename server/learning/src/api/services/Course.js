@@ -665,7 +665,8 @@ const CourseService = {
             _id: i._id,
             type: i.type,
             time: i.time,
-            isAnswered: i.answerList?.find((answer) => answer == _id) ? true : false
+            isAnswered: i.answerList?.find((answer) => answer == _id) ? true : false,
+            slug: i.slug
           };
         })
       };
