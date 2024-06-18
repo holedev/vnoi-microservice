@@ -1,0 +1,68 @@
+{
+  "GATEWAY_SERVICE": {
+    "NAME": "GATEWAY-SERVICE",
+    "PORT": 9000
+  },
+  "COMMON_SERVICE": {
+    "NAME": "COMMON-SERVICE",
+    "PORT": 9001,
+    "PATH": "/common",
+    "PROXY_HOST": "common",
+    "GRPC_PROTO_PATH": "../protos/common.proto",
+    "GRPC_SERVICE_NAME": "Common",
+    "GRPC_HOST": "common",
+    "GRPC_PORT": 50001
+  },
+  "USER_SERVICE": {
+    "NAME": "USER-SERVICE",
+    "PORT": 9002,
+    "PATH": "/user",
+    "PROXY_HOST": "user",
+    "GRPC_PROTO_PATH": "../protos/user.proto",
+    "GRPC_SERVICE_NAME": "User",
+    "GRPC_HOST": "user",
+    "GRPC_PORT": 50002
+  },
+  "EXERCISE_SERVICE": {
+    "NAME": "EXERCISE-SERVICE",
+    "PORT": 9003,
+    "PATH": "/exercise",
+    "PROXY_HOST": "exercise",
+    "GRPC_HOST": "exercise",
+    "GRPC_PORT": 50003
+  },
+  "MEDIA_SERVICE": {
+    "NAME": "MEDIA-SERVICE",
+    "PORT": 9004,
+    "PATH": "/media",
+    "PROXY_HOST": "media",
+    "GRPC_PROTO_PATH": "../protos/media.proto",
+    "GRPC_SERVICE_NAME": "Media",
+    "GRPC_HOST": "media",
+    "GRPC_PORT": 50004
+  },
+  "LEARNING_SERVICE": {
+    "NAME": "LEARNING-SERVICE",
+    "PORT": 9005,
+    "PATH": "/learning",
+    "PROXY_HOST": "learning",
+    "GRPC_PROTO_PATH": "../protos/learning.proto",
+    "GRPC_SERVICE_NAME": "Learning",
+    "GRPC_HOST": "learning",
+    "GRPC_PORT": 50005
+  },
+  "STATISTICS_SERVICE": {
+    "NAME": "STATISTICS-SERVICE",
+    "PORT": 9006,
+    "PATH": "/statistics",
+    "PROXY_HOST": "statistics",
+    "GRPC_PROTO_PATH": "../protos/statistics.proto",
+    "GRPC_SERVICE_NAME": "Statistics",
+    "GRPC_HOST": "statistics",
+    "GRPC_PORT": 50006
+  },
+  "LOGGING_SERVICE": {
+    "NAME": "LOGGING-SERVICE",
+    "PORT": 9007
+  }
+}
