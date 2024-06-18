@@ -180,7 +180,7 @@ AUTHZ_HEADER=
 
 # Specify valid authorization tokens.
 # Default: empty - authorization is disabled, protected API calls cannot be issued
-AUTHZ_TOKEN=hehehe
+AUTHZ_TOKEN=
 
 
 ################################################################################
