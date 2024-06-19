@@ -4,7 +4,6 @@ import proxy from "express-http-proxy";
 import "express-async-errors";
 import compression from "compression";
 import helmet from "helmet";
-import serveStatic from "serve-static";
 import { _PROCESS_ENV } from "./src/configs/env/index.js";
 import { _PROXY_CONFIG } from "./src/configs/proxy/index.js";
 import { VerifyToken } from "./src/api/middlewares/VerifyToken.js";

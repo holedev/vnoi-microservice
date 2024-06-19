@@ -7,7 +7,7 @@ COPY client/package.json .
 
 COPY client/ .
 
-COPY Docker/env/client/.env .
+COPY client/.env.docker ./.env
 
 RUN npm install
 

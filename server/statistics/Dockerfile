@@ -2,23 +2,25 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY server/*.json .
+RUN chown -R node:node /app
 
-RUN rm SERVICE.json
-RUN mv SERVICE.docker.json SERVICE.json
+USER node
+
+COPY --chown=node:node ./*.json ./
+
+RUN rm SERVICE.json \
+    && mv SERVICE.docker.json SERVICE.json
 
 WORKDIR /app/protos
 
-COPY server/protos/ .
+COPY --chown=node:node ./protos/ ./
 
 WORKDIR /app/statistics
 
-COPY server/statistics/package.json .
+COPY --chown=node:node ./statistics/ ./
 
-COPY server/statistics/ .
-
-RUN npm install
+RUN npm install --omit=dev && npm cache clean --force
 
 EXPOSE 9006
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "prod"]
