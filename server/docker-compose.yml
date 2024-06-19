@@ -183,6 +183,10 @@ services:
     image: rabbitmq:3.12-management
     ports:
       - '15672:15672'
+    environment:
+      - RABBITMQ_DEFAULT_PASS=
+      - RABBITMQ_DEFAULT_USER=
+      - RABBITMQ_DEFAULT_VHOST=
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 10s
