@@ -3,25 +3,25 @@ jobs:
   client_test:
     docker:
       - image: cimg/node:18.18.2
-    working_directory: ~/app
+    working_directory: ~/app/client # Đặt working directory vào trong thư mục client
     steps:
       - checkout:
-          path: ~/app/client
+          path: ~/app # Checkout toàn bộ project vào ~/app
       - run:
           name: Install pnpm
-          command: sudo npm install -g pnpm
+          command: npm install -g pnpm
       - restore_cache:
-          key: client-dependencies-{{ checksum "pnpm-lock.yaml" }}
+          key: client-dependencies-{{ checksum "client/pnpm-lock.yaml" }}
       - run:
           name: Install dependencies
-          command: pnpm install
+          command: pnpm install --prefix client # Chỉ cài đặt dependencies cho thư mục client
       - save_cache:
-          key: client-dependencies-{{ checksum "pnpm-lock.yaml" }}
+          key: client-dependencies-{{ checksum "client/pnpm-lock.yaml" }}
           paths:
             - client/node_modules
       - run:
           name: Run test
-          command: pnpm test
+          command: pnpm test --prefix client # Chỉ chạy test trong thư mục client
 workflows:
   continuous-integration-workflow:
     jobs:
