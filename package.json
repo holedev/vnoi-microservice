@@ -20,7 +20,7 @@
       "pnpm client:lint:fix",
       "pnpm client:format"
     ],
-    "server/**/*.{js}": [
+    "server/**/*.js": [
       "pnpm server:lint:fix",
       "pnpm server:format"
     ]
