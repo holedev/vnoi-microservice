@@ -2,23 +2,23 @@ version: 2.1
 jobs:
   client_test:
     docker:
-      - image: cimg/node:18.18.2  # Sử dụng image Node.js 18.18.2
-    working_directory: ~/client # Đường dẫn làm việc trong container Docker
+      - image: cimg/node:18.18.2
+    working_directory: ~/client
     steps:
-      - checkout 
-      - run: 
+      - checkout
+      - run:
           name: Install pnpm
-          command: npm install -g pnpm@9 # Cài đặt pnpm globally
-      - restore_cache: # Khôi phục cache pnpm
+          command: sudo npm install -g pnpm
+      - restore_cache:
           key: client-dependencies-{{ checksum "pnpm-lock.yaml" }}
-      - run: 
+      - run:
           name: Install dependencies
-          command: pnpm install 
-      - save_cache: # Lưu cache pnpm
+          command: pnpm install
+      - save_cache:
           key: client-dependencies-{{ checksum "pnpm-lock.yaml" }}
           paths:
             - node_modules
-      - run: 
+      - run:
           name: Run tests
           command: pnpm test
 workflows:
