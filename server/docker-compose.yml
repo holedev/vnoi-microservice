@@ -7,9 +7,9 @@ services:
       dockerfile: ./gateway/Dockerfile
     image: lehodev/vnoi-backend-gateway:${GATEWAY_IMAGE_TAG}
     ports:
-      - '9000:9000'
+      - "9000:9000"
     expose:
-      - '9000'
+      - "9000"
     restart: on-failure
     env_file:
       - .env.all.docker
@@ -29,7 +29,7 @@ services:
       dockerfile: ./common/Dockerfile
     image: lehodev/vnoi-backend-common:${COMMON_IMAGE_TAG}
     expose:
-      - '9001'
+      - "9001"
     restart: on-failure
     env_file:
       - .env.all.docker
@@ -49,7 +49,7 @@ services:
       dockerfile: ./user/Dockerfile
     image: lehodev/vnoi-backend-user:${USER_IMAGE_TAG}
     expose:
-      - '9002'
+      - "9002"
     restart: on-failure
     env_file:
       - .env.all.docker
@@ -69,7 +69,7 @@ services:
       dockerfile: ./exercise/Dockerfile
     image: lehodev/vnoi-backend-exercise:${EXERCISE_IMAGE_TAG}
     expose:
-      - '9003'
+      - "9003"
     restart: on-failure
     env_file:
       - .env.all.docker
@@ -89,7 +89,7 @@ services:
       dockerfile: ./media/Dockerfile
     image: lehodev/vnoi-backend-media:${MEDIA_IMAGE_TAG}
     expose:
-      - '9004'
+      - "9004"
     restart: on-failure
     env_file:
       - .env.all.docker
@@ -109,7 +109,7 @@ services:
       dockerfile: ./learning/Dockerfile
     image: lehodev/vnoi-backend-learning:${LEARNING_IMAGE_TAG}
     expose:
-      - '9005'
+      - "9005"
     restart: on-failure
     env_file:
       - .env.all.docker
@@ -129,7 +129,7 @@ services:
       dockerfile: ./statistics/Dockerfile
     image: lehodev/vnoi-backend-statistics:${STATISTICS_IMAGE_TAG}
     expose:
-      - '9006'
+      - "9006"
     restart: on-failure
     env_file:
       - .env.all.docker
@@ -149,7 +149,7 @@ services:
       dockerfile: ./logging/Dockerfile
     image: lehodev/vnoi-backend-logging:${LOGGING_IMAGE_TAG}
     expose:
-      - '9007'
+      - "9007"
     restart: on-failure
     env_file:
       - .env.all.docker
@@ -182,7 +182,7 @@ services:
     container_name: amqp-rabbitmq
     image: rabbitmq:3.12-management
     ports:
-      - '15672:15672'
+      - "15672:15672"
     environment:
       - RABBITMQ_DEFAULT_PASS=
       - RABBITMQ_DEFAULT_USER=
@@ -200,21 +200,21 @@ services:
 
 volumes:
   db-mongo-data:
-    name: 'vnoi-mongo'
+    name: "vnoi-mongo"
     driver: local
     driver_opts:
       type: none
       o: bind
       device: D:/DATA/vnoi-microservice/mongodb-data
   db-rabbitmq-data:
-    name: 'vnoi-rabbitmq'
+    name: "vnoi-rabbitmq"
     driver: local
     driver_opts:
       type: none
       o: bind
       device: D:/DATA/vnoi-microservice/rabbitmq-data
   log-data:
-    name: 'vnoi-log'
+    name: "vnoi-log"
     driver: local
     driver_opts:
       type: none

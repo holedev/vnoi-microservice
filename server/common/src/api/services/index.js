@@ -1,8 +1,6 @@
 import { _ACTION, _PROCESS_ENV } from "../../configs/env/index.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 import { ConflictError } from "../responses/errors/ConflictError.js";
-import { ForbiddenError } from "../responses/errors/ForbiddenError.js";
-import { FormatData } from "../responses/formatData/index.js";
 import { ClassModel } from "../models/Class.js";
 import { publishMessage } from "../../configs/rabiitmq/index.js";
 
@@ -66,7 +64,6 @@ const CommonService = {
       }
     });
   },
-  getTotalStudentOfClass: async (req, res) => {},
   getAllClass: async (req, res) => {
     const { search, page = 1, limit = _PROCESS_ENV.PAGE_SIZE } = req.query;
 
@@ -117,13 +114,12 @@ const CommonService = {
     });
   },
   // rabbitmq
-  handleEvent: async (payload) => {
-    const { action, data } = payload;
-
-    switch (action) {
-      default:
-        console.log("ACTION NOT MATCH!");
-    }
+  handleEvent: async (_payload) => {
+    // const { action, data } = payload;
+    // switch (action) {
+    //   default:
+    //     console.log("ACTION NOT MATCH!");
+    // }
   }
 };
 

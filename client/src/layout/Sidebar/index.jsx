@@ -7,38 +7,29 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  ListSubheader,
-} from '@mui/material';
-import { useEffect, useState } from 'react';
-import LogoutIcon from '@mui/icons-material/Logout';
-import QuizIcon from '@mui/icons-material/Quiz';
-import {
-  Dashboard,
-  BugReport,
-  Book,
-  ExpandLess,
-  ExpandMore,
-  Person,
-  EditNote,
-  Class,
-} from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import useUserContext from '~/hook/useUserContext';
-import { handleUserOfflineFirebase } from '~/utils/firebase';
+  ListSubheader
+} from "@mui/material";
+import { useEffect, useState } from "react";
+import LogoutIcon from "@mui/icons-material/Logout";
+import QuizIcon from "@mui/icons-material/Quiz";
+import { Dashboard, BugReport, Book, ExpandLess, ExpandMore, Person, EditNote, Class } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import useUserContext from "~/hook/useUserContext";
+import { handleUserOfflineFirebase } from "~/utils/firebase";
 
 export default function Sidebar() {
   const nav = useNavigate();
 
   const [user, dispatch] = useUserContext();
   const [open, setOpen] = useState(() => {
-    return localStorage.getItem('sidebar') === 'true' ? true : false;
+    return localStorage.getItem("sidebar") === "true" ? true : false;
   });
   const [adminDashboardOpen, setAdminDashboardOpen] = useState(false);
   const [lecturerDashboardOpen, setLecturerDashboardOpen] = useState(false);
 
   const handleOpenSidebar = () => {
     setOpen(!open);
-    localStorage.setItem('sidebar', !open);
+    localStorage.setItem("sidebar", !open);
   };
 
   const handleAdminDashBoard = () => {
@@ -54,20 +45,17 @@ export default function Sidebar() {
   };
 
   const handleLogout = async () => {
-    handleUserOfflineFirebase(
-      user._id,
-      JSON.parse(localStorage.getItem('dataKey'))
-    );
+    handleUserOfflineFirebase(user._id, JSON.parse(localStorage.getItem("dataKey")));
     dispatch({
-      type: 'LOGOUT',
+      type: "LOGOUT"
     });
-    nav('/auth/login');
+    nav("/auth/login");
   };
 
   useEffect(() => {
-    window.addEventListener('click', (e) => {
-      const btn = e.target.closest('.toggle-sidebar');
-      const sidebar = e.target.closest('.sidebar');
+    window.addEventListener("click", (e) => {
+      const btn = e.target.closest(".toggle-sidebar");
+      const sidebar = e.target.closest(".sidebar");
 
       if (!btn && !sidebar) {
         setOpen(false);
@@ -75,156 +63,134 @@ export default function Sidebar() {
     });
 
     return () => {
-      window.removeEventListener('click', () => {});
+      window.removeEventListener("click", () => {});
     };
   }, []);
 
   return (
     <List
-      className="sidebar"
+      className='sidebar'
       sx={{
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
         maxWidth: 300,
-        bgcolor: '#ccc',
+        bgcolor: "#ccc",
         boxShadow: 2,
-        transition: 'all 0.3s ease',
-        marginLeft: open ? 0 : '-300px',
-        position: 'fixed',
+        transition: "all 0.3s ease",
+        marginLeft: open ? 0 : "-300px",
+        position: "fixed",
         inset: 0,
-        zIndex: 100,
+        zIndex: 100
       }}
-      component="nav"
-      aria-labelledby="nested-list-subheader"
+      component='nav'
+      aria-labelledby='nested-list-subheader'
       subheader={
-        <ListSubheader component="div" id="nested-list-subheader">
+        <ListSubheader component='div' id='nested-list-subheader'>
           VNOI - HCMC OPEN UNIVERSITY
         </ListSubheader>
       }
     >
       <div>
-        {user.role === 'ADMIN' && (
+        {user.role === "ADMIN" && (
           <>
             <ListItemButton onClick={() => handleAdminDashBoard()}>
               <ListItemIcon>
                 <Dashboard />
               </ListItemIcon>
-              <ListItemText primary="ADMIN Dashboard" />
+              <ListItemText primary='ADMIN Dashboard' />
               {adminDashboardOpen ? <ExpandLess /> : <ExpandMore />}
             </ListItemButton>
-            <Collapse in={adminDashboardOpen} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <ListItemButton
-                  onClick={() => handleAdminNav('users')}
-                  sx={{ pl: 4 }}
-                >
+            <Collapse in={adminDashboardOpen} timeout='auto' unmountOnExit>
+              <List component='div' disablePadding>
+                <ListItemButton onClick={() => handleAdminNav("users")} sx={{ pl: 4 }}>
                   <ListItemIcon>
                     <Person />
                   </ListItemIcon>
-                  <ListItemText primary="User" />
+                  <ListItemText primary='User' />
                 </ListItemButton>
-                <ListItemButton
-                  onClick={() => handleAdminNav('problems')}
-                  sx={{ pl: 4 }}
-                >
+                <ListItemButton onClick={() => handleAdminNav("problems")} sx={{ pl: 4 }}>
                   <ListItemIcon>
                     <BugReport />
                   </ListItemIcon>
-                  <ListItemText primary="Problem" />
+                  <ListItemText primary='Problem' />
                 </ListItemButton>
-                <ListItemButton
-                  onClick={() => handleAdminNav('submissions')}
-                  sx={{ pl: 4 }}
-                >
+                <ListItemButton onClick={() => handleAdminNav("submissions")} sx={{ pl: 4 }}>
                   <ListItemIcon>
                     <EditNote />
                   </ListItemIcon>
-                  <ListItemText primary="Submission" />
+                  <ListItemText primary='Submission' />
                 </ListItemButton>
-                <ListItemButton
-                  onClick={() => handleAdminNav('classes')}
-                  sx={{ pl: 4 }}
-                >
+                <ListItemButton onClick={() => handleAdminNav("classes")} sx={{ pl: 4 }}>
                   <ListItemIcon>
                     <Class />
                   </ListItemIcon>
-                  <ListItemText primary="Class" />
+                  <ListItemText primary='Class' />
                 </ListItemButton>
               </List>
             </Collapse>
           </>
         )}
 
-        {user.role === 'LECTURER' && (
+        {user.role === "LECTURER" && (
           <>
             <ListItemButton onClick={handleLecturerDashBoard}>
               <ListItemIcon>
                 <Dashboard />
               </ListItemIcon>
-              <ListItemText primary="Dashboard" />
+              <ListItemText primary='Dashboard' />
               {lecturerDashboardOpen ? <ExpandLess /> : <ExpandMore />}
             </ListItemButton>
-            <Collapse in={lecturerDashboardOpen} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                <ListItemButton
-                  onClick={() => nav('/lecturer/dashboard/courses')}
-                  sx={{ paddingLeft: '72px' }}
-                >
-                  <ListItemText primary="Courses" />
+            <Collapse in={lecturerDashboardOpen} timeout='auto' unmountOnExit>
+              <List component='div' disablePadding>
+                <ListItemButton onClick={() => nav("/lecturer/dashboard/courses")} sx={{ paddingLeft: "72px" }}>
+                  <ListItemText primary='Courses' />
                 </ListItemButton>
               </List>
-              <List component="div" disablePadding>
-                <ListItemButton
-                  onClick={() => nav('/lecturer/dashboard/problems')}
-                  sx={{ paddingLeft: '72px' }}
-                >
-                  <ListItemText primary="Problems" />
+              <List component='div' disablePadding>
+                <ListItemButton onClick={() => nav("/lecturer/dashboard/problems")} sx={{ paddingLeft: "72px" }}>
+                  <ListItemText primary='Problems' />
                 </ListItemButton>
               </List>
             </Collapse>
           </>
         )}
-        <ListItemButton onClick={() => nav('/courses')}>
+        <ListItemButton onClick={() => nav("/courses")}>
           <ListItemIcon>
             <Book />
           </ListItemIcon>
-          <ListItemText primary="Courses" />
+          <ListItemText primary='Courses' />
         </ListItemButton>
-        {import.meta.env.VITE_MODE === 'dev' && (
-          <ListItemButton onClick={() => nav('/problems')}>
+        {import.meta.env.VITE_MODE === "dev" && (
+          <ListItemButton onClick={() => nav("/problems")}>
             <ListItemIcon>
               <BugReport />
             </ListItemIcon>
-            <ListItemText primary="Problems" />
+            <ListItemText primary='Problems' />
           </ListItemButton>
         )}
-        <ListItemButton onClick={() => nav('/competition')}>
+        <ListItemButton onClick={() => nav("/competition")}>
           <ListItemIcon>
             <QuizIcon />
           </ListItemIcon>
-          <ListItemText primary="Competition" />
+          <ListItemText primary='Competition' />
         </ListItemButton>
       </div>
       <div
         style={{
-          marginTop: 'auto',
+          marginTop: "auto"
         }}
       >
         <ListItem
           sx={{
-            '&:hover': {
-              cursor: 'pointer',
-            },
+            "&:hover": {
+              cursor: "pointer"
+            }
           }}
-          onClick={() => nav('/profile/' + user?._id)}
+          onClick={() => nav("/profile/" + user?._id)}
         >
           <ListItemIcon>
-            {user?.avatar ? (
-              <Avatar alt="Remy Sharp" src={user.avatar} />
-            ) : (
-              <Avatar>{user?.fullName}</Avatar>
-            )}
+            {user?.avatar ? <Avatar alt='Remy Sharp' src={user.avatar} /> : <Avatar>{user?.fullName}</Avatar>}
           </ListItemIcon>
           <ListItemText primary={user?.fullName || user.email} />
         </ListItem>
@@ -232,20 +198,20 @@ export default function Sidebar() {
           <ListItemIcon>
             <LogoutIcon />
           </ListItemIcon>
-          <ListItemText primary="Logout" />
+          <ListItemText primary='Logout' />
         </ListItemButton>
       </div>
       <Fab
-        className="toggle-sidebar"
+        className='toggle-sidebar'
         sx={{
-          position: 'absolute',
-          top: '100%',
+          position: "absolute",
+          top: "100%",
           right: 0,
-          transform: 'translate(50%, -50%)',
+          transform: "translate(50%, -50%)"
         }}
         onClick={handleOpenSidebar}
-        color="primary"
-        aria-label="add"
+        color='primary'
+        aria-label='add'
       ></Fab>
     </List>
   );

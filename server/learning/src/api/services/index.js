@@ -1,9 +1,7 @@
 import { _ACTION } from "../../configs/env/index.js";
 
 const LearningService = {
-  updateStatusInteractive: async (data) => { 
-
-  },
+  updateStatusInteractive: async (_data) => {},
   handleEvent: async (payload) => {
     const { action, data } = payload;
 

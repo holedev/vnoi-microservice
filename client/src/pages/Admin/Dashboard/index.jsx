@@ -8,7 +8,7 @@ import {
   TableHead,
   TableRow,
   Button,
-  Pagination,
+  Pagination
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -31,7 +31,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [filter, setFilter] = useState({
     limit: parseInt(searchParams.get("limit")) || 3,
-    page: parseInt(searchParams.get("page")) || 1,
+    page: parseInt(searchParams.get("page")) || 1
   });
 
   const getClassList = async () => {
@@ -47,23 +47,18 @@ export default function Dashboard() {
     params.append("page", filter.page);
     if (search.trim()) params.append("search", search);
 
-    await axiosAPI
-      .get(endpoints.users + "?" + params.toString())
-      .then((res) => {
-        setData(res.data.data);
-        setFilter((prev) => {
-          const currentPage =
-            res.data.currentPage > res.data.totalPage
-              ? 1
-              : res.data.currentPage;
+    await axiosAPI.get(endpoints.users + "?" + params.toString()).then((res) => {
+      setData(res.data.data);
+      setFilter((prev) => {
+        const currentPage = res.data.currentPage > res.data.totalPage ? 1 : res.data.currentPage;
 
-          return {
-            ...prev,
-            page: currentPage,
-            totalPage: res.data.totalPage,
-          };
-        });
+        return {
+          ...prev,
+          page: currentPage,
+          totalPage: res.data.totalPage
+        };
       });
+    });
   };
 
   const handleFilter = (value, type) => {
@@ -71,7 +66,7 @@ export default function Dashboard() {
       setFilter((prev) => {
         return {
           ...prev,
-          [type]: value,
+          [type]: value
         };
       });
     }
@@ -116,7 +111,7 @@ export default function Dashboard() {
   return (
     <Box
       sx={{
-        padding: "12px 12px 12px 20px",
+        padding: "12px 12px 12px 20px"
       }}
     >
       <div
@@ -124,36 +119,23 @@ export default function Dashboard() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          gap: "4px",
+          gap: "4px"
         }}
       >
-        <Pagination
-          count={filter.totalPage}
-          page={filter.page}
-          onChange={(_, value) => handleFilter(value, "page")}
-        />
+        <Pagination count={filter.totalPage} page={filter.page} onChange={(_, value) => handleFilter(value, "page")} />
 
-        <SearchDebounce
-          search={search}
-          setSearch={setSearch}
-          fn={getData}
-          label="ID, Email"
-        />
+        <SearchDebounce search={search} setSearch={setSearch} fn={getData} label='ID, Email' />
       </div>
       <TableContainer>
-        <Table
-          className={styles.table}
-          sx={{ minWidth: 650 }}
-          aria-label="simple table"
-        >
+        <Table className={styles.table} sx={{ minWidth: 650 }} aria-label='simple table'>
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
-              <TableCell align="center">Role</TableCell>
-              <TableCell align="center">Full Name</TableCell>
-              <TableCell align="center">Class</TableCell>
-              <TableCell align="center">Email</TableCell>
-              <TableCell align="center">Action</TableCell>
+              <TableCell align='center'>Role</TableCell>
+              <TableCell align='center'>Full Name</TableCell>
+              <TableCell align='center'>Class</TableCell>
+              <TableCell align='center'>Email</TableCell>
+              <TableCell align='center'>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -163,38 +145,36 @@ export default function Dashboard() {
                   key={row._id}
                   sx={{
                     "&:last-child td, &:last-child th": {
-                      border: 0,
-                    },
+                      border: 0
+                    }
                   }}
                 >
-                  <TableCell component="th" scope="row">
+                  <TableCell component='th' scope='row'>
                     {row.studentCode || "---"}
                   </TableCell>
-                  <TableCell align="center">{row.role || "---"}</TableCell>
-                  <TableCell align="center">{row.fullName || "---"}</TableCell>
-                  <TableCell align="center">
-                    {row.classCurr?.name || "---"}
-                  </TableCell>
-                  <TableCell align="center">{row.email || "---"}</TableCell>
-                  <TableCell align="center">
+                  <TableCell align='center'>{row.role || "---"}</TableCell>
+                  <TableCell align='center'>{row.fullName || "---"}</TableCell>
+                  <TableCell align='center'>{row.classCurr?.name || "---"}</TableCell>
+                  <TableCell align='center'>{row.email || "---"}</TableCell>
+                  <TableCell align='center'>
                     <Button
                       onClick={() => {
                         setDataU(row);
                         setEdit(true);
                       }}
-                      size="small"
-                      variant="contained"
+                      size='small'
+                      variant='contained'
                     >
                       Edit
                     </Button>
                     <Button
                       sx={{
-                        marginLeft: "6px",
+                        marginLeft: "6px"
                       }}
                       onClick={() => handleDelete(row._id)}
-                      size="small"
-                      color="error"
-                      variant="outlined"
+                      size='small'
+                      color='error'
+                      variant='outlined'
                     >
                       Delete
                     </Button>

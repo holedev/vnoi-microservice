@@ -1,9 +1,9 @@
-import styles from './Action.module.css';
-import { Box, Button } from '@mui/material';
-import { AccessTime } from '@mui/icons-material';
-import { useRef, useState } from 'react';
-import CountdownTimer from '~/components/CountdownTimer';
-import { toast } from 'react-toastify';
+import styles from "./Action.module.css";
+import { Box, Button } from "@mui/material";
+import { AccessTime } from "@mui/icons-material";
+import { useRef, useState } from "react";
+import CountdownTimer from "~/components/CountdownTimer";
+import { toast } from "react-toastify";
 
 function Action({ setConsole, handleSubmit, setCode, problem, isLoad }) {
   const fileRef = useRef(null);
@@ -13,26 +13,24 @@ function Action({ setConsole, handleSubmit, setCode, problem, isLoad }) {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const fileExtension = file.name.split('.').pop().toLowerCase();
-      if (['cpp', 'c', 'txt'].includes(fileExtension)) {
+      const fileExtension = file.name.split(".").pop().toLowerCase();
+      if (["cpp", "c", "txt"].includes(fileExtension)) {
         const reader = new FileReader();
         reader.onload = (e) => {
           const fileContent = e.target.result;
           setCode((prev) => {
             return {
               ...prev,
-              text: fileContent,
+              text: fileContent
             };
           });
         };
         reader.onerror = (error) => {
-          toast.error('Error reading file:' + error);
+          toast.error("Error reading file:" + error);
         };
         reader.readAsText(file);
       } else {
-        toast.error(
-          'Unsupported file type. Please select a .cpp, .c, or .txt file.'
-        );
+        toast.error("Unsupported file type. Please select a .cpp, .c, or .txt file.");
       }
       e.target.value = null;
     }
@@ -41,30 +39,20 @@ function Action({ setConsole, handleSubmit, setCode, problem, isLoad }) {
   return (
     <Box className={styles.wrapper}>
       {problem?.isValid && !problem.alwayOpen && (
-        <Button
-          onClick={() => setTimer(!timer)}
-          color="inherit"
-          className={styles.timer}
-        >
+        <Button onClick={() => setTimer(!timer)} color='inherit' className={styles.timer}>
           <AccessTime />
           {timer && <CountdownTimer timeEnd={new Date(problem.timeEnd)} />}
         </Button>
       )}
       <Box className={styles.action}>
-        <input
-          ref={fileRef}
-          hidden
-          type="file"
-          accept=".cpp, .c, .txt"
-          onChange={handleFileChange}
-        />
+        <input ref={fileRef} hidden type='file' accept='.cpp, .c, .txt' onChange={handleFileChange} />
         <Button onClick={() => fileRef.current.click()}>Upload File</Button>
-        <Button onClick={() => setConsole(true)} variant="outlined">
+        <Button onClick={() => setConsole(true)} variant='outlined'>
           Console
         </Button>
         <Button
           style={{
-            marginLeft: 'auto',
+            marginLeft: "auto"
           }}
           disabled={
             isLoad.submit || !problem?.alwayOpen
@@ -73,8 +61,8 @@ function Action({ setConsole, handleSubmit, setCode, problem, isLoad }) {
                 : false
               : false || problem?.submitRemain == 0
           }
-          variant="contained"
-          color="success"
+          variant='contained'
+          color='success'
           onClick={handleSubmit}
         >
           Submit ({problem?.submitRemain})

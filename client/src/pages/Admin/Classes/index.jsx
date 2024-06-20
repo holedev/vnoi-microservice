@@ -9,7 +9,7 @@ import {
   Button,
   Pagination,
   Fab,
-  TextField,
+  TextField
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -28,12 +28,12 @@ export default function Classes() {
   const [modal, setModal] = useState(false);
   const [newClass, setNewClass] = useState({
     name: "",
-    _id: null,
+    _id: null
   });
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [filter, setFilter] = useState({
     limit: parseInt(searchParams.get("limit")) || 8,
-    page: parseInt(searchParams.get("page")) || 1,
+    page: parseInt(searchParams.get("page")) || 1
   });
 
   const getData = async () => {
@@ -42,23 +42,18 @@ export default function Classes() {
     params.append("page", filter.page);
     if (search.trim()) params.append("search", search);
 
-    await axiosAPI
-      .get(endpoints.classes + "?" + params.toString())
-      .then((res) => {
-        setData(res.data.data);
-        setFilter((prev) => {
-          const currentPage =
-            res.data.currentPage > res.data.totalPage
-              ? 1
-              : res.data.currentPage;
+    await axiosAPI.get(endpoints.classes + "?" + params.toString()).then((res) => {
+      setData(res.data.data);
+      setFilter((prev) => {
+        const currentPage = res.data.currentPage > res.data.totalPage ? 1 : res.data.currentPage;
 
-          return {
-            ...prev,
-            page: currentPage,
-            totalPage: res.data.totalPage,
-          };
-        });
+        return {
+          ...prev,
+          page: currentPage,
+          totalPage: res.data.totalPage
+        };
       });
+    });
   };
 
   const handleFilter = (value, type) => {
@@ -66,7 +61,7 @@ export default function Classes() {
       setFilter((prev) => {
         return {
           ...prev,
-          [type]: value,
+          [type]: value
         };
       });
     }
@@ -86,7 +81,7 @@ export default function Classes() {
     if (!newClass._id) {
       await axiosAPI
         .post(endpoints.classes, {
-          name: newClass.name,
+          name: newClass.name
         })
         .then((res) => {
           toast.success("Create class successfully");
@@ -102,14 +97,14 @@ export default function Classes() {
 
     await axiosAPI
       .patch(endpoints.classes + "/" + newClass._id, {
-        name: newClass.name,
+        name: newClass.name
       })
       .then((res) => {
         toast.success("Update class successfully");
         setModal(false);
         setNewClass({
           name: "",
-          _id: null,
+          _id: null
         });
         const data = res.data.data;
         setData((prev) => {
@@ -127,7 +122,7 @@ export default function Classes() {
   const handleUpdateClass = async (data) => {
     setNewClass({
       _id: data._id,
-      name: data.name,
+      name: data.name
     });
     setModal(true);
   };
@@ -163,7 +158,7 @@ export default function Classes() {
     <>
       <Box
         sx={{
-          padding: "12px 12px 12px 20px",
+          padding: "12px 12px 12px 20px"
         }}
       >
         <div
@@ -171,7 +166,7 @@ export default function Classes() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            gap: "4px",
+            gap: "4px"
           }}
         >
           <Pagination
@@ -184,25 +179,13 @@ export default function Classes() {
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: "4px",
+              gap: "4px"
             }}
           >
-            <Fab
-              onClick={() => {
-                setModal(true);
-                setIsUpdate(false);
-              }}
-              color="primary"
-              size="small"
-            >
+            <Fab onClick={() => setModal(true)} color='primary' size='small'>
               +
             </Fab>
-            <SearchDebounce
-              search={search}
-              setSearch={setSearch}
-              fn={getData}
-              label="ID"
-            />
+            <SearchDebounce search={search} setSearch={setSearch} fn={getData} label='ID' />
           </Box>
         </div>
         <TableContainer>
@@ -210,16 +193,16 @@ export default function Classes() {
             sx={{
               minWidth: 650,
               borderRadius: "4px",
-              background: "#fff",
+              background: "#fff"
             }}
           >
             <TableHead>
               <TableRow>
                 <TableCell>ID</TableCell>
-                <TableCell align="center">Name</TableCell>
-                <TableCell align="center">Created At</TableCell>
-                <TableCell align="center">Updated At</TableCell>
-                <TableCell align="center">Action</TableCell>
+                <TableCell align='center'>Name</TableCell>
+                <TableCell align='center'>Created At</TableCell>
+                <TableCell align='center'>Updated At</TableCell>
+                <TableCell align='center'>Action</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -230,31 +213,22 @@ export default function Classes() {
                     key={row._id}
                     sx={{
                       "&:last-child td, &:last-child th": {
-                        border: 0,
+                        border: 0
                       },
                       "&:hover": {
-                        cursor: "pointer",
-                      },
+                        cursor: "pointer"
+                      }
                     }}
                   >
-                    <TableCell component="th" scope="row">
+                    <TableCell component='th' scope='row'>
                       {row._id || "---"}
                     </TableCell>
-                    <TableCell align="center">{row.name || "---"}</TableCell>
-                    <TableCell align="center">
-                      {row.createdAt || "---"}
-                    </TableCell>
-                    <TableCell align="center">
-                      {row.updatedAt || "---"}
-                    </TableCell>
+                    <TableCell align='center'>{row.name || "---"}</TableCell>
+                    <TableCell align='center'>{row.createdAt || "---"}</TableCell>
+                    <TableCell align='center'>{row.updatedAt || "---"}</TableCell>
 
-                    <TableCell align="center">
-                      <Button
-                        size="small"
-                        color="error"
-                        variant="outlined"
-                        onClick={() => handleDeleteClass(row._id)}
-                      >
+                    <TableCell align='center'>
+                      <Button size='small' color='error' variant='outlined' onClick={() => handleDeleteClass(row._id)}>
                         Delete
                       </Button>
                     </TableCell>
@@ -274,19 +248,19 @@ export default function Classes() {
           setModal(false);
           setNewClass({
             name: "",
-            _id: null,
+            _id: null
           });
         }}
       >
         <ModalDialog
           style={{
-            padding: "12px",
+            padding: "12px"
           }}
         >
           <DialogContent>
             <Box
               sx={{
-                display: "flex",
+                display: "flex"
               }}
             >
               <TextField
@@ -295,20 +269,18 @@ export default function Classes() {
                   setNewClass((prev) => {
                     return {
                       ...prev,
-                      name: e.target.value,
+                      name: e.target.value
                     };
                   })
                 }
                 fullWidth
-                placeholder="Class name here ..."
-                size="small"
+                placeholder='Class name here ...'
+                size='small'
               />
             </Box>
           </DialogContent>
 
-          <Button onClick={handleSubmitClass} autoFocus>
-            {newClass?._id ? "Update" : "Create"}
-          </Button>
+          <Button onClick={handleSubmitClass}>{newClass?._id ? "Update" : "Create"}</Button>
         </ModalDialog>
       </Modal>
     </>

@@ -20,7 +20,7 @@ const Login = () => {
       uid: res.user.uid,
       email: res.user.email,
       avatar: res.user.photoURL,
-      fullName: res.user.displayName,
+      fullName: res.user.displayName
     };
 
     const toastID = loadingToast("Login ...");
@@ -33,27 +33,21 @@ const Login = () => {
           type: "LOGIN",
           payload: {
             isUpdate,
-            user,
-          },
+            user
+          }
         });
 
-        data.role === "LECTURER"
-          ? nav("/lecturer/dashboard")
-          : nav("/competition");
+        data.role === "LECTURER" ? nav("/lecturer/dashboard") : nav("/competition");
       })
       .catch((err) => {
-        updateToast(
-          toastID,
-          err.response?.data?.message || "Login fail!",
-          "error"
-        );
+        updateToast(toastID, err.response?.data?.message || "Login fail!", "error");
       });
   };
 
   return (
     <Box className={styles.wrapper}>
       <Button onClick={handleLoginGoogle} className={styles.btnLogin}>
-        <img className={styles.loginLogo} src={google} alt="LOGO GOOGLE" />
+        <img className={styles.loginLogo} src={google} alt='LOGO GOOGLE' />
         <div className={styles.loginText}>Login with Google</div>
       </Button>
     </Box>

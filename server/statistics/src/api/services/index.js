@@ -6,6 +6,7 @@ import { ExerciseStatisticModel } from "../models/ExerciseStatistics.js";
 const StatisticsService = {
   handleSubmissionCreate: async (data) => {
     try {
+      // eslint-disable-next-line no-unused-vars
       const { requestId, userId, problem, submissionId } = data;
 
       if (!requestId || !userId || !problem) {

@@ -1,20 +1,15 @@
-import { MenuItem, Select } from '@mui/material';
-import { _LANG } from '../../../utils/compiler/data.js';
-import styles from './DropdownLanguage.module.css';
+import { MenuItem, Select } from "@mui/material";
+import { _LANG } from "../../../utils/compiler/data.js";
+import styles from "./DropdownLanguage.module.css";
 
-function DropdownLanguage({
-  value,
-  handleChangeLanguage,
-  availableListId = null,
-  ...props
-}) {
+function DropdownLanguage({ value, handleChangeLanguage, availableListId = null, ...props }) {
   return (
     <Select
       {...props}
       className={styles.language}
-      size="small"
+      size='small'
       value={value || 54}
-      label="Language"
+      label='Language'
       onChange={(e) => {
         handleChangeLanguage(e.target.value);
       }}

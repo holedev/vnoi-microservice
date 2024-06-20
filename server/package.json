@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "lint": "eslint --ext js analytics/ common/ compiler/ exercise/ gateway/ logging/ notification/ user/ video/ --ignore-path .eslintignore --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint --ext js analytics/ common/ compiler/ exercise/ gateway/ logging/ notification/ user/ video/ --ignore-path .eslintignore --report-unused-disable-directives --max-warnings 0 --fix"
+    "lint": "eslint --ext .js . --report-unused-disable-directives --max-warnings 3",
+    "lint:fix": "eslint --ext .js . --report-unused-disable-directives --max-warnings 3 --fix",
+    "format": "prettier --write **/*.js"
   },
   "keywords": [],
   "author": "",

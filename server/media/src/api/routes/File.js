@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { FileService } from "../services/File.js";
-import { VerifyRole } from "../middlewares/VerifyRole.js";
 import { uploadFiles } from "../../configs/multer/index.js";
 
 const router = Router();

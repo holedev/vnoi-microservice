@@ -28,9 +28,8 @@ const _INTERVAL_TIME_MS = 1000;
 const judge0Service = {
   createSubmissionBatchTokens: async (submissions) => {
     try {
-
-      const url = _PROCESS_ENV.COMPILER_HOST + "/submissions/batch?redirect_stderr_to_stdout=true"
-      console.log(url)
+      const url = _PROCESS_ENV.COMPILER_HOST + "/submissions/batch?redirect_stderr_to_stdout=true";
+      console.log(url);
 
       const tokens = await fetch(url, {
         method: "POST",
@@ -47,7 +46,6 @@ const judge0Service = {
       console.log(err.message || err);
       throw new BadRequestError("Create Submissions Batch Tokens Fail!");
     }
-
   },
   checkTokens: async (tokens) => {
     try {

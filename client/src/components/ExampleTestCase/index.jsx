@@ -1,5 +1,5 @@
 function ExampleTestCase() {
-    return ExampleTestCase;
+  return ExampleTestCase;
 }
 
 export default ExampleTestCase;

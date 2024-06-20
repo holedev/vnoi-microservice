@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { ImageService } from "../services/Image.js";
-import { VerifyRole } from "../middlewares/VerifyRole.js";
 import { uploadImage } from "../../configs/multer/index.js";
 
 const router = Router();
