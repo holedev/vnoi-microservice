@@ -14,7 +14,15 @@ module.exports = {
   rules: {
     "no-extra-boolean-cast": 0,
     "no-lonely-if": 1,
-    "no-unused-vars": 1,
+    "no-unused-vars": [
+      "error",
+      {
+        vars: "all",
+        args: "after-used",
+        ignoreRestSiblings: true,
+        argsIgnorePattern: "^_"
+      }
+    ],
     "no-trailing-spaces": 1,
     "no-multi-spaces": 1,
     "no-multiple-empty-lines": 1,

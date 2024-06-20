@@ -9,7 +9,6 @@ import { VideoRoute } from "./src/api/routes/Video.js";
 import { FileRoute } from "./src/api/routes/File.js";
 import { ImageRoute } from "./src/api/routes/Image.js";
 import { gRPCServerMedia } from "./src/configs/grpc/index.js";
-import { VerifyRequestFromGateway } from "./src/api/middlewares/VerifyRequestFromGateway.js";
 import { getSubscribeChannel, subscribeMessage } from "./src/configs/rabiitmq/index.js";
 import { MediaService } from "./src/api/services/index.js";
 

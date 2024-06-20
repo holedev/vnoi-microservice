@@ -110,7 +110,7 @@ const requestData = async (QUEUE_NAME, requestPayload, uuid) => {
       correlationId: uuid
     });
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       const timeout = setTimeout(() => {
         channel.close();
         resolve(FormatData.warning("TIMEOUT | API could not fullfil the request!"));

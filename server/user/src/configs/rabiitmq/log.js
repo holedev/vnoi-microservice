@@ -12,8 +12,7 @@ import { getChannel } from "./index.js";
 
 const logging = async (req, data, action) => {
   try {
-
-    const channel = await getChannel()
+    const channel = await getChannel();
 
     const dateOptions = {
       day: "2-digit",

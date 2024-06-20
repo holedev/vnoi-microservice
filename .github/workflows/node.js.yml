@@ -5,17 +5,9 @@ name: Continuous Integration With PNPM
 
 on:
   push:
-    branches: ['dev']
+    branches: ['test']
   pull_request:
-    branches: ['dev']
-
-env:
-  REDIS_PORT: demo
-  REDIS_HOST: demo
-  RABBITMQ_URL: demo
-  BOT_TELEGRAM_TOKEN: demo
-  BOT_TELEGRAM_CHAT_ID: demo
-  MONGODB_URL: demo
+    branches: ['test']
 
 jobs:
   client_test:

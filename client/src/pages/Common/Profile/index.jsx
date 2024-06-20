@@ -35,14 +35,14 @@ function Profile() {
     studentCode: "",
     classCurr: "",
     fullName: "",
-    avatar: null,
+    avatar: null
   });
 
   const handleChange = (value, field) => {
     setData((prev) => {
       return {
         ...prev,
-        [field]: value,
+        [field]: value
       };
     });
   };
@@ -54,8 +54,8 @@ function Profile() {
       dispatch({
         type: "UPDATE",
         payload: {
-          user: user,
-        },
+          user: user
+        }
       });
     });
   };
@@ -72,7 +72,7 @@ function Profile() {
       studentCode: data.studentCode,
       classCurr: data.classCurr?._id,
       fullName: data.fullName,
-      avatar: data.avatar,
+      avatar: data.avatar
     };
 
     const error = handleValidate(updateSchema, update);
@@ -86,18 +86,12 @@ function Profile() {
         dispatch({
           type: "UPDATE",
           payload: {
-            user: data,
-          },
+            user: data
+          }
         });
         updateToast(toastID, "Updated!", "success");
       })
-      .catch((err) =>
-        updateToast(
-          toastID,
-          err.response?.data.message || "Something went wrong!",
-          "error"
-        )
-      );
+      .catch((err) => updateToast(toastID, err.response?.data.message || "Something went wrong!", "error"));
   };
 
   const handleCancel = () => {
@@ -106,7 +100,7 @@ function Profile() {
       studentCode: user.studentCode || "",
       classCurr: classList[idx] || "",
       fullName: user.fullName || "",
-      avatar: user.avatar || null,
+      avatar: user.avatar || null
     });
   };
 
@@ -126,21 +120,21 @@ function Profile() {
     <Box
       sx={{
         flex: 1,
-        width: "100%",
+        width: "100%"
       }}
     >
       <Box
         sx={{
           bgcolor: "#fff",
-          zIndex: 1,
+          zIndex: 1
         }}
       >
         <Box>
           <Typography
-            level="h1"
+            level='h1'
             sx={{
               textAlign: "right",
-              mr: 2,
+              mr: 2
             }}
           >
             PROFILE
@@ -149,16 +143,16 @@ function Profile() {
         <Tabs
           defaultValue={0}
           sx={{
-            bgcolor: "transparent",
+            bgcolor: "transparent"
           }}
         >
           <TabList
             tabFlex={1}
-            size="sm"
+            size='sm'
             sx={{
               pl: {
                 xs: 0,
-                md: 4,
+                md: 4
               },
               justifyContent: "right",
               [`&& .${tabClasses.root}`]: {
@@ -168,10 +162,10 @@ function Profile() {
                   fontWeight: "600",
                   "&::after": {
                     height: "2px",
-                    bgcolor: "primary.500",
-                  },
-                },
-              },
+                    bgcolor: "primary.500"
+                  }
+                }
+              }
             }}
           >
             <Tab sx={{ borderRadius: "6px 6px 0 0" }} indicatorInset value={0}>
@@ -189,43 +183,37 @@ function Profile() {
           mx: "auto",
           px: {
             xs: 2,
-            md: 6,
+            md: 6
           },
           py: {
             xs: 2,
-            md: 3,
-          },
+            md: 3
+          }
         }}
       >
         <Card>
           <Box sx={{ mb: 1 }}>
-            <Typography level="title-md">Personal info</Typography>
-            <Typography level="body-sm">
-              Customize how your profile information will apper to the networks.
-            </Typography>
+            <Typography level='title-md'>Personal info</Typography>
+            <Typography level='body-sm'>Customize how your profile information will apper to the networks.</Typography>
           </Box>
           <Divider />
-          <Stack
-            direction="row"
-            spacing={3}
-            sx={{ display: { xs: "none", md: "flex" }, my: 1 }}
-          >
-            <Stack direction="column" spacing={1}>
+          <Stack direction='row' spacing={3} sx={{ display: { xs: "none", md: "flex" }, my: 1 }}>
+            <Stack direction='column' spacing={1}>
               <AspectRatio
-                ratio="1"
+                ratio='1'
                 maxHeight={200}
                 sx={{
                   flex: 1,
                   minWidth: 160,
-                  borderRadius: "100%",
+                  borderRadius: "100%"
                 }}
               >
-                <img src={user?.avatar} loading="lazy" alt="" />
+                <img src={user?.avatar} loading='lazy' alt='' />
               </AspectRatio>
               <IconButton
-                size="sm"
-                variant="outlined"
-                color="neutral"
+                size='sm'
+                variant='outlined'
+                color='neutral'
                 sx={{
                   bgcolor: "#fff",
                   position: "absolute",
@@ -233,7 +221,7 @@ function Profile() {
                   borderRadius: "50%",
                   left: 140,
                   top: 210,
-                  boxShadow: "sm",
+                  boxShadow: "sm"
                 }}
               >
                 <EditRoundedIcon />
@@ -242,19 +230,17 @@ function Profile() {
             <Stack spacing={2} sx={{ flexGrow: 1 }}>
               <Stack
                 sx={{
-                  alignItems: "center",
+                  alignItems: "center"
                 }}
-                direction="row"
+                direction='row'
                 spacing={2}
               >
                 <FormControl sx={{ flexGrow: 1 }}>
                   <FormLabel>Student Code</FormLabel>
                   <Input
-                    size="sm"
+                    size='sm'
                     value={data.studentCode}
-                    onChange={(e) =>
-                      handleChange(e.target.value, "studentCode")
-                    }
+                    onChange={(e) => handleChange(e.target.value, "studentCode")}
                   />
                 </FormControl>
 
@@ -263,15 +249,11 @@ function Profile() {
                   {classList.length > 0 && (
                     <Autocomplete
                       value={data.classCurr}
-                      placeholder="Class"
+                      placeholder='Class'
                       options={classList}
-                      onChange={(event, newValue) =>
-                        handleChange(newValue, "classCurr")
-                      }
+                      onChange={(event, newValue) => handleChange(newValue, "classCurr")}
                       getOptionLabel={(option) => option.name}
-                      isOptionEqualToValue={(option, value) =>
-                        option._id === value._id
-                      }
+                      isOptionEqualToValue={(option, value) => option._id === value._id}
                     />
                   )}
                 </FormControl>
@@ -282,31 +264,31 @@ function Profile() {
                   sx={{
                     display: {
                       sm: "flex-column",
-                      md: "flex-row",
+                      md: "flex-row"
                     },
-                    gap: 2,
+                    gap: 2
                   }}
                 >
                   <Input
-                    size="sm"
-                    placeholder="Full Name here ..."
+                    size='sm'
+                    placeholder='Full Name here ...'
                     value={data.fullName}
                     onChange={(e) => handleChange(e.target.value, "fullName")}
                   />
                 </FormControl>
               </Stack>
-              <Stack direction="row" spacing={2}>
+              <Stack direction='row' spacing={2}>
                 <FormControl>
                   <FormLabel>Role</FormLabel>
-                  <Input size="sm" defaultValue={user.role} disabled />
+                  <Input size='sm' defaultValue={user.role} disabled />
                 </FormControl>
                 <FormControl sx={{ flexGrow: 1 }}>
                   <FormLabel>Email</FormLabel>
                   <Input
-                    size="sm"
-                    type="email"
+                    size='sm'
+                    type='email'
                     startDecorator={<EmailRoundedIcon />}
-                    placeholder="email"
+                    placeholder='email'
                     defaultValue={user.email}
                     sx={{ flexGrow: 1 }}
                     disabled
@@ -319,15 +301,10 @@ function Profile() {
 
           <CardOverflow sx={{ borderTop: "1px solid", borderColor: "divider" }}>
             <CardActions sx={{ alignSelf: "flex-end", pt: 2 }}>
-              <Button
-                onClick={handleCancel}
-                size="sm"
-                variant="outlined"
-                color="neutral"
-              >
+              <Button onClick={handleCancel} size='sm' variant='outlined' color='neutral'>
                 Cancel
               </Button>
-              <Button onClick={handleSave} size="sm" variant="solid">
+              <Button onClick={handleSave} size='sm' variant='solid'>
                 Save
               </Button>
             </CardActions>

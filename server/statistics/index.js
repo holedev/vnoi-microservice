@@ -5,7 +5,6 @@ import { _PROCESS_ENV } from "./src/configs/env/index.js";
 import { databaseConnection } from "./src/configs/database/index.js";
 import { ErrorHandler } from "./src/api/middlewares/ErrorHandler.js";
 import { logInfo } from "./src/configs/rabiitmq/log.js";
-import { VerifyRequestFromGateway } from "./src/api/middlewares/VerifyRequestFromGateway.js";
 import { getSubscribeChannel, subscribeMessage } from "./src/configs/rabiitmq/index.js";
 import { StatisticsService } from "./src/api/services/index.js";
 import { CourseRoute } from "./src/api/routes/Course.js";

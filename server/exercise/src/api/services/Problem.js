@@ -269,7 +269,6 @@ const ProblemService = {
     });
   },
   getBySlug: async (req, res) => {
-    const requestId = req.headers["x-request-id"];
     const _id = req.headers["x-user-id"];
     const role = req.headers["x-user-role"];
 
@@ -300,7 +299,6 @@ const ProblemService = {
       quantitySubmit ? _PROCESS_ENV.MAX_SUBMISSION - quantitySubmit : _PROCESS_ENV.MAX_SUBMISSION
     );
 
-    // eslint-disable-next-line no-unused-vars
     const { submitList, testcases: tc, ...rest } = problem;
 
     if (!problem.testcases?.output) {

@@ -10,23 +10,20 @@ import {
   ListItemText,
   Modal,
   Typography,
-  Alert,
-} from '@mui/material';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import { useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
-import { useEffect } from 'react';
-import useAxiosAPI from '~/hook/useAxiosAPI';
-import Question from './Question';
-import { MediaPlayer, MediaProvider, Time, TimeSlider } from '@vidstack/react';
-import {
-  PlyrLayout,
-  plyrLayoutIcons,
-} from '@vidstack/react/player/layouts/plyr';
-import { toast } from 'react-toastify';
-import { handleUserSubmitProblem } from '~/utils/firebase';
-import useUserContext from '~/hook/useUserContext';
+  Alert
+} from "@mui/material";
+import ExpandLess from "@mui/icons-material/ExpandLess";
+import ExpandMore from "@mui/icons-material/ExpandMore";
+import { useState, useRef, useEffect } from "react";
+import { useParams } from "react-router-dom";
+
+import useAxiosAPI from "~/hook/useAxiosAPI";
+import Question from "./Question";
+import { MediaPlayer, MediaProvider } from "@vidstack/react";
+import { PlyrLayout, plyrLayoutIcons } from "@vidstack/react/player/layouts/plyr";
+import { toast } from "react-toastify";
+import { handleUserSubmitProblem } from "~/utils/firebase";
+import useUserContext from "~/hook/useUserContext";
 
 const _LESSON_PROGRESS_DONE = 90;
 
@@ -45,8 +42,8 @@ function CourseDetail() {
 
   const getCourse = async () => {
     await axiosAPI({
-      url: endpoints.learning + '/courses/' + id,
-      method: 'GET',
+      url: endpoints.learning + "/courses/" + id,
+      method: "GET"
     })
       .then((res) => {
         setCourse(res.data.data);
@@ -56,8 +53,8 @@ function CourseDetail() {
 
   const getLesson = async (id) => {
     await axiosAPI({
-      url: endpoints.learning + '/courses/lessons/' + id,
-      method: 'GET',
+      url: endpoints.learning + "/courses/lessons/" + id,
+      method: "GET"
     })
       .then((res) => {
         const data = res.data.data;
@@ -71,7 +68,7 @@ function CourseDetail() {
     setOpenSidebar((prev) => {
       return {
         ...prev,
-        [id]: !prev[id],
+        [id]: !prev[id]
       };
     });
   };
@@ -90,14 +87,13 @@ function CourseDetail() {
   };
 
   const checkInteractivesVideo = (currentTime) => {
-    if (!lesson.video?.interactives || lesson.video.interactives.length === 0)
-      return;
+    if (!lesson.video?.interactives || lesson.video.interactives.length === 0) return;
 
     lesson.video.interactives?.forEach((item) => {
       if (!item.isAnswered && currentTime >= item.time) {
         videoRef.current.pause();
-        item.type === 'question' && setQuestionModal(item._id);
-        item.type === 'problem' && setProblemQuestion(item);
+        item.type === "question" && setQuestionModal(item._id);
+        item.type === "problem" && setProblemQuestion(item);
         return;
       }
     });
@@ -107,7 +103,7 @@ function CourseDetail() {
     setLesson((prev) => {
       return {
         ...prev,
-        isDone: status,
+        isDone: status
       };
     });
 
@@ -121,23 +117,23 @@ function CourseDetail() {
               if (lesson._id == _id) {
                 return {
                   ...lesson,
-                  isDone: status,
+                  isDone: status
                 };
               }
               return lesson;
-            }),
+            })
           };
-        }),
+        })
       };
     });
 
     await axiosAPI({
-      method: 'PATCH',
-      url: endpoints.learning + '/courses/lessons/update-user-done-list/' + _id,
+      method: "PATCH",
+      url: endpoints.learning + "/courses/lessons/update-user-done-list/" + _id,
       data: {
         courseId: course._id,
-        status,
-      },
+        status
+      }
     }).catch((err) => toast.error(err.message));
   };
 
@@ -145,8 +141,7 @@ function CourseDetail() {
     const duration = videoRef.current.duration;
     const currTime = videoRef.current.currentTime;
 
-    const isDoneLesson =
-      !lesson.isDone && checkProgressVideo(currTime, duration);
+    const isDoneLesson = !lesson.isDone && checkProgressVideo(currTime, duration);
 
     if (isDoneLesson) {
       handleLessonStatus(lesson._id, true);
@@ -166,8 +161,8 @@ function CourseDetail() {
               return { ...item, isAnswered: true };
             }
             return item;
-          }),
-        },
+          })
+        }
       };
     });
   };
@@ -179,20 +174,20 @@ function CourseDetail() {
     const positions = interactives.map((i) => {
       return {
         time: i.time,
-        isAnswered: i.isAnswered,
+        isAnswered: i.isAnswered
       };
     });
 
     positions.forEach((pos) => {
       if (pos.time <= duration) {
-        const left = (pos.time / duration) * 100 + '%';
-        const marker = document.createElement('div');
-        marker.style.position = 'absolute';
+        const left = (pos.time / duration) * 100 + "%";
+        const marker = document.createElement("div");
+        marker.style.position = "absolute";
         marker.style.left = left;
-        marker.style.width = '5px';
-        marker.style.height = '5px';
-        marker.style.background = pos.isAnswered ? 'green' : 'red';
-        document.querySelector('.plyr__slider__track').appendChild(marker);
+        marker.style.width = "5px";
+        marker.style.height = "5px";
+        marker.style.background = pos.isAnswered ? "green" : "red";
+        document.querySelector(".plyr__slider__track").appendChild(marker);
       }
     });
   };
@@ -203,8 +198,7 @@ function CourseDetail() {
 
   const handleDoneProblemOfVideo = ({ problemId }) => {
     if (!problemId) return;
-    if (!lesson.video?.interactives || lesson.video?.interactives?.length === 0)
-      return;
+    if (!lesson.video?.interactives || lesson.video?.interactives?.length === 0) return;
 
     const newInteractives = lesson.video.interactives.map((item) => {
       if (item._id == problemId) {
@@ -218,8 +212,8 @@ function CourseDetail() {
         ...prev,
         video: {
           ...prev.video,
-          interactives: newInteractives,
-        },
+          interactives: newInteractives
+        }
       };
     });
 
@@ -228,9 +222,9 @@ function CourseDetail() {
   };
 
   useEffect(() => {
-    const sliderTrack = document.querySelector('.plyr__slider__track');
+    const sliderTrack = document.querySelector(".plyr__slider__track");
     if (sliderTrack) {
-      sliderTrack.innerHTML = '';
+      sliderTrack.innerHTML = "";
     }
     if (activeLesson) getLesson(activeLesson);
   }, [activeLesson]);
@@ -241,10 +235,7 @@ function CourseDetail() {
 
   useEffect(() => {
     if (problemQuestion?.slug) {
-      window.open(
-        'http://localhost:5173/problems/' + problemQuestion.slug,
-        '_blank'
-      );
+      window.open("http://localhost:5173/problems/" + problemQuestion.slug, "_blank");
     }
   }, [problemQuestion]);
 
@@ -256,33 +247,31 @@ function CourseDetail() {
     <Box>
       <AppBar
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          height: 32,
+          display: "flex",
+          alignItems: "center",
+          height: 32
         }}
-        position="static"
+        position='static'
       >
-        <Typography variant="h6">{course.title}</Typography>
+        <Typography variant='h6'>{course.title}</Typography>
       </AppBar>
-      <Box sx={{ height: 'calc(100vh - 32px)', display: 'flex' }}>
+      <Box sx={{ height: "calc(100vh - 32px)", display: "flex" }}>
         {lesson?._id ? (
           <Box
             sx={{
-              height: '100%',
-              overflow: 'auto',
-              flex: 1,
+              height: "100%",
+              overflow: "auto",
+              flex: 1
             }}
           >
             {lesson.video && (
               <Box>
                 <MediaPlayer
                   ref={videoRef}
-                  title="video"
+                  title='video'
                   src={lesson.video.path}
                   onTimeUpdate={handleTimeUpdate}
-                  onLoadedMetadata={() =>
-                    handleLoadedMetadata(lesson.video?.interactives)
-                  }
+                  onLoadedMetadata={() => handleLoadedMetadata(lesson.video?.interactives)}
                 >
                   <MediaProvider />
                   <PlyrLayout icons={plyrLayoutIcons} />
@@ -290,19 +279,19 @@ function CourseDetail() {
               </Box>
             )}
             <Box sx={{ p: 1 }}>
-              <Typography sx={{ mt: 1 }} variant="h6">
+              <Typography sx={{ mt: 1 }} variant='h6'>
                 Files ({lesson.files?.length || 0})
               </Typography>
 
               {lesson.files?.length == 0 && (
-                <Alert sx={{ mt: 1 }} variant="outlined" severity="info">
+                <Alert sx={{ mt: 1 }} variant='outlined' severity='info'>
                   There is no file for this lesson!
                 </Alert>
               )}
 
               {lesson.files && (
                 <Box>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Box sx={{ display: "flex", gap: 1 }}>
                     {lesson.files.map((file) => (
                       <Link key={file._id} href={file.path} download>
                         {file.title}
@@ -311,54 +300,43 @@ function CourseDetail() {
                   </Box>
                 </Box>
               )}
-              <Typography sx={{ mt: 2 }} variant="h6">
+              <Typography sx={{ mt: 2 }} variant='h6'>
                 Content
               </Typography>
               {!lesson.content?.trim() && (
-                <Alert sx={{ mt: 1 }} variant="outlined" severity="info">
+                <Alert sx={{ mt: 1 }} variant='outlined' severity='info'>
                   There is no content for this lesson!
                 </Alert>
               )}
-              {lesson.content && (
-                <Box dangerouslySetInnerHTML={{ __html: lesson.content }}></Box>
-              )}
+              {lesson.content && <Box dangerouslySetInnerHTML={{ __html: lesson.content }}></Box>}
             </Box>
           </Box>
         ) : (
           <Box
             sx={{
-              height: '100%',
-              overflow: 'auto',
-              flex: 1,
+              height: "100%",
+              overflow: "auto",
+              flex: 1
             }}
           >
-            <CardMedia component="img" image={course.coverPath} />
-            <Typography sx={{ p: 1 }} variant="body2">
+            <CardMedia component='img' image={course.coverPath} />
+            <Typography sx={{ p: 1 }} variant='body2'>
               {course.desc}
             </Typography>
           </Box>
         )}
 
-        <Box sx={{ minWidth: 350, borderLeft: '1px solid #ccc' }}>
+        <Box sx={{ minWidth: 350, borderLeft: "1px solid #ccc" }}>
           <List disablePadding>
             {course?.sections &&
               course.sections.map((section, idxSection) => {
-                const title =
-                  `0${idxSection + 1}`.slice(-2) +
-                  `. ${section.title} (${section.lessons?.length || 0})`;
+                const title = `0${idxSection + 1}`.slice(-2) + `. ${section.title} (${section.lessons?.length || 0})`;
 
                 return (
                   <Box key={section._id}>
-                    <ListItemButton
-                      onClick={() => handleClickSection(section._id)}
-                      sx={{ background: '#bbb' }}
-                    >
+                    <ListItemButton onClick={() => handleClickSection(section._id)} sx={{ background: "#bbb" }}>
                       <ListItemText primary={title} />
-                      {openSidebar[section._id] ? (
-                        <ExpandLess />
-                      ) : (
-                        <ExpandMore />
-                      )}
+                      {openSidebar[section._id] ? <ExpandLess /> : <ExpandMore />}
                     </ListItemButton>
                     {section.lessons &&
                       section.lessons.length > 0 &&
@@ -368,26 +346,22 @@ function CourseDetail() {
                         return (
                           <Collapse
                             in={openSidebar[section._id] || false}
-                            timeout="auto"
+                            timeout='auto'
                             unmountOnExit
                             key={lesson._id}
                           >
-                            <List component="div" disablePadding>
+                            <List component='div' disablePadding>
                               <ListItemButton
                                 onClick={() => handleClickLesson(lesson._id)}
                                 sx={{
-                                  background:
-                                    lesson._id === activeLesson ? '#ccc' : '',
+                                  background: lesson._id === activeLesson ? "#ccc" : ""
                                 }}
                               >
                                 <ListItemText primary={title} />
                                 <Checkbox
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleLessonStatus(
-                                      lesson._id,
-                                      !lesson?.isDone || false
-                                    );
+                                    handleLessonStatus(lesson._id, !lesson?.isDone || false);
                                   }}
                                   checked={lesson?.isDone}
                                 />

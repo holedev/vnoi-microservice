@@ -126,7 +126,6 @@ const CourseService = {
   },
   getCourseById: async (req, res) => {
     const _id = req.headers["x-user-id"];
-    const requestId = req.headers["x-request-id"];
     const { id } = req.params;
 
     const course = await CourseModel.findById(id)
@@ -298,7 +297,6 @@ const CourseService = {
     });
   },
   createCourse: async (req, res) => {
-    const requestId = req.headers["x-request-id"];
     const _id = req.headers["x-user-id"];
 
     const { title, desc, coverPath, sections, authors } = req.body;
@@ -472,9 +470,6 @@ const CourseService = {
     });
   },
   saveDraftLesson: async (req, res) => {
-    const requestId = req.headers["x-request-id"];
-    const _id = req.headers["x-user-id"];
-
     const { id } = req.params;
     const { video, files, content } = req.body;
 

@@ -1,26 +1,26 @@
 .wrapper {
-    flex: 1;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .form {
-    --max-width: 400px;
-    max-width: var(--max-width);
-    padding: 12px;
-    background: var(--white-color);
-    border-radius: 6px;
+  --max-width: 400px;
+  max-width: var(--max-width);
+  padding: 12px;
+  background: var(--white-color);
+  border-radius: 6px;
 }
 
 .heading {
-    text-align: center;
-    font-weight: 500;
+  text-align: center;
+  font-weight: 500;
 }
 
 .more {
-    margin-top: 12px;
-    text-align: center;
+  margin-top: 12px;
+  text-align: center;
 }

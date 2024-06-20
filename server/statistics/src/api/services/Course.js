@@ -1,4 +1,3 @@
-import { _PROCESS_ENV } from "../../configs/env/index.js";
 import { CourseStatisticModel } from "../models/CourseStatistics.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 import { gRPCRequest } from "./gRPC.js";

@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import DeleteIcon from '@mui/icons-material/Delete';
-import FolderOpenIcon from '@mui/icons-material/FolderOpen';
-import { Box, IconButton, Tooltip } from '@mui/material';
-import Alert from '@mui/material/Alert';
+import { useState } from "react";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import DeleteIcon from "@mui/icons-material/Delete";
+import FolderOpenIcon from "@mui/icons-material/FolderOpen";
+import { Box, IconButton, Tooltip } from "@mui/material";
+import Alert from "@mui/material/Alert";
 
 // a little function to help us with reordering the result
 const reorder = (list, startIndex, endIndex) => {
@@ -18,35 +18,27 @@ const grid = 6;
 
 const getItemStyle = (isDragging, draggableStyle) => ({
   // some basic styles to make the items look a bit nicer
-  userSelect: 'none',
+  userSelect: "none",
   padding: grid * 2,
   margin: `0 0 ${grid}px 0`,
-  display: 'flex',
-  alignItems: 'center',
+  display: "flex",
+  alignItems: "center",
 
   // change background colour if dragging
-  background: isDragging ? 'lightgreen' : 'grey',
-  borderRadius: '4px',
+  background: isDragging ? "lightgreen" : "grey",
+  borderRadius: "4px",
 
   // styles we need to apply on draggables
-  ...draggableStyle,
+  ...draggableStyle
 });
 
 const getListStyle = (isDraggingOver) => ({
-  background: isDraggingOver ? 'lightblue' : 'lightgrey',
+  background: isDraggingOver ? "lightblue" : "lightgrey",
   padding: 0,
-  width: 250,
+  width: 250
 });
 
-const GridOrdering = ({
-  type,
-  data,
-  setCourse,
-  handleOpenItem,
-  handleRenameItem,
-  orderUpdate,
-  handleDeleteItem,
-}) => {
+const GridOrdering = ({ type, data, setCourse, handleOpenItem, handleRenameItem, orderUpdate, handleDeleteItem }) => {
   const [edit, setEdit] = useState(null);
 
   const onDragEnd = (result) => {
@@ -55,26 +47,22 @@ const GridOrdering = ({
       return;
     }
 
-    const updatedItems = reorder(
-      data,
-      result.source.index,
-      result.destination.index
-    );
+    const updatedItems = reorder(data, result.source.index, result.destination.index);
 
-    if (type == 'sections') {
+    if (type == "sections") {
       setCourse((prev) => {
         return {
           ...prev,
-          sections: updatedItems,
+          sections: updatedItems
         };
       });
     }
 
-    if (type == 'lessons') {
+    if (type == "lessons") {
       setCourse((prev) => {
         return {
           ...prev,
-          lessons: updatedItems,
+          lessons: updatedItems
         };
       });
     }
@@ -84,13 +72,9 @@ const GridOrdering = ({
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <Droppable droppableId="droppable">
+      <Droppable droppableId='droppable'>
         {(provided, snapshot) => (
-          <div
-            {...provided.droppableProps}
-            ref={provided.innerRef}
-            style={getListStyle(snapshot.isDraggingOver)}
-          >
+          <div {...provided.droppableProps} ref={provided.innerRef} style={getListStyle(snapshot.isDraggingOver)}>
             {data?.map((item, index) => (
               <Draggable key={item._id} draggableId={item._id} index={index}>
                 {(provided, snapshot) => (
@@ -98,10 +82,7 @@ const GridOrdering = ({
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
-                    style={getItemStyle(
-                      snapshot.isDragging,
-                      provided.draggableProps.style
-                    )}
+                    style={getItemStyle(snapshot.isDragging, provided.draggableProps.style)}
                     onDoubleClick={() => {
                       setEdit(item._id == edit ? null : item._id);
                     }}
@@ -115,22 +96,22 @@ const GridOrdering = ({
                       }}
                       contentEditable={edit == item._id}
                       suppressContentEditableWarning={true}
-                      sx={{ flex: 1, border: 'none', outline: 'none' }}
+                      sx={{ flex: 1, border: "none", outline: "none" }}
                     >
                       {item.title}
                     </Box>
                     <Box
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
+                        display: "flex",
+                        alignItems: "center"
                       }}
                     >
-                      <Tooltip title="Open">
+                      <Tooltip title='Open'>
                         <IconButton onClick={() => handleOpenItem(item._id)}>
                           <FolderOpenIcon />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Delete">
+                      <Tooltip title='Delete'>
                         <IconButton onClick={() => handleDeleteItem(item._id)}>
                           <DeleteIcon />
                         </IconButton>
@@ -141,7 +122,7 @@ const GridOrdering = ({
               </Draggable>
             ))}
             {data?.length == 0 && (
-              <Alert variant="outlined" severity="info">
+              <Alert variant='outlined' severity='info'>
                 No items to show.
               </Alert>
             )}
