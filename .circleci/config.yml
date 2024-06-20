@@ -1,33 +1,33 @@
-version: 2.1
-jobs:
-  client_test:
-    docker:
-      - image: cimg/node:18.18.2
-    working_directory: ~/vnoi/client
-    steps:
-      - checkout:
-          path: ~/vnoi
-      - run:
-          name: Install pnpm
-          command: sudo npm install -g pnpm
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "pnpm-lock.yaml" }}
-            - v1-dependencies-
-      - run:
-          name: Install dependencies
-          command: pnpm install
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "pnpm-lock.yaml" }}
-      - run:
-          name: Run test
-          command: pnpm test
-workflows:
-  unit-test:
-    jobs:
-      - client_test:
-          filters:
-            branches:
-              only: dev
+# version: 2.1
+# jobs:
+#   client_test:
+#     docker:
+#       - image: cimg/node:18.18.2
+#     working_directory: ~/vnoi/client
+#     steps:
+#       - checkout:
+#           path: ~/vnoi
+#       - run:
+#           name: Install pnpm
+#           command: sudo npm install -g pnpm
+#       - restore_cache:
+#           keys:
+#             - v1-dependencies-{{ checksum "pnpm-lock.yaml" }}
+#             - v1-dependencies-
+#       - run:
+#           name: Install dependencies
+#           command: pnpm install
+#       - save_cache:
+#           paths:
+#             - client/node_modules
+#           key: v1-dependencies-{{ checksum "pnpm-lock.yaml" }}
+#       - run:
+#           name: Run test
+#           command: pnpm test
+# workflows:
+#   unit-test:
+#     jobs:
+#       - client_test:
+#           filters:
+#             branches:
+#               only: dev

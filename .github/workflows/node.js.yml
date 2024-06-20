@@ -5,9 +5,9 @@ name: Continuous Integration With PNPM
 
 on:
   push:
-    branches: ['main']
+    branches: ['dev']
   pull_request:
-    branches: ['main']
+    branches: ['dev']
 
 env:
   REDIS_PORT: demo
