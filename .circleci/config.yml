@@ -8,7 +8,7 @@ jobs:
       - checkout 
       - run: 
           name: Install pnpm
-          command: npm install -g pnpm@9 # Cài đặt pnpm globally
+          command: sudo npm install -g pnpm@9 # Cài đặt pnpm globally
       - restore_cache: # Khôi phục cache pnpm
           key: client-dependencies-{{ checksum "pnpm-lock.yaml" }}
       - run: 
