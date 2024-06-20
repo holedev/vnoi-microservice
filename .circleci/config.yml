@@ -10,14 +10,21 @@ jobs:
       - run:
           name: Install pnpm
           command: sudo npm install -g pnpm
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "client/pnpm-lock.yaml" }}
       - run:
           name: Install dependencies
           command: pnpm install
+      - save_cache:
+          paths:
+            - client/node_modules
+          key: v1-dependencies-{{ checksum "client/pnpm-lock.yaml" }}
       - run:
           name: Run test
           command: pnpm test
 workflows:
-  continuous-integration-workflow:
+  unit-test:
     jobs:
       - client_test:
           filters:
