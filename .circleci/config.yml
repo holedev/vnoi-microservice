@@ -5,7 +5,8 @@ jobs:
       - image: cimg/node:18.18.2
     working_directory: ~/client
     steps:
-      - checkout
+      - checkout:
+          path: client
       - run:
           name: Install pnpm
           command: sudo npm install -g pnpm
@@ -17,12 +18,14 @@ jobs:
       - save_cache:
           key: client-dependencies-{{ checksum "pnpm-lock.yaml" }}
           paths:
-            - node_modules
+            - client/node_modules
       - run:
-          name: Run tests
+          name: Run test
           command: pnpm test
 workflows:
-  version: 2
-  test_client:
+  continuous-integration-workflow:
     jobs:
-      - client_test
+      - client_test:
+          filters:
+            branches:
+              only: dev
