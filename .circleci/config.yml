@@ -3,10 +3,10 @@ jobs:
   client_test:
     docker:
       - image: cimg/node:18.18.2
-    working_directory: ~/client
+    working_directory: ~/app
     steps:
       - checkout:
-          path: client
+          path: ~/app/client
       - run:
           name: Install pnpm
           command: sudo npm install -g pnpm
