@@ -4,7 +4,7 @@ const CountdownTimer = ({ timeEnd }) => {
   const [timeRemaining, setTimeRemaining] = useState(calculateTimeRemaining());
 
   function calculateTimeRemaining() {
-    const endTime = timeEnd.getTime();
+    const endTime = timeEnd?.getTime() || new Date().getTime();
     const now = new Date().getTime();
     return endTime - now || 0;
   }
