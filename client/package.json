@@ -10,10 +10,16 @@
     "lint:fix": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 3 --fix",
     "format": "prettier --write .",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run && pnpm cypress:component",
     "test:dev": "vitest",
     "test:coverage": "vitest run --coverage",
-    "cypress": "cypress open"
+    "cypress:open": "cypress open",
+    "cypress:component": "pnpm cypress:component:chrome && pnpm cypress:component:firefox",
+    "cypress:component:chrome": "cypress run --component --browser chrome",
+    "cypress:component:firefox": "cypress run --component --browser firefox",
+    "cypress:e2e": "pnpm cypress:e2e:chrome && pnpm cypress:e2e:firefox",
+    "cypress:e2e:chrome": "cypress run --browser chrome",
+    "cypress:e2e:firefox": "cypress run --browser firefox"
   },
   "dependencies": {
     "@codemirror/lang-cpp": "^6.0.2",

@@ -16,66 +16,68 @@ function CourseCard({ course }) {
   };
 
   return (
-    <Card onClick={() => handleNav(course._id)} sx={{ width: 340 }}>
-      <CardActionArea>
-        <CardMedia
-          component='img'
-          height='140'
-          sx={{ objectFit: "cover" }}
-          image={course.coverPath}
-          alt='Cover Image'
-        />
-        <CardContent>
-          <Typography
-            sx={{
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              display: "-webkit-box",
-              WebkitLineClamp: "1",
-              WebkitBoxOrient: "vertical",
-              height: "32px"
-            }}
-            gutterBottom
-            variant='h5'
-            component='div'
-          >
-            {course.title}
-          </Typography>
-          <Typography
-            sx={{
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              display: "-webkit-box",
-              WebkitLineClamp: "2",
-              WebkitBoxOrient: "vertical",
-              height: "40px"
-            }}
-            variant='body2'
-            color='text.primary'
-          >
-            {course.desc}
-          </Typography>
-          <Typography sx={{ mt: 2, textAlign: "center" }} variant='body2' color='text.secondary'>
-            {handleStatistic()}
-          </Typography>
-          <Typography sx={{ textAlign: "center" }} variant='body2' color='text.secondary'>
-            Last update: {handleDatetime(course.updatedAt)}
-          </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              gap: "4px",
-              mt: 1,
-              justifyContent: "center"
-            }}
-          >
-            {course.authors.map((author) => (
-              <Chip key={author.email} label={author.fullName} />
-            ))}
-          </Box>
-        </CardContent>
-      </CardActionArea>
-    </Card>
+    course && (
+      <Card onClick={() => handleNav(course._id)} sx={{ width: 340 }}>
+        <CardActionArea>
+          <CardMedia
+            component='img'
+            height='140'
+            sx={{ objectFit: "cover" }}
+            image={course.coverPath}
+            alt='Cover Image'
+          />
+          <CardContent>
+            <Typography
+              sx={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                display: "-webkit-box",
+                WebkitLineClamp: "1",
+                WebkitBoxOrient: "vertical",
+                height: "32px"
+              }}
+              gutterBottom
+              variant='h5'
+              component='div'
+            >
+              {course.title}
+            </Typography>
+            <Typography
+              sx={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                display: "-webkit-box",
+                WebkitLineClamp: "2",
+                WebkitBoxOrient: "vertical",
+                height: "40px"
+              }}
+              variant='body2'
+              color='text.primary'
+            >
+              {course.desc}
+            </Typography>
+            <Typography sx={{ mt: 2, textAlign: "center" }} variant='body2' color='text.secondary'>
+              {handleStatistic()}
+            </Typography>
+            <Typography sx={{ textAlign: "center" }} variant='body2' color='text.secondary'>
+              Last update: {handleDatetime(course.updatedAt)}
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                gap: "4px",
+                mt: 1,
+                justifyContent: "center"
+              }}
+            >
+              {course.authors.map((author) => (
+                <Chip key={author.email} label={author.fullName} />
+              ))}
+            </Box>
+          </CardContent>
+        </CardActionArea>
+      </Card>
+    )
   );
 }
 

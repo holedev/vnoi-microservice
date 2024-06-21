@@ -5,7 +5,10 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 
-function AlertDialog({ open, setOpen, handleAction, title = "Notify", content }) {
+export const _DEFAULT_TITLE = "Notify";
+export const _DEFAULT_CONTENT = "No content!";
+
+function AlertDialog({ open, setOpen, handleAction, title = _DEFAULT_TITLE, content = _DEFAULT_CONTENT }) {
   const handleClose = () => {
     setOpen(false);
   };
