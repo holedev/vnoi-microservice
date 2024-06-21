@@ -28,5 +28,4 @@ dist-ssr
 !.env.example
 
 coverage
-cypress
 
