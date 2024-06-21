@@ -24,11 +24,13 @@
   "lint-staged": {
     "client/**/*.{js,jsx}": [
       "pnpm client:lint:fix",
-      "pnpm client:format"
+      "pnpm client:format",
+      "pnpm client:test"
     ],
     "server/**/*.js": [
       "pnpm server:lint:fix",
-      "pnpm server:format"
+      "pnpm server:format",
+      "pnpm server:test"
     ]
   }
 }
