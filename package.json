@@ -11,9 +11,15 @@
     "client:lint": "cd client && pnpm lint",
     "client:lint:fix": "cd client && pnpm lint:fix",
     "client:format": "cd client && pnpm format",
+    "client:test": "cd client && pnpm test",
     "server:lint": "cd server && pnpm lint",
     "server:lint:fix": "cd server && pnpm lint:fix",
-    "server:format": "cd server && pnpm format"
+    "server:format": "cd server && pnpm format",
+    "server:test": "cd server && pnpm test:all",
+    "lint": "pnpm client:lint && pnpm server:lint",
+    "lint:fix": "pnpm client:lint:fix && pnpm server:lint:fix",
+    "format": "pnpm client:format && pnpm server:format",
+    "test": "pnpm client:test && pnpm server:test"
   },
   "lint-staged": {
     "client/**/*.{js,jsx}": [
