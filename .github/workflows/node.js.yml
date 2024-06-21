@@ -48,7 +48,7 @@ jobs:
       - name: Run test
         run: pnpm test
 
-  gateway_test:
+  server_test:
     runs-on: ubuntu-22.04
     defaults:
       run:
