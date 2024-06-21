@@ -53,7 +53,7 @@ axiosAPI.interceptors.request.use(async (config) => {
 axiosAPI.interceptors.response.use(
   (response) => response,
   (error) => {
-    import.meta.env.VITE_MODE === "development" && console.log(error.message);
+    import.meta.env.VITE_MODE === "dev" && console.log(error.message);
     return Promise.reject(error);
   }
 );

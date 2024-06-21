@@ -1,0 +1,9 @@
+packages:
+  - "gateway"
+  - "common"
+  - "user"
+  - "exercise"
+  - "media"
+  - "learning"
+  - "statistics"
+  - "logging"

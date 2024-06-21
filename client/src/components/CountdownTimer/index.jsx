@@ -26,6 +26,7 @@ const CountdownTimer = ({ timeEnd }) => {
 
   return (
     <span
+      className='countdown-timer'
       style={{
         height: "22px"
       }}

@@ -1,12 +1,12 @@
 module.exports = {
   root: true,
-  env: { browser: true, es2020: true },
+  env: { browser: true, es2020: true, "cypress/globals": true },
   extends: [
     "eslint:recommended",
     "plugin:react/recommended",
     "plugin:react/jsx-runtime",
     "plugin:react-hooks/recommended",
-    // "plugin:import/recommended",
+    "plugin:cypress/recommended",
     "plugin:jsx-a11y/recommended",
     "eslint-config-prettier"
   ],
@@ -15,7 +15,7 @@ module.exports = {
   settings: {
     react: { version: "18.2" }
   },
-  plugins: ["react-refresh"],
+  plugins: ["react-refresh", "cypress"],
   rules: {
     "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
     "react/prop-types": "off",
@@ -29,6 +29,13 @@ module.exports = {
         argsIgnorePattern: "^_"
       }
     ],
-    "react/react-in-jsx-scope": "off"
+    "react/react-in-jsx-scope": "off",
+    "cypress/no-assigning-return-values": "error",
+    "cypress/no-unnecessary-waiting": "error",
+    "cypress/assertion-before-screenshot": "warn",
+    "cypress/no-force": "warn",
+    "cypress/no-async-tests": "error",
+    "cypress/no-async-before": "error",
+    "cypress/no-pause": "error"
   }
 };
