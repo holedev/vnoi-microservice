@@ -8,5 +8,9 @@ export default defineConfig({
       framework: "react",
       bundler: "vite"
     }
+  },
+  e2e: {
+    baseUrl: "http://localhost:5173",
+    setupNodeEvents(_on, _config) {}
   }
 });
