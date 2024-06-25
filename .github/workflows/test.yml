@@ -60,5 +60,5 @@ jobs:
 
       - name: Get preview URL
         run: |
-          echo "PREVIEW_URL=${{ steps.preview_client.outputs.preview_url }}" >> $GITHUB_ENV
+          echo "PREVIEW_URL=${{ steps.preview_client.outputs.url }}" >> $GITHUB_ENV
           cat ${{ env.PREVIEW_URL }}
