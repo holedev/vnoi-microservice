@@ -31,6 +31,9 @@ jobs:
       - name: Checkout code from GitHub
         uses: actions/checkout@v4
 
+      - name: Create serviceAccount.json
+        run: echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > ./client/serviceAccount.json
+
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
@@ -41,9 +44,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
-
-      - name: Recreate serviceAccount.json
-        run: echo ${{ secrets.FIREBASE_SERVICE_ACCOUNT }} > ./client/serviceAccount.json
 
       - name: Install dependencies
         run: pnpm install
