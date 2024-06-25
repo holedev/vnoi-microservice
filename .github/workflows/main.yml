@@ -4,10 +4,13 @@
 name: Continuous Integration With PNPM
 
 on:
-  push:
-    branches: ['test']
   pull_request:
     branches: ['dev']
+
+permissions:
+  checks: write
+  contents: write
+  pull-requests: write
 
 env:
   REDIS_PORT: demo
