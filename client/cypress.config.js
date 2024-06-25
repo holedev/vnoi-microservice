@@ -6,7 +6,6 @@ import { plugin as cypressFirebasePlugin } from "cypress-firebase";
 import serviceAccount from "./serviceAccount.json" assert { type: "json" };
 import webpackPreprocessor from "@cypress/webpack-preprocessor";
 
-// eslint-disable-next-line no-undef
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
