@@ -11,7 +11,7 @@ permissions:
   checks: write
   contents: write
   pull-requests: write
-
+  
 env:
   REDIS_PORT: demo
   REDIS_HOST: demo
