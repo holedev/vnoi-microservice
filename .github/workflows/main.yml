@@ -18,8 +18,35 @@ env:
   MONGODB_URL: demo
 
 jobs:
+  check_changes:
+    runs-on: ubuntu-22.04
+    outputs:
+      client_changed: ${{ steps.client_changed.outputs.client }}
+      server_changed: ${{ steps.server_changed.outputs.server }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for client changes
+        id: client_changed
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            client:
+              - 'client/**'
+
+      - name: Check for client changes
+        id: server_changed
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            server:
+              - 'server/**'
+
   client_test:
     runs-on: ubuntu-22.04
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.client_changed == 'true'}}
     defaults:
       run:
         working-directory: ./client/
@@ -62,6 +89,8 @@ jobs:
 
   server_test:
     runs-on: ubuntu-22.04
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.client_changed == 'true'}}
     defaults:
       run:
         working-directory: ./server/
@@ -98,19 +127,3 @@ jobs:
 
       - name: Run test
         run: pnpm test:all
-
-  check_client_changes:
-    runs-on: ubuntu-22.04
-    outputs:
-      client_changed: ${{ steps.client_changed.outputs.client }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Check for client changes
-        id: client_changed
-        uses: dorny/paths-filter@v2
-        with:
-          filters: |
-            client:
-              - 'client/**'
