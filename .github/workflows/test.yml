@@ -13,14 +13,6 @@ permissions:
   pull-requests: write
   deployments: write
 
-env:
-  REDIS_PORT: demo
-  REDIS_HOST: demo
-  RABBITMQ_URL: demo
-  BOT_TELEGRAM_TOKEN: demo
-  BOT_TELEGRAM_CHAT_ID: demo
-  MONGODB_URL: demo
-
 jobs:
   preview_client:
     runs-on: ubuntu-22.04
@@ -56,7 +48,7 @@ jobs:
         run: pnpm build
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+        uses: cloudflare/pages-action@v1.5.0
         id: deployClient
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -64,8 +56,9 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: ./client/
           directory: ./dist
+          wranglerVersion: '3'
 
-      - name: Set preview URL
+      - name: Get preview URL
         run: |
-          echo "PREVIEW_URL=$(jq -r '.url' < deployClient/output.json)" >> $GITHUB_ENV
+          echo "PREVIEW_URL=${{ steps.preview_client.outputs.preview_url }}" >> $GITHUB_ENV
           cat ${{ env.PREVIEW_URL }}
