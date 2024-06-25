@@ -23,3 +23,24 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+import firebase from "firebase/compat/app";
+import "firebase/compat/auth";
+import "firebase/compat/database";
+import "firebase/compat/firestore";
+import { attachCustomCommands } from "cypress-firebase";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA0jvNv65AL5O-IFu4og9ISNSy59VPp7u0",
+  authDomain: "mpc-web-design-2023.firebaseapp.com",
+  projectId: "mpc-web-design-2023",
+  storageBucket: "mpc-web-design-2023.appspot.com",
+  messagingSenderId: "176654305386",
+  appId: "1:176654305386:web:6e7f639791f06c31bba213",
+  measurementId: "G-HBR1SXXHT4",
+  databaseURL: "https://mpc-web-design-2023-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+attachCustomCommands({ Cypress, cy, firebase });

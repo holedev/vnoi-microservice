@@ -18,6 +18,7 @@ const endpoints = {
 
 const getFirebaseToken = async () => {
   const currentUser = getAuth().currentUser;
+
   if (currentUser) return currentUser.getIdToken();
 
   return new Promise((resolve, reject) => {

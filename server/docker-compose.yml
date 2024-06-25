@@ -167,6 +167,7 @@ services:
   db-mongo:
     container_name: db-mongo
     image: mongo
+    restart: on-failure
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
@@ -183,10 +184,11 @@ services:
     image: rabbitmq:3.12-management
     ports:
       - "15672:15672"
+    restart: on-failure
     environment:
-      - RABBITMQ_DEFAULT_PASS=
-      - RABBITMQ_DEFAULT_USER=
-      - RABBITMQ_DEFAULT_VHOST=
+      - RABBITMQ_DEFAULT_USER=hole
+      - RABBITMQ_DEFAULT_PASS=Admin@123
+      - RABBITMQ_DEFAULT_VHOST=vhost
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 10s

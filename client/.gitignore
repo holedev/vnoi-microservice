@@ -29,5 +29,5 @@ dist-ssr
 
 coverage
 
-firebase.json
+serviceAccount.json
 

@@ -1,23 +1,66 @@
-describe("template spec", () => {
-  const exampleUser = {
-    uid: "ssuvu5cwrMRjsNY5MeZpLWkeeit1",
-    email: "cloneg2001@gmail.com",
-    avatar: "https://lh3.googleusercontent.com/a/ACg8ocL88x_4EPP-mXwPI36_Zai2t7Ky3ZWF1HZrSEcjVnPc=s96-c",
-    fullName: "1410 Conan"
-  };
+import { cookies } from "~/utils/cookies";
 
-  it("Login with no bearer", () => {
-    cy.visit("http://localhost:5173");
+const studentUser = {
+  uid: "56h8MaU8MncTohzf5ajlpoognFh2",
+  email: "2051052051ho@ou.edu.vn",
+  avatar: "https://lh3.googleusercontent.com/a/ACg8ocL88x_4EPP-mXwPI36_Zai2t7Ky3ZWF1HZrSEcjVnPc=s96-c",
+  fullName: "1410 Conan"
+};
+
+describe("Login", () => {
+  beforeEach(() => {
+    cy.clearCookies();
+  });
+
+  it("Login with no Bearer return 401", () => {
+    cy.visit("/");
+    cy.url().should("eq", Cypress.env("BASE_URL") + "/auth/login");
     cy.request({
       method: "POST",
-      url: "http://localhost:9000/api/users/auth",
-      body: exampleUser,
+      url: Cypress.env("API_URL") + "/api/user/auth",
+      body: studentUser,
       failOnStatusCode: false
     }).then((response) => {
       expect(response.status).to.eq(401);
     });
 
     cy.visit("/");
-    cy.url().should("eq", "http://localhost:5173/auth/login");
+    cy.url().should("eq", Cypress.env("BASE_URL") + "/auth/login");
+  });
+
+  it.only("Login STUDENT", () => {
+    cy.visit("/");
+
+    cy.login(studentUser.uid)
+      .then((user) => {
+        return cy.wrap(user.auth.currentUser.accessToken);
+      })
+      .as("getUserAccessToken");
+
+    cy.get("@getUserAccessToken")
+      .then((accessToken) => {
+        cy.request({
+          method: "POST",
+          url: Cypress.env("API_URL") + "/api/user/auth",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`
+          },
+          body: studentUser
+        }).then((response) => {
+          cy.wrap(response);
+        });
+      })
+      .as("getDataUserLogin");
+
+    cy.get("@getDataUserLogin").then((response) => {
+      expect(response.status).to.eq(200);
+      expect(response.body.data).has.property("_id");
+      expect(response.body.data).has.property("email", studentUser.email);
+      cookies.set("user", response.body.data);
+
+      cy.visit("/");
+      cy.url().should("eq", Cypress.env("BASE_URL") + "/competition");
+    });
   });
 });
