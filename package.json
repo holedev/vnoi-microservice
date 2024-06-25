@@ -19,7 +19,8 @@
     "lint": "pnpm client:lint && pnpm server:lint",
     "lint:fix": "pnpm client:lint:fix && pnpm server:lint:fix",
     "format": "pnpm client:format && pnpm server:format",
-    "test": "pnpm client:test && pnpm server:test"
+    "test": "pnpm client:test && pnpm server:test",
+    "test:e2e": "cd client && pnpm cypress:e2e"
   },
   "lint-staged": {
     "client/**/*.{js,jsx}": [

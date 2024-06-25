@@ -10,8 +10,16 @@ module.exports = {
     "plugin:jsx-a11y/recommended",
     "eslint-config-prettier"
   ],
-  ignorePatterns: ["dist", ".eslintrc.cjs"],
-  parserOptions: { ecmaVersion: "latest", sourceType: "module" },
+  ignorePatterns: ["dist", ".eslintrc.cjs", "node_modules", "coverage", "cypress.config.js"],
+  parserOptions: {
+    ecmaVersion: "latest",
+    sourceType: "module",
+    requireConfigFile: false,
+    babelOptions: {
+      plugins: ["@babel/plugin-syntax-import-assertions"]
+    },
+    allowImportExportEverywhere: true
+  },
   settings: {
     react: { version: "18.2" }
   },

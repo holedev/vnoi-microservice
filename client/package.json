@@ -18,8 +18,8 @@
     "cypress:component:chrome": "cypress run --component --browser chrome",
     "cypress:component:firefox": "cypress run --component --browser firefox",
     "cypress:e2e": "pnpm cypress:e2e:chrome && pnpm cypress:e2e:firefox",
-    "cypress:e2e:chrome": "cypress run --browser chrome",
-    "cypress:e2e:firefox": "cypress run --browser firefox"
+    "cypress:e2e:chrome": "cypress run --e2e --browser chrome",
+    "cypress:e2e:firefox": "cypress run --e2e --browser firefox"
   },
   "dependencies": {
     "@codemirror/lang-cpp": "^6.0.2",
@@ -56,10 +56,13 @@
     "remark-gfm": "^3.0.1",
     "universal-cookie": "^6.1.1",
     "use-debounce": "^10.0.0",
-    "vitest": "^1.6.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.24.7",
+    "@babel/plugin-syntax-import-assertions": "^7.24.7",
+    "@babel/plugin-syntax-import-attributes": "^7.24.7",
+    "@cypress/webpack-preprocessor": "^6.0.2",
     "@types/node": "^20.4.10",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
@@ -68,6 +71,8 @@
     "@vitest/coverage-v8": "^1.6.0",
     "cypress": "^13.12.0",
     "cypress-firebase": "^4.1.0",
+    "cypress-vite": "^1.5.0",
+    "dotenv": "^16.4.5",
     "eslint": "^8.45.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-cypress": "^3.3.0",
@@ -78,6 +83,8 @@
     "eslint-plugin-react-refresh": "^0.4.3",
     "firebase-admin": "^12.2.0",
     "prettier": "^3.3.2",
-    "vite": "^4.4.5"
+    "vite": "^4.4.5",
+    "vitest": "^1.6.0",
+    "webpack": "^5.92.1"
   }
 }
