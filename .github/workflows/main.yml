@@ -35,7 +35,7 @@ jobs:
             client:
               - 'client/**'
 
-      - name: Check for client changes
+      - name: Check for server changes
         id: server_changed
         uses: dorny/paths-filter@v3
         with:
