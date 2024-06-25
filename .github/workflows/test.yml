@@ -106,9 +106,6 @@ jobs:
   preview_client:
     runs-on: ubuntu-22.04
     needs: client_test
-    defaults:
-      run:
-        working-directory: ./client/
     permissions:
       contents: read
       deployments: write
@@ -144,6 +141,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           projectName: vnoi-client
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ./client/
           directory: ./dist
 
       - name: Set preview URL
