@@ -4,8 +4,8 @@
 name: Continuous Integration With PNPM
 
 on:
-  pull_request:
-    branches: ['dev']
+  push:
+    branches: ['test']
 
 permissions:
   checks: write
@@ -22,35 +22,8 @@ env:
   MONGODB_URL: demo
 
 jobs:
-  check_commit_change:
-    runs-on: ubuntu-22.04
-    outputs:
-      client_changed: ${{ steps.client_changed.outputs.client }}
-      server_changed: ${{ steps.server_changed.outputs.server }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Check for client changes
-        id: client_changed
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            client:
-              - 'client/**'
-
-      - name: Check for server changes
-        id: server_changed
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            server:
-              - 'server/**'
-
   client_test:
     runs-on: ubuntu-22.04
-    needs: check_commit_change
-    if: ${{ needs.check_commit_change.outputs.client_changed == 'true'}}
     defaults:
       run:
         working-directory: ./client/
@@ -91,46 +64,44 @@ jobs:
       - name: Run test
         run: pnpm test
 
-  server_test:
-    runs-on: ubuntu-22.04
-    needs: check_commit_change
-    if: ${{ needs.check_commit_change.outputs.client_changed == 'true'}}
-    defaults:
-      run:
-        working-directory: ./server/
+  # server_test:
+  #   runs-on: ubuntu-22.04
+  #   defaults:
+  #     run:
+  #       working-directory: ./server/
 
-    strategy:
-      matrix:
-        node-version: ['18.18.2']
+  #   strategy:
+  #     matrix:
+  #       node-version: ['18.18.2']
 
-    steps:
-      - name: Checkout code from GitHub
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout code from GitHub
+  #       uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
+  #     - name: Install pnpm
+  #       uses: pnpm/action-setup@v3
+  #       with:
+  #         version: 9
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
+  #     - name: Use Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #         cache: 'pnpm'
 
-      - name: Cache pnpm dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            pnpm-store-${{ matrix.node-version }}-
+  #     - name: Cache pnpm dependencies
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: ~/.pnpm-store
+  #         key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+  #         restore-keys: |
+  #           pnpm-store-${{ matrix.node-version }}-
 
-      - name: Install dependencies
-        run: pnpm install
+  #     - name: Install dependencies
+  #       run: pnpm install
 
-      - name: Run test
-        run: pnpm test:all
+  #     - name: Run test
+  #       run: pnpm test:all
 
   preview_client:
     runs-on: ubuntu-22.04
@@ -138,7 +109,6 @@ jobs:
     defaults:
       run:
         working-directory: ./client/
-    if: needs.check_commit_change.outputs.client_changed == 'true'
     permissions:
       contents: read
       deployments: write
