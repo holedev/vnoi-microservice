@@ -30,6 +30,7 @@
     "server/**/*.js": [
       "pnpm server:lint:fix",
       "pnpm server:format"
-    ]
+    ],
+    ".github/workflows/*.yml": []
   }
 }
