@@ -98,3 +98,19 @@ jobs:
 
       - name: Run test
         run: pnpm test:all
+
+  check_client_changes:
+    runs-on: ubuntu-22.04
+    outputs:
+      client_changed: ${{ steps.client_changed.outputs.client }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for client changes
+        id: client_changed
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            client:
+              - 'client/**'
