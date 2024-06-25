@@ -42,6 +42,9 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
+      - name: Recreate serviceAccount.json
+        run: echo ${{ secrets.FIREBASE_SERVICE_ACCOUNT }} > ./client/serviceAccount.json
+
       - name: Install dependencies
         run: pnpm install
 
@@ -78,5 +81,3 @@ jobs:
 
       - name: Run test
         run: pnpm test:all
-
-  
