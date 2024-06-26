@@ -22,4 +22,7 @@ jobs:
       - name: Get version
         id: get_version
         run: |
-          echo "::set-output name=version::$(cat version)"
+          VERSION=$(jq -r ".version" server/package.json)
+          echo "${VERSION}" >> $GITHUB_OUTPUT
+
+      - run: echo "${{ steps.get_version.outputs.version }}"
