@@ -25,4 +25,4 @@ jobs:
           VERSION=$(jq -r ".version" server/package.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - run: echo "${{ steps.get_version.outputs.version }}"
+      - run: echo ${{ steps.get_version.outputs.version }}
