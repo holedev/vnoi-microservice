@@ -32,8 +32,7 @@ jobs:
           zone: asia-southeast1-a
           ssh_private_key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           command: |
-            sudo whoami
-            cat /etc/group
+            whoami
 
       - id: 'test'
         run: |-
