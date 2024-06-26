@@ -212,25 +212,25 @@ jobs:
         working-directory: server
     steps:
       - uses: actions/checkout@v3
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      # - name: Login to Docker Hub
+      #   uses: docker/login-action@v2
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build image
-        id: build
-        run: |
-          VERSION=${{ needs.check_version.outputs.version }} \
-          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
-          docker compose -f docker-compose.build.yml build
+      # - name: Build image
+      #   id: build
+      #   run: |
+      #     VERSION=${{ needs.check_version.outputs.version }} \
+      #     DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
+      #     docker compose -f docker-compose.build.yml build
 
-      - name: Push image
-        id: push
-        run: |
-          VERSION=${{ needs.check_version.outputs.version }} \
-          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
-          docker compose -f docker-compose.build.yml push
+      # - name: Push image
+      #   id: push
+      #   run: |
+      #     VERSION=${{ needs.check_version.outputs.version }} \
+      #     DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
+      #     docker compose -f docker-compose.build.yml push
 
       - name: Save compose file to next job
         uses: actions/upload-artifact@v4
@@ -257,10 +257,9 @@ jobs:
           name: artifact-vnoi
           path: ./server/
 
-      - name: Copy docker-compose file to GCP
+      - name: Copy file to GCE instance
         run: |
-          scp -i ${{ secrets.GCP_SSH_PRIVATE_KEY }} -o StrictHostKeyChecking=no ./server/docker-compose.prod.yml \
-          ho.pl@34.143.200.4:/home/ho.pl/docker-compose.prod.yml
+          gcloud compute scp ./server/docker-compose.prod.yml server-1:/home/ho.pl/docker-compose.prod.yml
 
       - name: SSH to staging server
         id: compute-ssh
