@@ -29,6 +29,7 @@ jobs:
       - id: compute-ssh
         uses: google-github-actions/ssh-compute@v1
         with:
+          user: ho.pl
           instance_name: server-1
           project_id: astute-office-426802-m1
           zone: asia-southeast1-a
