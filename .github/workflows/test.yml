@@ -184,13 +184,13 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [build_and_push_image, check_version]
     outputs:
-      external_ip: ${{ steps.compute-ssh.outputs.stdout }}
+      external_ip: ${{ steps.get_external_ip.outputs.stdout }}
     env:
       PROJECT_ID: astute-office-426802-m1
       ZONE: asia-southeast1-a
       INSTANCE_NAME: server-1
-      VERSION: ${{ needs.check_version.outputs.version }}
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      VERSION: '${{ needs.check_version.outputs.version }}'
+      DOCKERHUB_USERNAME: '${{ secrets.DOCKERHUB_USERNAME }}'
     permissions:
       contents: read
       id-token: write
@@ -232,10 +232,10 @@ jobs:
             echo "Finish deploy compose ${{ env.VERSION }}"
 
       - name: Get external IP
+        id: get_external_ip
         run: |
           gcloud compute instances describe ${{ env.INSTANCE_NAME }} --zone=${{ env.ZONE }} --project=${{ env.PROJECT_ID }} --format='value(networkInterfaces[0].accessConfigs[0].natIP)' > external_ip.txt
           cat external_ip.txt
-        id: get_external_ip
 
   preview_client:
     runs-on: ubuntu-22.04
@@ -293,7 +293,5 @@ jobs:
       - name: Get preview URL
         run: |
           echo "PREVIEW_URL=${{ steps.deployClient.outputs.url }}" >> $GITHUB_ENV
-          cat ${{ env.PREVIEW_URL }}
-          echo "Preview URL: ${{ steps.deployClient.outputs.environment }}" > $GITHUB_ENV
-          cat ${{ env.environment }}
-          cat ${{ steps.staging_server.outputs.external_ip }}
+          cat "${{ env.PREVIEW_URL }}"
+          echo "${{ steps.staging_server.outputs.external_ip }}"
