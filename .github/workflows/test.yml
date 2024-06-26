@@ -184,7 +184,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [build_and_push_image, check_version]
     outputs:
-      external_ip: ${{ steps.get_external_ip.outputs.stdout }}
+      external_ip: ${{ steps.get_external_ip.outputs.external_ip }}
     env:
       PROJECT_ID: astute-office-426802-m1
       ZONE: asia-southeast1-a
@@ -234,8 +234,8 @@ jobs:
       - name: Get external IP
         id: get_external_ip
         run: |
-          gcloud compute instances describe ${{ env.INSTANCE_NAME }} --zone=${{ env.ZONE }} --project=${{ env.PROJECT_ID }} --format='value(networkInterfaces[0].accessConfigs[0].natIP)' > external_ip.txt
-          cat external_ip.txt
+          EXTERNAL_IP=gcloud compute instances describe ${{ env.INSTANCE_NAME }} --zone=${{ env.ZONE }} --project=${{ env.PROJECT_ID }} --format='value(networkInterfaces[0].accessConfigs[0].natIP)'
+          echo "external_ip=$EXTERNAL_IP" >> $GITHUB_OUTPUT
 
   preview_client:
     runs-on: ubuntu-22.04
@@ -253,6 +253,12 @@ jobs:
       - name: Create serviceAccount.json
         run: |
           echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
+
+      - name: Create .env.local
+        run: |
+          echo "${{ secrets.CLIENT_ENV }}" | base64 -d > .env.local
+          EXTERNAL_IP="${{ needs.staging_server.outputs.external_ip }}"
+          sed -i "s|VITE_API_URL=|VITE_API_URL=http://${EXTERNAL_IP}|g" .env.local
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
@@ -293,5 +299,3 @@ jobs:
       - name: Get preview URL
         run: |
           echo "PREVIEW_URL=${{ steps.deployClient.outputs.url }}" >> $GITHUB_ENV
-          cat "${{ env.PREVIEW_URL }}"
-          echo "${{ steps.staging_server.outputs.external_ip }}"
