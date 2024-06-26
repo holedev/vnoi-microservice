@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: ./gateway/Dockerfile
-    image: lehodev/vnoi-backend-gateway:${GATEWAY_IMAGE_TAG}
+    image: lehodev/vnoi-backend-gateway:${IMAGE_TAG}
     ports:
       - "9000:9000"
     expose:
@@ -27,7 +27,7 @@ services:
     build:
       context: .
       dockerfile: ./common/Dockerfile
-    image: lehodev/vnoi-backend-common:${COMMON_IMAGE_TAG}
+    image: lehodev/vnoi-backend-common:${IMAGE_TAG}
     expose:
       - "9001"
     restart: on-failure
@@ -47,7 +47,7 @@ services:
     build:
       context: .
       dockerfile: ./user/Dockerfile
-    image: lehodev/vnoi-backend-user:${USER_IMAGE_TAG}
+    image: lehodev/vnoi-backend-user:${IMAGE_TAG}
     expose:
       - "9002"
     restart: on-failure
@@ -67,7 +67,7 @@ services:
     build:
       context: .
       dockerfile: ./exercise/Dockerfile
-    image: lehodev/vnoi-backend-exercise:${EXERCISE_IMAGE_TAG}
+    image: lehodev/vnoi-backend-exercise:${IMAGE_TAG}
     expose:
       - "9003"
     restart: on-failure
@@ -87,7 +87,7 @@ services:
     build:
       context: .
       dockerfile: ./media/Dockerfile
-    image: lehodev/vnoi-backend-media:${MEDIA_IMAGE_TAG}
+    image: lehodev/vnoi-backend-media:${IMAGE_TAG}
     expose:
       - "9004"
     restart: on-failure
@@ -107,7 +107,7 @@ services:
     build:
       context: .
       dockerfile: ./learning/Dockerfile
-    image: lehodev/vnoi-backend-learning:${LEARNING_IMAGE_TAG}
+    image: lehodev/vnoi-backend-learning:${IMAGE_TAG}
     expose:
       - "9005"
     restart: on-failure
@@ -127,7 +127,7 @@ services:
     build:
       context: .
       dockerfile: ./statistics/Dockerfile
-    image: lehodev/vnoi-backend-statistics:${STATISTICS_IMAGE_TAG}
+    image: lehodev/vnoi-backend-statistics:${IMAGE_TAG}
     expose:
       - "9006"
     restart: on-failure
@@ -147,7 +147,7 @@ services:
     build:
       context: .
       dockerfile: ./logging/Dockerfile
-    image: lehodev/vnoi-backend-logging:${LOGGING_IMAGE_TAG}
+    image: lehodev/vnoi-backend-logging:${IMAGE_TAG}
     expose:
       - "9007"
     restart: on-failure

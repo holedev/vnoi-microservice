@@ -1,4 +1,9 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
+current_version=$(jq -r ".version" server/package.json)
+echo "Current version: $current_version"
+
+echo "Enter new version (leave blank to keep current or type 'skip' to skip): " version
+
 pnpm lint-staged

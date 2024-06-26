@@ -1,7 +1,6 @@
 {
   "name": "server",
-  "version": "1.0.0",
-  "description": "",
+  "version": "v0.0.1",
   "scripts": {
     "lint": "eslint --ext .js . --report-unused-disable-directives --max-warnings 3",
     "lint:fix": "eslint --ext .js . --report-unused-disable-directives --max-warnings 3 --fix",
@@ -16,8 +15,6 @@
     "test:logging": "cd logging && pnpm test",
     "test:all": "pnpm run test:gateway && pnpm run test:common && pnpm run test:user && pnpm run test:exercise && pnpm run test:media && pnpm run test:learning && pnpm run test:statistics && pnpm run test:logging"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.24.7",
