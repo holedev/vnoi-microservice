@@ -241,6 +241,10 @@ jobs:
   staging_server:
     runs-on: ubuntu-22.04
     needs: [build_and_push_image, check_version]
+    env:
+      PROJECT_ID: astute-office-426802-m1
+      ZONE: asia-southeast1-a
+      INSTANCE_NAME: server-1
     permissions:
       contents: read
       id-token: write
@@ -259,18 +263,19 @@ jobs:
 
       - name: Copy file to GCE instance
         run: |
-          gcloud compute scp ./server/docker-compose.prod.yml server-1:/vnoi-microservice/docker-compose.prod.yml --zone=asia-southeast1-a --project=astute-office-426802-m1
+          gcloud compute scp ./server/docker-compose.prod.yml ${{ env.INSTANCE_NAME }}:/vnoi-microservice/docker-compose.prod.yml --zone=${{ env.ZONE }} --project=${{ env.PROJECT_ID }}
 
       - name: SSH to staging server
         id: compute-ssh
         uses: google-github-actions/ssh-compute@v1
         with:
           user: ho.pl
-          instance_name: server-1
-          project_id: astute-office-426802-m1
-          zone: asia-southeast1-a
+          instance_name: ${{ env.INSTANCE_NAME }}
+          project_id: ${{ env.PROJECT_ID }}
+          zone: ${{ env.ZONE }}
           ssh_private_key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           command: |
             VERSION=${{ needs.check_version.outputs.version }} \
             DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
             docker compose -f /vnoi-microservice/docker-compose.prod.yml pull
+            

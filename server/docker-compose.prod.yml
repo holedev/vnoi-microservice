@@ -10,6 +10,8 @@ services:
     restart: on-failure
     env_file:
       - .env.all.docker
+    volumes:
+      - ./firebase.json:/app/firebase.json
     environment:
       - CLIENT_URL=${CLIENT_URL}
     depends_on:
@@ -46,6 +48,8 @@ services:
     restart: on-failure
     env_file:
       - .env.all.docker
+    volumes:
+      - ./firebase.json:/app/firebase.json
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-user
     depends_on:
@@ -64,6 +68,8 @@ services:
     restart: on-failure
     env_file:
       - .env.all.docker
+    volumes:
+      - ./firebase.json:/app/firebase.json
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-exercise
       - MAX_SUBMISSION=50
