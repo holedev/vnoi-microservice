@@ -134,11 +134,9 @@ jobs:
 
   preview_client:
     runs-on: ubuntu-22.04
-    needs: client_test
     defaults:
       run:
         working-directory: ./client/
-    if: needs.check_commit_change.outputs.client_changed == 'true'
     permissions:
       contents: read
       deployments: write
@@ -161,6 +159,14 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ matrix.node-version }}-
+
       - name: Install dependencies
         run: pnpm install
 
@@ -168,15 +174,17 @@ jobs:
         run: pnpm build
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+        uses: cloudflare/pages-action@v1.5.0
         id: deployClient
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           projectName: vnoi-client
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ./client/
           directory: ./dist
+          wranglerVersion: '3'
 
-      - name: Set preview URL
+      - name: Get preview URL
         run: |
-          echo "PREVIEW_URL=$(jq -r '.url' < deployClient/output.json)" >> $GITHUB_ENV
+          echo "PREVIEW_URL=${{ steps.deployClient.outputs.url }}" >> $GITHUB_ENV
           cat ${{ env.PREVIEW_URL }}

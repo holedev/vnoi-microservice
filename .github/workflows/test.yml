@@ -14,51 +14,27 @@ permissions:
   deployments: write
 
 jobs:
-  preview_client:
+  staging_server:
     runs-on: ubuntu-22.04
-    defaults:
-      run:
-        working-directory: ./client/
     permissions:
       contents: read
-      deployments: write
+      id-token: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Create serviceAccount.json
-        run: |
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
+      - uses: 'actions/checkout@v4'
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
         with:
-          version: 9
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - id: compute-ssh
+        uses: google-github-actions/ssh-compute@v1
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
+          instance_name: server-1
+          zone: asia-southeast1-a
+          ssh_private_key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          command: 'echo Hello world'
 
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build client
-        run: pnpm build
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1.5.0
-        id: deployClient
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          projectName: vnoi-client
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: ./client/
-          directory: ./dist
-          wranglerVersion: '3'
-
-      - name: Get preview URL
-        run: |
-          echo "PREVIEW_URL=${{ steps.deployClient.outputs.url }}" >> $GITHUB_ENV
-          cat ${{ env.PREVIEW_URL }}
+      - id: 'test'
+        run: |-
+          echo '${{ steps.compute-ssh.outputs.stdout }}'
+          echo '${{ steps.compute-ssh.outputs.stderr }}'
