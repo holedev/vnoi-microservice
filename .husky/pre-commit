@@ -1,9 +1,17 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-current_version=$(jq -r ".version" server/package.json)
+package_path="server/package.json"
+
+current_version=$(jq -r ".version" "$package_path")
 echo "Current version: $current_version"
 
-echo "Enter new version (leave blank to keep current or type 'skip' to skip): " version
+exec < /dev/tty
+
+read -p "Enter new version (leave blank to keep current): " new_version
+
+if [ -n "$new_version" ]; then
+  jq ".version = \"$new_version\"" "$package_path" > package.json.tmp && mv package.json.tmp "$package_path"
+fi
 
 pnpm lint-staged
