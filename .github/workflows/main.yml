@@ -22,6 +22,19 @@ env:
   MONGODB_URL: demo
 
 jobs:
+  check-version:
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get version
+        id: get-version
+        run: |
+          VERSION=$(jq -r ".version" server/package.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
   check_commit_change:
     runs-on: ubuntu-22.04
     outputs:

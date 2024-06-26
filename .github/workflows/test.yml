@@ -11,18 +11,28 @@ permissions:
   deployments: write
 
 jobs:
-  version:
+  check-version:
     runs-on: ubuntu-22.04
     outputs:
-      version: ${{ steps.get_version.outputs.version }}
+      version: ${{ steps.get-version.outputs.version }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Get version
-        id: get_version
+        id: get-version
         run: |
           VERSION=$(jq -r ".version" server/package.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - run: echo ${{ steps.get_version.outputs.version }}
+  build-and-push-image:
+    runs-on: ubuntu-22.04
+    needs: check-version
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build image
+        run: |
+          docker -v
