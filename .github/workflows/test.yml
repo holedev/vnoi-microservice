@@ -47,49 +47,49 @@ jobs:
             server:
               - 'server/**'
 
-  # client_test:
-  #   runs-on: ubuntu-22.04
-  #   needs: check_commit_change
-  #   if: ${{ needs.check_commit_change.outputs.client_changed == 'true'}}
-  #   defaults:
-  #     run:
-  #       working-directory: ./client/
-  #   strategy:
-  #     matrix:
-  #       node-version: ['18.18.2']
+  client_test:
+    runs-on: ubuntu-22.04
+    needs: check_commit_change
+    if: ${{ needs.check_commit_change.outputs.client_changed == 'true'}}
+    defaults:
+      run:
+        working-directory: ./client/
+    strategy:
+      matrix:
+        node-version: ['18.18.2']
 
-  #   steps:
-  #     - name: Checkout code from GitHub
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout code from GitHub
+        uses: actions/checkout@v4
 
-  #     - name: Create serviceAccount.json
-  #       run: |
-  #         echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
+      - name: Create serviceAccount.json
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
 
-  #     - name: Install pnpm
-  #       uses: pnpm/action-setup@v3
-  #       with:
-  #         version: 9
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
-  #     - name: Use Node.js ${{ matrix.node-version }}
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: ${{ matrix.node-version }}
-  #         cache: 'pnpm'
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
 
-  #     - name: Cache pnpm dependencies
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ~/.pnpm-store
-  #         key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
-  #         restore-keys: |
-  #           pnpm-store-${{ matrix.node-version }}-
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ matrix.node-version }}-
 
-  #     - name: Install dependencies
-  #       run: pnpm install
+      - name: Install dependencies
+        run: pnpm install
 
-  #     - name: Run test
-  #       run: pnpm test
+      - name: Run test
+        run: pnpm test
 
   check_version:
     runs-on: ubuntu-22.04
@@ -146,64 +146,6 @@ jobs:
       - name: Run test
         run: pnpm test:all
 
-  # preview_client:
-  #   runs-on: ubuntu-22.04
-  #   needs: client_test
-  #   defaults:
-  #     run:
-  #       working-directory: ./client/
-  #   permissions:
-  #     contents: read
-  #     deployments: write
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-
-  #     - name: Create serviceAccount.json
-  #       run: |
-  #         echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
-
-  #     - name: Install pnpm
-  #       uses: pnpm/action-setup@v3
-  #       with:
-  #         version: 9
-
-  #     - name: Use Node.js ${{ matrix.node-version }}
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: ${{ matrix.node-version }}
-  #         cache: 'pnpm'
-
-  #     - name: Cache pnpm dependencies
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ~/.pnpm-store
-  #         key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
-  #         restore-keys: |
-  #           pnpm-store-${{ matrix.node-version }}-
-
-  #     - name: Install dependencies
-  #       run: pnpm install
-
-  #     - name: Build client
-  #       run: pnpm build
-
-  #     - name: Deploy to Cloudflare Pages
-  #       uses: cloudflare/pages-action@v1.5.0
-  #       id: deployClient
-  #       with:
-  #         apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  #         projectName: vnoi-client
-  #         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-  #         workingDirectory: ./client/
-  #         directory: ./dist
-  #         wranglerVersion: '3'
-
-  #     - name: Get preview URL
-  #       run: |
-  #         echo "PREVIEW_URL=${{ steps.deployClient.outputs.url }}" >> $GITHUB_ENV
-  #         cat ${{ env.PREVIEW_URL }}
-
   build_and_push_image:
     runs-on: ubuntu-22.04
     needs: [server_test, check_version]
@@ -241,10 +183,14 @@ jobs:
   staging_server:
     runs-on: ubuntu-22.04
     needs: [build_and_push_image, check_version]
+    outputs:
+      external_ip: ${{ steps.compute-ssh.outputs.stdout }}
     env:
       PROJECT_ID: astute-office-426802-m1
       ZONE: asia-southeast1-a
       INSTANCE_NAME: server-1
+      VERSION: ${{ needs.check_version.outputs.version }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
     permissions:
       contents: read
       id-token: write
@@ -275,7 +221,79 @@ jobs:
           zone: ${{ env.ZONE }}
           ssh_private_key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           command: |
-            VERSION=${{ needs.check_version.outputs.version }} \
-            DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
+            echo "Start pulling images ${{ env.VERSION }}"
+            VERSION=${{ env.VERSION }} DOCKERHUB_USERNAME=${{ env.DOCKERHUB_USERNAME }} \
             docker compose -f /vnoi-microservice/docker-compose.prod.yml pull
-            
+            echo "Finish pulling images ${{ env.VERSION }}"
+
+            echo "Start deploy compose ${{ env.VERSION }}"
+            VERSION=${{ env.VERSION }} DOCKERHUB_USERNAME=${{ env.DOCKERHUB_USERNAME }} \
+            docker compose -f /vnoi-microservice/docker-compose.prod.yml up -d
+            echo "Finish deploy compose ${{ env.VERSION }}"
+
+      - name: Get external IP
+        run: |
+          gcloud compute instances describe ${{ env.INSTANCE_NAME }} --zone=${{ env.ZONE }} --project=${{ env.PROJECT_ID }} --format='value(networkInterfaces[0].accessConfigs[0].natIP)' > external_ip.txt
+          cat external_ip.txt
+        id: get_external_ip
+
+  preview_client:
+    runs-on: ubuntu-22.04
+    needs: [client_test, server_test]
+    defaults:
+      run:
+        working-directory: ./client/
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create serviceAccount.json
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ matrix.node-version }}-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build client
+        run: pnpm build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1.5.0
+        id: deployClient
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          projectName: vnoi-client
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ./client/
+          directory: ./dist
+          wranglerVersion: '3'
+
+      - name: Get preview URL
+        run: |
+          echo "PREVIEW_URL=${{ steps.deployClient.outputs.url }}" >> $GITHUB_ENV
+          cat ${{ env.PREVIEW_URL }}
+          echo "Preview URL: ${{ steps.deployClient.outputs.environment }}" > $GITHUB_ENV
+          cat ${{ env.environment }}
+          cat ${{ steps.staging_server.outputs.external_ip }}
