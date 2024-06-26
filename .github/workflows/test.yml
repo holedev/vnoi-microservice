@@ -238,9 +238,12 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    defaults:
+      run:
+        working-directory: ./server/
     steps:
-      - uses: 'actions/checkout@v4'
-      - id: 'auth'
+      - uses: actions/checkout@v4
+      - id: auth
         uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
