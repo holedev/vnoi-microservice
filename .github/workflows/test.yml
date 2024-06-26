@@ -10,6 +10,7 @@ on:
 permissions:
   checks: write
   contents: write
+  pull-requests: write
   deployments: write
 
 jobs:
@@ -28,8 +29,8 @@ jobs:
       - id: compute-ssh
         uses: google-github-actions/ssh-compute@v1
         with:
-          project_id: astute-office-426802-m1
           instance_name: server-1
+          project_id: astute-office-426802-m1
           zone: asia-southeast1-a
           ssh_private_key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           command: 'echo Hello world'
