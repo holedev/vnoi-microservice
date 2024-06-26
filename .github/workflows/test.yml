@@ -232,23 +232,33 @@ jobs:
           DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
           docker compose -f docker-compose.build.yml push
 
+      - name: Save compose file
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-compose
+          path: artifact/docker-compose.prod.yml
+
   staging_server:
     runs-on: ubuntu-22.04
     needs: [build_and_push_image, check_version]
     permissions:
       contents: read
       id-token: write
-    defaults:
-      run:
-        working-directory: ./server/
     steps:
-      - uses: actions/checkout@v4
-      - id: auth
+      - name: Login to Google Cloud
+        id: auth
         uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
 
-      - id: compute-ssh
+      - name: Get docker-compose file
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-compose
+          path: artifact
+
+      - name: SSH to staging server
+        id: compute-ssh
         uses: google-github-actions/ssh-compute@v1
         with:
           user: ho.pl
