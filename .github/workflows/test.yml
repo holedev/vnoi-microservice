@@ -33,7 +33,8 @@ jobs:
           project_id: astute-office-426802-m1
           zone: asia-southeast1-a
           ssh_private_key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
-          command: 'echo Hello world'
+          command: |
+            docker ps -a
 
       - id: 'test'
         run: |-
