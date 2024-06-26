@@ -239,7 +239,7 @@ jobs:
 
   preview_client:
     runs-on: ubuntu-22.04
-    needs: [client_test, server_test]
+    needs: [client_test, staging_server]
     defaults:
       run:
         working-directory: ./client/
