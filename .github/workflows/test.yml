@@ -274,4 +274,4 @@ jobs:
           command: |
             VERSION=${{ needs.check_version.outputs.version }} \
             DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
-            docker compose -f docker-compose.prod.yml pull
+            docker compose -f /vnoi-microservice/docker-compose.prod.yml pull
