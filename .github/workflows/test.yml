@@ -260,7 +260,7 @@ jobs:
       - name: Copy file to GCE instance
         run: |
           whoami
-          gcloud compute scp ./server/docker-compose.prod.yml server-1:/home/ho.pl/docker-compose.prod.yml --zone=asia-southeast1-a --project=astute-office-426802-m1
+          gcloud compute scp ./server/docker-compose.prod.yml server-1:/vnoi-microservice/docker-compose.prod.yml --zone=asia-southeast1-a --project=astute-office-426802-m1
 
       - name: SSH to staging server
         id: compute-ssh
