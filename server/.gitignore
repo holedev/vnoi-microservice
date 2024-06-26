@@ -8,5 +8,3 @@ firebase.json
 *.env.*
 !.env.all.example
 !.env.version.docker
-
-docker-compose.prod.yml
