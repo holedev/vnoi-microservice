@@ -10,7 +10,6 @@ on:
 permissions:
   checks: write
   contents: write
-  pull-requests: write
   deployments: write
 
 jobs:
