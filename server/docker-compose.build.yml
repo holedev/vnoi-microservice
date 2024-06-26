@@ -10,41 +10,41 @@ services:
     build:
       context: .
       dockerfile: ./common/Dockerfile
-    image: ${DOCKERHUB_USERNAME}/vnoi-backend-common:v${VERSION}
+    image: ${DOCKERHUB_USERNAME}/vnoi-backend-common:${VERSION}
 
   user:
     build:
       context: .
       dockerfile: ./user/Dockerfile
-    image: ${DOCKERHUB_USERNAME}/vnoi-backend-user:v${VERSION}
+    image: ${DOCKERHUB_USERNAME}/vnoi-backend-user:${VERSION}
 
   exercise:
     build:
       context: .
       dockerfile: ./exercise/Dockerfile
-    image: ${DOCKERHUB_USERNAME}/vnoi-backend-exercise:v${VERSION}
+    image: ${DOCKERHUB_USERNAME}/vnoi-backend-exercise:${VERSION}
 
   media:
     container_name: server-media
     build:
       context: .
       dockerfile: ./media/Dockerfile
-    image: ${DOCKERHUB_USERNAME}/vnoi-backend-media:v${VERSION}
+    image: ${DOCKERHUB_USERNAME}/vnoi-backend-media:${VERSION}
 
   learning:
     build:
       context: .
       dockerfile: ./learning/Dockerfile
-    image: ${DOCKERHUB_USERNAME}/vnoi-backend-learning:v${VERSION}
+    image: ${DOCKERHUB_USERNAME}/vnoi-backend-learning:${VERSION}
 
   statistics:
     build:
       context: .
       dockerfile: ./statistics/Dockerfile
-    image: ${DOCKERHUB_USERNAME}/vnoi-backend-statistics:v${VERSION}
+    image: ${DOCKERHUB_USERNAME}/vnoi-backend-statistics:${VERSION}
 
   logging:
     build:
       context: .
       dockerfile: ./logging/Dockerfile
-    image: ${DOCKERHUB_USERNAME}/vnoi-backend-logging:v${VERSION}
+    image: ${DOCKERHUB_USERNAME}/vnoi-backend-logging:${VERSION}
