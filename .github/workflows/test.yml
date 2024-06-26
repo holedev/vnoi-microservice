@@ -11,7 +11,7 @@ permissions:
   deployments: write
 
 jobs:
-  get_version:
+  version:
     runs-on: ubuntu-22.04
     outputs:
       version: ${{ steps.get_version.outputs.version }}
@@ -23,26 +23,3 @@ jobs:
         id: get_version
         run: |
           echo "::set-output name=version::$(cat version)"
-  get_image:
-    runs-on: ubuntu-22.04
-    defaults:
-      run:
-        working-directory: ./server/
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Build image
-        run: |
-          echo "Building image"
-          docker build -t lehodev/vnoi-backend-learning:${{ github.sha }} ./learning
-          docker build -t lehodev/vnoi-backend-statistics:${{ github.sha }} ./statistics
-          docker build -t lehodev/vnoi-backend-logging:${{ github.sha }} ./logging
-
-      - name: Push image
-        run: |
-          echo "Pushing image"
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker push lehodev/vnoi-backend-learning:${{ github.sha }}
-          docker push lehodev/vnoi-backend-statistics:${{ github.sha }}
-          docker push lehodev/vnoi-backend-logging:${{ github.sha }}
