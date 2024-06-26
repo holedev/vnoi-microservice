@@ -1,6 +1,3 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
 name: Continuous Integration With PNPM
 
 on:
@@ -36,8 +33,9 @@ jobs:
           ssh_private_key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           command: |
             sudo whoami
+            cat /etc/group
 
       - id: 'test'
         run: |-
-          echo '${{ steps.compute-ssh.outputs.stdout }}'
-          echo '${{ steps.compute-ssh.outputs.stderr }}'
+          echo ${{ steps.compute-ssh.outputs.stdout }}
+          echo ${{ steps.compute-ssh.outputs.stderr }}
