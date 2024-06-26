@@ -234,7 +234,7 @@ jobs:
       - name: Get external IP
         id: get_external_ip
         run: |
-          EXTERNAL_IP=gcloud compute instances describe ${{ env.INSTANCE_NAME }} --zone=${{ env.ZONE }} --project=${{ env.PROJECT_ID }} --format='value(networkInterfaces[0].accessConfigs[0].natIP)'
+          EXTERNAL_IP=$(gcloud compute instances describe ${{ env.INSTANCE_NAME }} --zone=${{ env.ZONE }} --project=${{ env.PROJECT_ID }} --format='value(networkInterfaces[0].accessConfigs[0].natIP)')
           echo "external_ip=$EXTERNAL_IP" >> $GITHUB_OUTPUT
 
   preview_client:
@@ -258,7 +258,7 @@ jobs:
         run: |
           echo "${{ secrets.CLIENT_ENV }}" | base64 -d > .env.local
           EXTERNAL_IP="${{ needs.staging_server.outputs.external_ip }}"
-          sed -i "s|VITE_API_URL=|VITE_API_URL=http://${EXTERNAL_IP}|g" .env.local
+          sed -i "s|VITE_API_URL=|VITE_API_URL=http://$EXTERNAL_IP|g" .env.local
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
