@@ -257,6 +257,11 @@ jobs:
           name: artifact-vnoi
           path: ./server/
 
+      - name: Copy docker-compose file to GCP
+        run: |
+          scp -i ${{ secrets.GCP_SSH_PRIVATE_KEY }} -o StrictHostKeyChecking=no ./server/docker-compose.prod.yml \
+          ho.pl@34.143.200.4:/home/ho.pl/docker-compose.prod.yml
+
       - name: SSH to staging server
         id: compute-ssh
         uses: google-github-actions/ssh-compute@v1
