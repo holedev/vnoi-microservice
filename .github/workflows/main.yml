@@ -1,11 +1,11 @@
 # This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
-name: Continuous Integration With PNPM
+name: CICD
 
 on:
   pull_request:
-    branches: ['dev']
+    branches: ['main']
 
 permissions:
   checks: write
@@ -22,19 +22,6 @@ env:
   MONGODB_URL: demo
 
 jobs:
-  check-version:
-    runs-on: ubuntu-22.04
-    outputs:
-      version: ${{ steps.get-version.outputs.version }}
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Get version
-        id: get-version
-        run: |
-          VERSION=$(jq -r ".version" server/package.json)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
   check_commit_change:
     runs-on: ubuntu-22.04
     outputs:
@@ -104,10 +91,24 @@ jobs:
       - name: Run test
         run: pnpm test
 
-  server_test:
+  check_version:
     runs-on: ubuntu-22.04
     needs: check_commit_change
-    if: ${{ needs.check_commit_change.outputs.client_changed == 'true'}}
+    if: ${{ needs.check_commit_change.outputs.server_changed == 'true'}}
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get version
+        id: get-version
+        run: |
+          VERSION=$(jq -r ".version" ./server/package.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+  server_test:
+    runs-on: ubuntu-22.04
+    needs: check_version
     defaults:
       run:
         working-directory: ./server/
@@ -202,8 +203,37 @@ jobs:
           echo "PREVIEW_URL=${{ steps.deployClient.outputs.url }}" >> $GITHUB_ENV
           cat ${{ env.PREVIEW_URL }}
 
+  build_and_push_image:
+    runs-on: ubuntu-22.04
+    needs: [server_test, check_version]
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build image
+        id: build
+        run: |
+          VERSION=${{ needs.check_version.outputs.version }} \
+          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
+          docker compose -f docker-compose.build.yml build
+
+      - name: Push image
+        id: push
+        run: |
+          VERSION=${{ needs.check_version.outputs.version }} \
+          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
+          docker compose -f docker-compose.build.yml push
+
   staging_server:
     runs-on: ubuntu-22.04
+    needs: [build_and_push_image, check_version]
     permissions:
       contents: read
       id-token: write
@@ -223,9 +253,6 @@ jobs:
           zone: asia-southeast1-a
           ssh_private_key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           command: |
-            docker ps
-
-      - id: 'test'
-        run: |-
-          echo '${{ steps.compute-ssh.outputs.stdout }}'
-          echo '${{ steps.compute-ssh.outputs.stderr }}'
+            VERSION=${{ needs.check_version.outputs.version }} \
+            DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
+            docker compose -f docker-compose.prod.yml pull
