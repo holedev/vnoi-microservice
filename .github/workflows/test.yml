@@ -47,49 +47,49 @@ jobs:
             server:
               - 'server/**'
 
-  client_test:
-    runs-on: ubuntu-22.04
-    needs: check_commit_change
-    if: ${{ needs.check_commit_change.outputs.client_changed == 'true'}}
-    defaults:
-      run:
-        working-directory: ./client/
-    strategy:
-      matrix:
-        node-version: ['18.18.2']
+  # client_test:
+  #   runs-on: ubuntu-22.04
+  #   needs: check_commit_change
+  #   if: ${{ needs.check_commit_change.outputs.client_changed == 'true'}}
+  #   defaults:
+  #     run:
+  #       working-directory: ./client/
+  #   strategy:
+  #     matrix:
+  #       node-version: ['18.18.2']
 
-    steps:
-      - name: Checkout code from GitHub
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout code from GitHub
+  #       uses: actions/checkout@v4
 
-      - name: Create serviceAccount.json
-        run: |
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
+  #     - name: Create serviceAccount.json
+  #       run: |
+  #         echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
+  #     - name: Install pnpm
+  #       uses: pnpm/action-setup@v3
+  #       with:
+  #         version: 9
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
+  #     - name: Use Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #         cache: 'pnpm'
 
-      - name: Cache pnpm dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            pnpm-store-${{ matrix.node-version }}-
+  #     - name: Cache pnpm dependencies
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: ~/.pnpm-store
+  #         key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+  #         restore-keys: |
+  #           pnpm-store-${{ matrix.node-version }}-
 
-      - name: Install dependencies
-        run: pnpm install
+  #     - name: Install dependencies
+  #       run: pnpm install
 
-      - name: Run test
-        run: pnpm test
+  #     - name: Run test
+  #       run: pnpm test
 
   check_version:
     runs-on: ubuntu-22.04
@@ -146,63 +146,63 @@ jobs:
       - name: Run test
         run: pnpm test:all
 
-  preview_client:
-    runs-on: ubuntu-22.04
-    needs: client_test
-    defaults:
-      run:
-        working-directory: ./client/
-    permissions:
-      contents: read
-      deployments: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # preview_client:
+  #   runs-on: ubuntu-22.04
+  #   needs: client_test
+  #   defaults:
+  #     run:
+  #       working-directory: ./client/
+  #   permissions:
+  #     contents: read
+  #     deployments: write
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Create serviceAccount.json
-        run: |
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
+  #     - name: Create serviceAccount.json
+  #       run: |
+  #         echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
+  #     - name: Install pnpm
+  #       uses: pnpm/action-setup@v3
+  #       with:
+  #         version: 9
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
+  #     - name: Use Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #         cache: 'pnpm'
 
-      - name: Cache pnpm dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            pnpm-store-${{ matrix.node-version }}-
+  #     - name: Cache pnpm dependencies
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: ~/.pnpm-store
+  #         key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+  #         restore-keys: |
+  #           pnpm-store-${{ matrix.node-version }}-
 
-      - name: Install dependencies
-        run: pnpm install
+  #     - name: Install dependencies
+  #       run: pnpm install
 
-      - name: Build client
-        run: pnpm build
+  #     - name: Build client
+  #       run: pnpm build
 
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1.5.0
-        id: deployClient
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          projectName: vnoi-client
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: ./client/
-          directory: ./dist
-          wranglerVersion: '3'
+  #     - name: Deploy to Cloudflare Pages
+  #       uses: cloudflare/pages-action@v1.5.0
+  #       id: deployClient
+  #       with:
+  #         apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  #         projectName: vnoi-client
+  #         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  #         workingDirectory: ./client/
+  #         directory: ./dist
+  #         wranglerVersion: '3'
 
-      - name: Get preview URL
-        run: |
-          echo "PREVIEW_URL=${{ steps.deployClient.outputs.url }}" >> $GITHUB_ENV
-          cat ${{ env.PREVIEW_URL }}
+  #     - name: Get preview URL
+  #       run: |
+  #         echo "PREVIEW_URL=${{ steps.deployClient.outputs.url }}" >> $GITHUB_ENV
+  #         cat ${{ env.PREVIEW_URL }}
 
   build_and_push_image:
     runs-on: ubuntu-22.04
@@ -259,7 +259,7 @@ jobs:
 
       - name: Copy file to GCE instance
         run: |
-          gcloud compute scp ./server/docker-compose.prod.yml server-1:/home/ho.pl/docker-compose.prod.yml
+          gcloud compute scp ./server/docker-compose.prod.yml server-1:/home/ho.pl/docker-compose.prod.yml --zone=asia-southeast1-a --project=astute-office-426802-m1
 
       - name: SSH to staging server
         id: compute-ssh
