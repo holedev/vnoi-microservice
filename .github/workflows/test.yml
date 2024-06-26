@@ -108,7 +108,7 @@ jobs:
 
   server_test:
     runs-on: ubuntu-22.04
-    needs: check_version
+    # needs: check_version
     defaults:
       run:
         working-directory: ./server/
