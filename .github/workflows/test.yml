@@ -235,8 +235,8 @@ jobs:
       - name: Save compose file
         uses: actions/upload-artifact@v4
         with:
-          name: docker-compose
-          path: artifact/docker-compose.prod.yml
+          name: artifact/docker-compose
+          path: docker-compose.prod.yml
 
   staging_server:
     runs-on: ubuntu-22.04
@@ -254,8 +254,7 @@ jobs:
       - name: Get docker-compose file
         uses: actions/download-artifact@v4
         with:
-          name: docker-compose
-          path: artifact
+          name: artifact/docker-compose
 
       - name: SSH to staging server
         id: compute-ssh
