@@ -1,4 +1,4 @@
-name: vnoi-backend-${VERSION}
+name: vnoi-backend
 services:
   gateway:
     container_name: server-gateway

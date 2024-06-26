@@ -41,9 +41,13 @@ jobs:
       - name: Build image
         id: build
         run: |
-          VERSION=${{ needs.check-version.outputs.version }} docker compose --no-env -f docker-compose.prod.yml build
+          VERSION=${{ needs.check-version.outputs.version }} \
+          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
+          docker compose -f docker-compose.build.yml build
 
       - name: Push image
         id: push
         run: |
-          VERSION=${{ needs.check-version.outputs.version }} docker compose -f docker-compose.prod.yml push
+          VERSION=${{ needs.check-version.outputs.version }} \
+          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
+          docker compose -f docker-compose.build.yml push

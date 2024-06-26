@@ -1,0 +1,50 @@
+name: vnoi-backend
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: ./gateway/Dockerfile
+    image: ${DOCKERHUB_USERNAME}/vnoi-backend-gateway:${VERSION}
+
+  common:
+    build:
+      context: .
+      dockerfile: ./common/Dockerfile
+    image: ${DOCKERHUB_USERNAME}/vnoi-backend-common:v${VERSION}
+
+  user:
+    build:
+      context: .
+      dockerfile: ./user/Dockerfile
+    image: ${DOCKERHUB_USERNAME}/vnoi-backend-user:v${VERSION}
+
+  exercise:
+    build:
+      context: .
+      dockerfile: ./exercise/Dockerfile
+    image: ${DOCKERHUB_USERNAME}/vnoi-backend-exercise:v${VERSION}
+
+  media:
+    container_name: server-media
+    build:
+      context: .
+      dockerfile: ./media/Dockerfile
+    image: ${DOCKERHUB_USERNAME}/vnoi-backend-media:v${VERSION}
+
+  learning:
+    build:
+      context: .
+      dockerfile: ./learning/Dockerfile
+    image: ${DOCKERHUB_USERNAME}/vnoi-backend-learning:v${VERSION}
+
+  statistics:
+    build:
+      context: .
+      dockerfile: ./statistics/Dockerfile
+    image: ${DOCKERHUB_USERNAME}/vnoi-backend-statistics:v${VERSION}
+
+  logging:
+    build:
+      context: .
+      dockerfile: ./logging/Dockerfile
+    image: ${DOCKERHUB_USERNAME}/vnoi-backend-logging:v${VERSION}
