@@ -24,8 +24,7 @@ jobs:
       - id: 'auth'
         uses: 'google-github-actions/auth@v2'
         with:
-          workload_identity_provider: 'projects/astute-office-426802-m1/zones/asia-southeast1-a/instances/server-1'
-          service_account: gcp-github-action@astute-office-426802-m1.iam.gserviceaccount.com
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
 
       - id: compute-ssh
         uses: google-github-actions/ssh-compute@v1
