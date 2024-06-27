@@ -27,6 +27,7 @@ jobs:
     env:
       CYPRESS_BASE_URL: https://staging.vnoi-client.pages.dev
       CYPRESS_API_URL: https://vnoi-server-staging.undefine.tech
+      CYPRESS_RECORD_KEY: '03e004c1-e3c5-4750-9747-8cf0fbad621b'
 
     defaults:
       run:
@@ -62,4 +63,4 @@ jobs:
         run: pnpm install
 
       - name: Run e2e tests
-        run: pnpm cypress:e2e:chrome
+        run: pnpm cypress:e2e:record
