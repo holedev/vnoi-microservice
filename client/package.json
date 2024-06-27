@@ -18,7 +18,7 @@
     "cypress:component:chrome": "cypress run --component --browser chrome",
     "cypress:component:firefox": "cypress run --component --browser firefox",
     "cypress:e2e": "pnpm cypress:e2e:chrome && pnpm cypress:e2e:firefox",
-    "cypress:e2e:chrome": "cypress run --e2e --browser chrome",
+    "cypress:e2e:chrome": "cypress run --record --key 03e004c1-e3c5-4750-9747-8cf0fbad621b --e2e --browser chrome ",
     "cypress:e2e:firefox": "cypress run --e2e --browser firefox"
   },
   "dependencies": {
