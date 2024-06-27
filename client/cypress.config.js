@@ -31,6 +31,9 @@ export default defineConfig({
       };
       on("file:preprocessor", webpackPreprocessor(options));
 
+      config.env.CYPRESS_BASE_URL = process.env.CYPRESS_BASE_URL;
+      config.env.CYPRESS_API_URL = process.env.CYPRESS_API_URL;
+
       return cypressFirebasePlugin(on, config, admin, {
         credential: admin.credential.cert(serviceAccount)
       });

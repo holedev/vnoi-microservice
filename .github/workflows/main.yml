@@ -252,7 +252,7 @@ jobs:
       VITE_PAGE_SIZE: '${{ secrets.PAGE_SIZE }}'
 
       VITE_MODE: 'dev'
-      VITE_API_URL: 'http://localhost:3000'
+      VITE_API_URL: 'https://vnoi-server-staging.undefine.tech'
     defaults:
       run:
         working-directory: ./client/
