@@ -19,6 +19,10 @@ describe("Login", () => {
       method: "POST",
       url: Cypress.env("CYPRESS_API_URL") + "/api/user/auth",
       body: studentUser,
+      headers: {
+        accept: "application/json, text/plain, */*",
+        "user-agent": "axios/0.27.2"
+      },
       failOnStatusCode: false
     }).then((response) => {
       console.log(response);
