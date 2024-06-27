@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       CYPRESS_BASE_URL: https://staging.vnoi-client.pages.dev
-      CYPRESS_API_URL: http://34.143.200.4
+      CYPRESS_API_URL: https://vnoi-server-staging.undefine.tech
 
     defaults:
       run:
