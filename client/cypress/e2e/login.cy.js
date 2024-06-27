@@ -21,6 +21,7 @@ describe("Login", () => {
       body: studentUser,
       failOnStatusCode: false
     }).then((response) => {
+      console.log(response);
       expect(response.status).to.eq(401);
     });
 

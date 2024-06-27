@@ -27,6 +27,7 @@ jobs:
     env:
       CYPRESS_BASE_URL: https://staging.vnoi-client.pages.dev
       CYPRESS_API_URL: https://vnoi-server-staging.undefine.tech
+
     defaults:
       run:
         working-directory: ./client/
@@ -56,9 +57,6 @@ jobs:
           key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
             pnpm-store-${{ matrix.node-version }}-
-
-      - name: Print env
-        run: printenv
 
       - name: Install dependencies
         run: pnpm install
