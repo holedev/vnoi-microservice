@@ -24,6 +24,19 @@ env:
 jobs:
   preview_client:
     runs-on: ubuntu-22.04
+    env:
+      VITE_FIREBASE_API_KEY: '${{ secrets.FIREBASE_API_KEY }}'
+      VITE_FIREBASE_AUTH_DOMAIN: '${{ secrets.FIREBASE_AUTH_DOMAIN }}'
+      VITE_FIREBASE_PROJECT_ID: '${{ secrets.FIREBASE_PROJECT_ID }}'
+      VITE_FIREBASE_STORAGE_BUCKET: '${{ secrets.FIREBASE_STORAGE_BUCKET }}'
+      VITE_FIREBASE_MESS_SENDER_ID: '${{ secrets.FIREBASE_MESS_SENDER_ID }}'
+      VITE_FIREBASE_APP_ID: '${{ secrets.FIREBASE_APP_ID }}'
+      VITE_FIREBASE_MEASUREMENT_ID: '${{ secrets.FIREBASE_MEASUREMENT_ID }}'
+      VITE_FIREBASE_DATABASE_URL: '${{ secrets.FIREBASE_DATABASE_URL }}'
+      VITE_PAGE_SIZE: '${{ secrets.PAGE_SIZE }}'
+
+      VITE_MODE: 'dev'
+      VITE_API_URL: 'http://localhost:3000'
     defaults:
       run:
         working-directory: ./client/
@@ -37,11 +50,6 @@ jobs:
       - name: Create serviceAccount.json
         run: |
           echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
-
-      - name: Create .env.local
-        run: |
-          echo "${{ secrets.CLIENT_ENV }}" | base64 -d > .env.local
-          sed -i "s|^VITE_API_URL=.*|VITE_API_URL=http://localhost:9001|g" .env.local
 
       - name: Print environment variables
         run: printenv
