@@ -43,6 +43,9 @@ jobs:
           echo "${{ secrets.CLIENT_ENV }}" | base64 -d > .env.local
           sed -i "s|VITE_API_URL=|VITE_API_URL=http://localhost:9001|g" .env.local
 
+      - name: Cat .env.local
+        run: cat .env.local
+
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
