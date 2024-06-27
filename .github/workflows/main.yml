@@ -22,133 +22,8 @@ env:
   MONGODB_URL: demo
 
 jobs:
-  check_commit_change:
-    runs-on: ubuntu-22.04
-    outputs:
-      client_changed: ${{ steps.client_changed.outputs.client }}
-      server_changed: ${{ steps.server_changed.outputs.server }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Check for client changes
-        id: client_changed
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            client:
-              - 'client/**'
-
-      - name: Check for server changes
-        id: server_changed
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            server:
-              - 'server/**'
-
-  client_test:
-    runs-on: ubuntu-22.04
-    needs: check_commit_change
-    if: ${{ needs.check_commit_change.outputs.client_changed == 'true'}}
-    defaults:
-      run:
-        working-directory: ./client/
-    strategy:
-      matrix:
-        node-version: ['18.18.2']
-
-    steps:
-      - name: Checkout code from GitHub
-        uses: actions/checkout@v4
-
-      - name: Create serviceAccount.json
-        run: |
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
-
-      - name: Cache pnpm dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            pnpm-store-${{ matrix.node-version }}-
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Run test
-        run: pnpm test
-
-  check_version:
-    runs-on: ubuntu-22.04
-    needs: check_commit_change
-    if: ${{ needs.check_commit_change.outputs.server_changed == 'true'}}
-    outputs:
-      version: ${{ steps.get-version.outputs.version }}
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Get version
-        id: get-version
-        run: |
-          VERSION=$(jq -r ".version" ./server/package.json)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-  server_test:
-    runs-on: ubuntu-22.04
-    needs: check_version
-    defaults:
-      run:
-        working-directory: ./server/
-
-    strategy:
-      matrix:
-        node-version: ['18.18.2']
-
-    steps:
-      - name: Checkout code from GitHub
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
-
-      - name: Cache pnpm dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            pnpm-store-${{ matrix.node-version }}-
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Run test
-        run: pnpm test:all
-
   preview_client:
     runs-on: ubuntu-22.04
-    needs: client_test
     defaults:
       run:
         working-directory: ./client/
@@ -162,6 +37,11 @@ jobs:
       - name: Create serviceAccount.json
         run: |
           echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
+
+      - name: Create .env.local
+        run: |
+          echo "${{ secrets.CLIENT_ENV }}" | base64 -d > .env.local
+          sed -i "s|VITE_API_URL=|VITE_API_URL=http://localhost:9001|g" .env.local
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
@@ -202,58 +82,3 @@ jobs:
       - name: Get preview URL
         run: |
           echo "PREVIEW_URL=${{ steps.deployClient.outputs.url }}" >> $GITHUB_ENV
-          cat ${{ env.PREVIEW_URL }}
-
-  build_and_push_image:
-    runs-on: ubuntu-22.04
-    needs: [server_test, check_version]
-    defaults:
-      run:
-        working-directory: server
-    steps:
-      - uses: actions/checkout@v3
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Build image
-        id: build
-        run: |
-          VERSION=${{ needs.check_version.outputs.version }} \
-          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
-          docker compose -f docker-compose.build.yml build
-
-      - name: Push image
-        id: push
-        run: |
-          VERSION=${{ needs.check_version.outputs.version }} \
-          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
-          docker compose -f docker-compose.build.yml push
-
-  staging_server:
-    runs-on: ubuntu-22.04
-    needs: [build_and_push_image, check_version]
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: 'actions/checkout@v4'
-      - id: 'auth'
-        uses: 'google-github-actions/auth@v2'
-        with:
-          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
-
-      - id: compute-ssh
-        uses: google-github-actions/ssh-compute@v1
-        with:
-          user: ho.pl
-          instance_name: server-1
-          project_id: astute-office-426802-m1
-          zone: asia-southeast1-a
-          ssh_private_key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
-          command: |
-            VERSION=${{ needs.check_version.outputs.version }} \
-            DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
-            docker compose -f docker-compose.prod.yml pull

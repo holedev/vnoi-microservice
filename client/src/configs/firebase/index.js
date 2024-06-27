@@ -12,6 +12,8 @@ export const firebaseConfig = {
   databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL
 };
 
+console.log(firebaseConfig);
+
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 
