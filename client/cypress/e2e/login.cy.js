@@ -12,7 +12,7 @@ describe("Login", () => {
     cy.clearCookies();
   });
 
-  it.only("Login with no Bearer return 401", { baseUrl: Cypress.env("CYPRESS_BASE_URL") }, () => {
+  it("Login with no Bearer return 401", { baseUrl: Cypress.env("CYPRESS_BASE_URL") }, () => {
     cy.visit("/");
     cy.url().should("eq", Cypress.env("CYPRESS_BASE_URL") + "/auth/login");
 
@@ -22,6 +22,9 @@ describe("Login", () => {
       method: "POST",
       url: Cypress.env("CYPRESS_API_URL") + "/api/user/auth",
       body: studentUser,
+      headers: {
+        "Content-Type": "application/json"
+      },
       failOnStatusCode: false
     }).then((response) => {
       expect(response.status).to.eq(401);
@@ -33,7 +36,7 @@ describe("Login", () => {
     cy.url().should("eq", Cypress.env("CYPRESS_BASE_URL") + "/auth/login");
   });
 
-  it("Login STUDENT", () => {
+  it("Login STUDENT", { baseUrl: Cypress.env("CYPRESS_BASE_URL") }, () => {
     cy.visit("/");
 
     cy.login(studentUser.uid)
@@ -46,7 +49,7 @@ describe("Login", () => {
       .then((accessToken) => {
         cy.request({
           method: "POST",
-          url: Cypress.env("API_URL") + "/api/user/auth",
+          url: Cypress.env("CYPRESS_API_URL") + "/api/user/auth",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`
@@ -65,7 +68,7 @@ describe("Login", () => {
       cookies.set("user", response.body.data);
 
       cy.visit("/");
-      cy.url().should("eq", Cypress.env("BASE_URL") + "/competition");
+      cy.url().should("eq", Cypress.env("CYPRESS_BASE_URL") + "/competition");
     });
   });
 });
