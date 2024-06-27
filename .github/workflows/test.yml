@@ -43,6 +43,8 @@ jobs:
     permissions:
       contents: read
       deployments: write
+    outputs:
+      preview_url: ${{ steps.getPreviewUrl.outputs.PREVIEW_URL }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -90,6 +92,7 @@ jobs:
           directory: ./dist
           wranglerVersion: '3'
 
-      # - name: Get preview URL
-      #   run: |
-      #     echo "PREVIEW_URL=${{ steps.deployClient.outputs.url }}" >> $GITHUB_ENV
+      - name: Get preview URL
+        id: getPreviewUrl
+        run: |
+          echo "PREVIEW_URL=${{ steps.deployClient.outputs.url }}" >> $GITHUB_ENV
