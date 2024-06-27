@@ -15,6 +15,9 @@ describe("Login", () => {
   it.only("Login with no Bearer return 401", { baseUrl: Cypress.env("CYPRESS_BASE_URL") }, () => {
     cy.visit("/");
     cy.url().should("eq", Cypress.env("CYPRESS_BASE_URL") + "/auth/login");
+
+    Cypress.config("baseUrl", Cypress.env("CYPRESS_API_URL"));
+
     cy.request({
       method: "POST",
       url: Cypress.env("CYPRESS_API_URL") + "/api/user/auth",
@@ -23,6 +26,8 @@ describe("Login", () => {
     }).then((response) => {
       expect(response.status).to.eq(401);
     });
+
+    Cypress.config("baseUrl", Cypress.env("CYPRESS_BASE_URL"));
 
     cy.visit("/");
     cy.url().should("eq", Cypress.env("CYPRESS_BASE_URL") + "/auth/login");
