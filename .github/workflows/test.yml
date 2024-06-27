@@ -63,7 +63,7 @@ jobs:
       server_production_status: ${{ steps.compute-ssh.outcome }}
     env:
       PROJECT_ID: astute-office-426802-m1
-      ZONE: asia-southeast1-a
+      ZONE: asia-southeast1-b
       INSTANCE_NAME: server-2
       VERSION: '0.0.1'
       DOCKERHUB_USERNAME: 'lehodev'
