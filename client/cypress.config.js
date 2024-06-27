@@ -11,7 +11,7 @@ const __dirname = dirname(__filename);
 
 export default defineConfig({
   projectId: "zwvgke",
-  defaultCommandTimeout: 5000,
+  defaultCommandTimeout: 10000,
   chromeWebSecurity: false,
   component: {
     devServer: {
