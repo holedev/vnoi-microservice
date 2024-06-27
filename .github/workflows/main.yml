@@ -185,6 +185,7 @@ jobs:
     needs: [build_and_push_image, check_version]
     outputs:
       external_ip: ${{ steps.get_external_ip.outputs.external_ip }}
+      server_staging_status: ${{ steps.compute-ssh.outcome }}
     env:
       PROJECT_ID: astute-office-426802-m1
       ZONE: asia-southeast1-a
@@ -261,6 +262,7 @@ jobs:
       deployments: write
     outputs:
       preview_url: ${{ steps.getPreviewUrl.outputs.PREVIEW_URL }}
+      client_staging_status: ${{ steps.deploy_client.outcome }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -313,3 +315,48 @@ jobs:
         id: getPreviewUrl
         run: |
           echo "PREVIEW_URL=${{ steps.deploy_client.outputs.url }}" >> $GITHUB_ENV
+
+  e2e_test:
+    runs-on: ubuntu-22.04
+    needs: [preview_client, staging_server]
+    if: ${{ needs.preview_client.outputs.client_staging_status != 'failure' && needs.staging_server.outputs.server_staging_status != 'failure'}}
+    env:
+      CYPRESS_BASE_URL: https://staging.vnoi-client.pages.dev
+      CYPRESS_API_URL: https://vnoi-server-staging.undefine.tech
+      CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+
+    defaults:
+      run:
+        working-directory: ./client/
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create serviceAccount.json
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ matrix.node-version }}-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run e2e tests
+        run: pnpm cypress:e2e:record
