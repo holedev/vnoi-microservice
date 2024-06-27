@@ -54,41 +54,41 @@ jobs:
       - name: Print environment variables
         run: printenv
 
-      # - name: Install pnpm
-      #   uses: pnpm/action-setup@v3
-      #   with:
-      #     version: 9
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
-      # - name: Use Node.js ${{ matrix.node-version }}
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version: ${{ matrix.node-version }}
-      #     cache: 'pnpm'
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
 
-      # - name: Cache pnpm dependencies
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: ~/.pnpm-store
-      #     key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
-      #     restore-keys: |
-      #       pnpm-store-${{ matrix.node-version }}-
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ matrix.node-version }}-
 
-      # - name: Install dependencies
-      #   run: pnpm install
+      - name: Install dependencies
+        run: pnpm install
 
-      # - name: Build client
-      #   run: pnpm build
+      - name: Build client
+        run: pnpm build
 
-      # - name: Deploy to Cloudflare Pages
-      #   uses: cloudflare/pages-action@v1.5.0
-      #   id: deployClient
-      #   with:
-      #     apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      #     projectName: vnoi-client
-      #     accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      #     workingDirectory: ./client/
-      #     directory: ./dist
-      #     wranglerVersion: '3'
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1.5.0
+        id: deployClient
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          projectName: vnoi-client
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ./client/
+          directory: ./dist
+          wranglerVersion: '3'
 
       # - name: Get preview URL
       #   run: |
