@@ -344,6 +344,7 @@ const ProblemsDetail = () => {
               )}
               {resultCheck && !isLoad.run && (
                 <Box
+                  id='result-check'
                   sx={{
                     marginTop: "6px"
                   }}
@@ -401,7 +402,7 @@ const ProblemsDetail = () => {
               padding: "4px 12px"
             }}
           >
-            <Button onClick={handleRun} sx={{ width: "100%" }} variant='outlined'>
+            <Button id='btn-run' onClick={handleRun} sx={{ width: "100%" }} variant='outlined'>
               Run
             </Button>
           </Box>

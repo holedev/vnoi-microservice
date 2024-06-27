@@ -1,71 +1,58 @@
-name: vnoi-backend
+x-depends-on: &default-service-config
+  env_file:
+    - .env.all.docker
+  depends_on:
+    amqp-rabbitmq:
+      condition: service_healthy
+    db-mongo:
+      condition: service_healthy
+  networks:
+    - vnoi-backend
+
+name: vnoi-micro-backend
 services:
   gateway:
     container_name: server-gateway
     image: lehodev/vnoi-backend-gateway:${VERSION}
     ports:
-      - "80:9000"
+      - "9000:9000"
     expose:
       - "9000"
-    restart: on-failure
-    env_file:
-      - .env.all.docker
+    restart: always
     volumes:
       - ./firebase.json:/app/firebase.json
     environment:
       - CLIENT_URL=${CLIENT_URL}
-    depends_on:
-      amqp-rabbitmq:
-        condition: service_healthy
-      db-mongo:
-        condition: service_healthy
-    networks:
-      - vnoi-backend
+    <<: *default-service-config
 
   common:
     container_name: server-common
     image: lehodev/vnoi-backend-common:${VERSION}
     expose:
       - "9001"
-    restart: on-failure
-    env_file:
-      - .env.all.docker
+    restart: always
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-common
-    depends_on:
-      amqp-rabbitmq:
-        condition: service_healthy
-      db-mongo:
-        condition: service_healthy
-    networks:
-      - vnoi-backend
+    <<: *default-service-config
 
   user:
     container_name: server-user
     image: lehodev/vnoi-backend-user:${VERSION}
     expose:
       - "9002"
-    restart: on-failure
-    env_file:
-      - .env.all.docker
+    restart: always
     volumes:
       - ./firebase.json:/app/firebase.json
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-user
-    depends_on:
-      amqp-rabbitmq:
-        condition: service_healthy
-      db-mongo:
-        condition: service_healthy
-    networks:
-      - vnoi-backend
+    <<: *default-service-config
 
   exercise:
     container_name: server-exercise
     image: lehodev/vnoi-backend-exercise:${VERSION}
     expose:
       - "9003"
-    restart: on-failure
+    restart: always
     env_file:
       - .env.all.docker
     volumes:
@@ -73,8 +60,8 @@ services:
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-exercise
       - MAX_SUBMISSION=50
-      - COMPILER_HOST=server:2358
-      - COMPILER_X_AUTH_USER=hehehe
+      - COMPILER_HOST=http://server:2358
+      - COMPILER_X_AUTH_USER=${COMPILER_X_AUTH_USER}
       - STRING_SPLIT_CODE=>----------<
       - VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY}
       - VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN}
@@ -91,84 +78,55 @@ services:
         condition: service_healthy
     networks:
       - vnoi-backend
+      - vnoi-judge0
 
   media:
     container_name: server-media
     image: lehodev/vnoi-backend-media:${VERSION}
+    ports:
+      - "9004:9004"
     expose:
       - "9004"
-    restart: on-failure
-    env_file:
-      - .env.all.docker
+    restart: always
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-media
       - STATIC_FILE_URL=http://localhost:9004/
-    depends_on:
-      amqp-rabbitmq:
-        condition: service_healthy
-      db-mongo:
-        condition: service_healthy
-    networks:
-      - vnoi-backend
+    <<: *default-service-config
 
   learning:
     container_name: server-learning
     image: lehodev/vnoi-backend-learning:${VERSION}
     expose:
       - "9005"
-    restart: on-failure
-    env_file:
-      - .env.all.docker
+    restart: always
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-learning
-    depends_on:
-      amqp-rabbitmq:
-        condition: service_healthy
-      db-mongo:
-        condition: service_healthy
-    networks:
-      - vnoi-backend
+    <<: *default-service-config
 
   statistics:
     container_name: server-statistics
     image: lehodev/vnoi-backend-statistics:${VERSION}
     expose:
       - "9006"
-    restart: on-failure
-    env_file:
-      - .env.all.docker
+    restart: always
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-statistics
-    depends_on:
-      amqp-rabbitmq:
-        condition: service_healthy
-      db-mongo:
-        condition: service_healthy
-    networks:
-      - vnoi-backend
+    <<: *default-service-config
 
   logging:
     container_name: server-logging
     image: lehodev/vnoi-backend-logging:${VERSION}
     expose:
       - "9007"
-    restart: on-failure
-    env_file:
-      - .env.all.docker
+    restart: always
     volumes:
       - log-data:/app/logging/logs
-    depends_on:
-      amqp-rabbitmq:
-        condition: service_healthy
-      db-mongo:
-        condition: service_healthy
-    networks:
-      - vnoi-backend
+    <<: *default-service-config
 
   db-mongo:
     container_name: db-mongo
     image: mongo
-    restart: on-failure
+    restart: always
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
@@ -185,7 +143,7 @@ services:
     image: rabbitmq:3.12-management
     ports:
       - "15672:15672"
-    restart: on-failure
+    restart: always
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
@@ -204,27 +162,19 @@ services:
 volumes:
   db-mongo-data:
     name: "vnoi-mongo"
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ~/data/mongodb-data
+
   db-rabbitmq-data:
     name: "vnoi-rabbitmq"
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ~/data/rabbitmq-data
+
   log-data:
     name: "vnoi-log"
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ~/data/log-data
 
 networks:
   vnoi-backend:
     name: vnoi-backend
     driver: bridge
+    external: true
+
+  vnoi-judge0:
+    driver: overlay
+    external: true

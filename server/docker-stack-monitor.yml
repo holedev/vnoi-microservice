@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    networks:
+      - vnoi-backend
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - vnoi-backend
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - cadvisor
+      - node-exporter
+    networks:
+      - vnoi-backend
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=hole
+      - GF_SECURITY_ADMIN_PASSWORD=Admin@123
+    depends_on:
+      - prometheus
+    networks:
+      - vnoi-backend
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+volumes:
+  grafana-storage:
+    driver: local
+
+networks:
+  vnoi-backend:
+    name: vnoi-backend
+    driver: overlay
+    external: true

@@ -19,7 +19,10 @@
     "cypress:component:firefox": "cypress run --component --browser firefox",
     "cypress:e2e": "pnpm cypress:e2e:chrome && pnpm cypress:e2e:firefox",
     "cypress:e2e:chrome": "cypress run --e2e --browser chrome",
-    "cypress:e2e:firefox": "cypress run --e2e --browser firefox"
+    "cypress:e2e:firefox": "cypress run --e2e --browser firefox",
+    "cypress:e2e:record": "pnpm cypress:e2e:record:chrome && pnpm cypress:e2e:record:firefox",
+    "cypress:e2e:record:chrome": "cross-env CYPRESS_RECORD_KEY=$CYPRESS_RECORD_KEY cypress run --record --key $CYPRESS_RECORD_KEY --e2e --browser chrome",
+    "cypress:e2e:record:firefox": "cross-env CYPRESS_RECORD_KEY=$CYPRESS_RECORD_KEY cypress run --record --key $CYPRESS_RECORD_KEY --e2e --browser firefox"
   },
   "dependencies": {
     "@codemirror/lang-cpp": "^6.0.2",
@@ -34,13 +37,14 @@
     "@mui/x-tree-view": "^7.3.1",
     "@uiw/codemirror-theme-okaidia": "^4.21.9",
     "@uiw/react-codemirror": "^4.21.9",
-    "@vidstack/react": "^1.11.21",
+    "@vidstack/react": "^1.11.24",
     "axios": "^1.5.1",
     "clsx": "^2.0.0",
+    "cross-env": "^7.0.3",
     "dayjs": "^1.11.9",
     "file-saver": "^2.0.5",
     "firebase": "^10.4.0",
-    "hls.js": "^1.5.8",
+    "hls.js": "^1.0.0",
     "joi": "^17.10.2",
     "jszip": "^3.10.1",
     "prop-types": "^15.8.1",

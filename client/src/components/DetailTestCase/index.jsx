@@ -68,6 +68,7 @@ function DetailTestCase({ problem }) {
       <div className={styles.heading}>
         <div className={styles.headingLeft}>
           <h3
+            id='title'
             style={{
               margin: "12px 0"
             }}

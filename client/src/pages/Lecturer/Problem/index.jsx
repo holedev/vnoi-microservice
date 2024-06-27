@@ -408,7 +408,7 @@ function AdminProblem() {
                   className={styles.problemTimeInp}
                   size='small'
                   label='Time (minutes)'
-                  id='title'
+                  id='testTime'
                   variant='outlined'
                   margin='normal'
                   autoComplete='off'
@@ -423,10 +423,18 @@ function AdminProblem() {
           <Editor state={data.desc} setState={(value) => handleData(value, "desc")} />
         </Box>
         <Box data-tour='problem-solution' className={styles.group}>
-          <input ref={fileRef} hidden type='file' accept='.cpp, .c, .txt' onChange={handleUploadSolution} />
+          <input
+            id='upload-btn-hidden'
+            ref={fileRef}
+            hidden
+            type='file'
+            accept='.cpp, .c, .txt'
+            onChange={handleUploadSolution}
+          />
           <h5 className={styles.heading}>
             Solution
             <IconButton
+              id='upload-btn'
               data-tour='upload-btn'
               onClick={() => fileRef.current.click()}
               aria-label='fingerprint'
@@ -564,11 +572,19 @@ function AdminProblem() {
             <Button data-tour='testcase-btn' onClick={handleScriptGenerateTestcase}>
               Test
             </Button>
-            <input ref={fileTCRef} hidden type='file' accept='.txt' onChange={handleUploadTCFile} />
+            <input
+              id='testcase-with-file-hidden'
+              ref={fileTCRef}
+              hidden
+              type='file'
+              accept='.txt'
+              onChange={handleUploadTCFile}
+            />
             <FormControlLabel
               sx={{
                 ml: "auto"
               }}
+              id='testcase-with-file'
               data-tour='testcase-with-file'
               control={<Switch checked={useFileTC || false} onChange={handleChangeStateTC} />}
               label='USE FILE .TXT'
@@ -602,6 +618,7 @@ function AdminProblem() {
             Tutorial
           </Button>
           <FormControlLabel
+            id='action-alway-open'
             data-tour='action-alway-open'
             control={
               <Switch

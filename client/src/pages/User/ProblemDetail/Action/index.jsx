@@ -45,12 +45,20 @@ function Action({ setConsole, handleSubmit, setCode, problem, isLoad }) {
         </Button>
       )}
       <Box className={styles.action}>
-        <input ref={fileRef} hidden type='file' accept='.cpp, .c, .txt' onChange={handleFileChange} />
+        <input
+          id='upload-file-hidden'
+          ref={fileRef}
+          hidden
+          type='file'
+          accept='.cpp, .c, .txt'
+          onChange={handleFileChange}
+        />
         <Button onClick={() => fileRef.current.click()}>Upload File</Button>
-        <Button onClick={() => setConsole(true)} variant='outlined'>
+        <Button id='btn-console' onClick={() => setConsole(true)} variant='outlined'>
           Console
         </Button>
         <Button
+          id='btn-submit'
           style={{
             marginLeft: "auto"
           }}

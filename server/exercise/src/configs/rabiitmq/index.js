@@ -24,6 +24,7 @@ const getChannel = async () => {
     const connection = await getConn();
     if (channel === null) {
       channel = await connection.createChannel();
+      await channel.assertExchange(_EXCHANGE.EXERCISE_EXCHANGE, "fanout", { durable: true });
     }
     channel.on("close", () => {
       console.log("Channel close");

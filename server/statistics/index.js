@@ -9,14 +9,17 @@ import { getSubscribeChannel, subscribeMessage } from "./src/configs/rabiitmq/in
 import { StatisticsService } from "./src/api/services/index.js";
 import { CourseRoute } from "./src/api/routes/Course.js";
 import { gRPCServerStatistics } from "./src/configs/grpc/index.js";
+import { metricsEndpoint, monitorMiddleware } from "./src/api/middlewares/Monitor.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
 
 const channel = await getSubscribeChannel();
 subscribeMessage(channel, StatisticsService);
-
 gRPCServerStatistics();
+
+app.use(monitorMiddleware);
+app.get("/metrics", metricsEndpoint);
 
 app.use(
   cors({ origin: "*", credentials: true }),

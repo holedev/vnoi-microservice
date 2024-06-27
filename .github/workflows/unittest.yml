@@ -1,0 +1,144 @@
+name: UNITTEST
+
+on:
+  pull_request:
+    branches: ['main']
+
+permissions:
+  checks: write
+  contents: write
+  pull-requests: write
+  deployments: write
+
+env:
+  REDIS_PORT: demo
+  REDIS_HOST: demo
+  RABBITMQ_URL: demo
+  BOT_TELEGRAM_TOKEN: demo
+  BOT_TELEGRAM_CHAT_ID: demo
+  MONGODB_URL: demo
+
+jobs:
+  check_commit_change:
+    runs-on: ubuntu-22.04
+    outputs:
+      client_changed: ${{ steps.client_changed.outputs.client }}
+      server_changed: ${{ steps.server_changed.outputs.server }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for client changes
+        id: client_changed
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            client:
+              - 'client/**'
+
+      - name: Check for server changes
+        id: server_changed
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            server:
+              - 'server/**'
+
+  check_version:
+    runs-on: ubuntu-22.04
+    needs: check_commit_change
+    if: ${{ needs.check_commit_change.outputs.server_changed == 'true'}}
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version
+        id: get-version
+        run: |
+          VERSION=$(jq -r ".version" ./server/package.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+  server_test:
+    runs-on: ubuntu-22.04
+    needs: check_version
+    defaults:
+      run:
+        working-directory: ./server/
+
+    strategy:
+      matrix:
+        node-version: ['18.18.2']
+
+    steps:
+      - name: Checkout code from GitHub
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ matrix.node-version }}-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run test
+        run: pnpm test:all
+
+  client_test:
+    runs-on: ubuntu-22.04
+    needs: check_commit_change
+    if: ${{ needs.check_commit_change.outputs.client_changed == 'true'}}
+    defaults:
+      run:
+        working-directory: ./client/
+    strategy:
+      matrix:
+        node-version: ['18.18.2']
+
+    steps:
+      - name: Checkout code from GitHub
+        uses: actions/checkout@v4
+
+      - name: Create serviceAccount.json
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ matrix.node-version }}-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run test
+        run: pnpm test

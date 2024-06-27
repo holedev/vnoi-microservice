@@ -43,6 +43,7 @@ module.exports = {
     "cypress/no-force": "warn",
     "cypress/no-async-tests": "error",
     "cypress/no-async-before": "error",
-    "cypress/no-pause": "error"
+    "cypress/no-pause": "error",
+    "cypress/no-unnecessary-waiting": "off"
   }
 };

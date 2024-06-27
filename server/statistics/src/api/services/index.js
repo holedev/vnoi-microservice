@@ -43,6 +43,11 @@ const StatisticsService = {
         await StatisticsService.handleSubmissionCreate(data);
         return;
 
+      case _ACTION.UPDATE_LESSON_DONE_LIST:
+        // TODO: handle lesson done list update
+        // await StatisticsService.handleLessonDoneListUpdate(data);
+        return;
+
       default:
         throw new ConflictError("Action not found");
     }

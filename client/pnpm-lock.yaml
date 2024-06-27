@@ -42,14 +42,17 @@ dependencies:
     specifier: ^4.21.9
     version: 4.21.24(@babel/runtime@7.24.0)(@codemirror/autocomplete@6.13.0)(@codemirror/language@6.10.1)(@codemirror/lint@6.5.0)(@codemirror/search@6.5.6)(@codemirror/state@6.4.1)(@codemirror/theme-one-dark@6.1.2)(@codemirror/view@6.25.0)(codemirror@6.0.1)(react-dom@18.2.0)(react@18.2.0)
   "@vidstack/react":
-    specifier: ^1.11.21
-    version: 1.11.21(@types/react@18.2.63)(react@18.2.0)
+    specifier: ^1.11.24
+    version: 1.11.24(@types/react@18.2.63)(react@18.2.0)
   axios:
     specifier: ^1.5.1
     version: 1.6.7
   clsx:
     specifier: ^2.0.0
     version: 2.1.0
+  cross-env:
+    specifier: ^7.0.3
+    version: 7.0.3
   dayjs:
     specifier: ^1.11.9
     version: 1.11.10
@@ -60,8 +63,8 @@ dependencies:
     specifier: ^10.4.0
     version: 10.8.1
   hls.js:
-    specifier: ^1.5.8
-    version: 1.5.8
+    specifier: ^1.0.0
+    version: 1.5.11
   joi:
     specifier: ^17.10.2
     version: 17.12.2
@@ -4569,9 +4572,9 @@ packages:
       { integrity: sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ== }
     dev: true
 
-  /@vidstack/react@1.11.21(@types/react@18.2.63)(react@18.2.0):
+  /@vidstack/react@1.11.24(@types/react@18.2.63)(react@18.2.0):
     resolution:
-      { integrity: sha512-eaMh8raSJw8L523UtmooC7IkBxMriny9X1LMk0qsJ1oZ+JGjvgLEYTPkdyLsDIJjrP4hmeeK+12kPZepHSC1pw== }
+      { integrity: sha512-7tgJUJdIKIidzziZ9QqpU73g0BI3BvgYnIim3FrHsxFMRUgZbLKLbSJP1c16NQijS6kljUTWPJErCOm+n27xPg== }
     engines: { node: ">=18" }
     peerDependencies:
       "@types/react": ^18.0.0
@@ -5720,6 +5723,15 @@ packages:
       { integrity: sha512-VQ2MBenTq1fWZUH9DJNGti7kKv6EeAuYr3cLwxUWhIu1baTaXh4Ib5W2CqHVqib4/MqbYGJqiL3Zb8GJZr3l4g== }
     dev: false
 
+  /cross-env@7.0.3:
+    resolution:
+      { integrity: sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw== }
+    engines: { node: ">=10.14", npm: ">=6", yarn: ">=1" }
+    hasBin: true
+    dependencies:
+      cross-spawn: 7.0.3
+    dev: false
+
   /cross-spawn@7.0.3:
     resolution:
       { integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w== }
@@ -5728,7 +5740,6 @@ packages:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
-    dev: true
 
   /css-box-model@1.2.1:
     resolution:
@@ -7339,9 +7350,9 @@ packages:
       { integrity: sha512-nAxA0v8+vXSBDt3AnRUNjyRIQ0rD+ntpbAp4LnPkumc5M9yUbSMa4XDU9Q6etY4f1Wp4bNgvc1yjiZtsTTrSng== }
     dev: false
 
-  /hls.js@1.5.8:
+  /hls.js@1.5.11:
     resolution:
-      { integrity: sha512-hJYMPfLhWO7/7+n4f9pn6bOheCGx0WgvVz7k3ouq3Pp1bja48NN+HeCQu3XCGYzqWQF/wo7Sk6dJAyWVJD8ECA== }
+      { integrity: sha512-q3We1izi2+qkOO+TvZdHv+dx6aFzdtk3xc1/Qesrvto4thLTT/x/1FK85c5h1qZE4MmMBNgKg+MIW8nxQfxwBw== }
     dev: false
 
   /hoist-non-react-statics@3.3.2:
@@ -7793,7 +7804,6 @@ packages:
   /isexe@2.0.0:
     resolution:
       { integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw== }
-    dev: true
 
   /isstream@0.1.2:
     resolution:
@@ -9161,7 +9171,6 @@ packages:
     resolution:
       { integrity: sha512-ojmeN0qd+y0jszEtoY48r0Peq5dwMEkIlCOu6Q5f41lfkswXuKtYrhgoTpLnyIcHm24Uhqx+5Tqm2InSwLhE6Q== }
     engines: { node: ">=8" }
-    dev: true
 
   /path-key@4.0.0:
     resolution:
@@ -10110,13 +10119,11 @@ packages:
     engines: { node: ">=8" }
     dependencies:
       shebang-regex: 3.0.0
-    dev: true
 
   /shebang-regex@3.0.0:
     resolution:
       { integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A== }
     engines: { node: ">=8" }
-    dev: true
 
   /side-channel@1.0.6:
     resolution:
@@ -11278,7 +11285,6 @@ packages:
     hasBin: true
     dependencies:
       isexe: 2.0.0
-    dev: true
 
   /why-is-node-running@2.2.2:
     resolution:

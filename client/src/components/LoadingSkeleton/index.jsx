@@ -7,7 +7,7 @@ function LoadingSkeleton() {
 
   return (
     <div
-      className={clsx(styles.wrapper, {
+      className={clsx("loading-skeleton", styles.wrapper, {
         [styles.hide]: !loading
       })}
     >
