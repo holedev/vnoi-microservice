@@ -135,7 +135,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: artifact-vnoi-client-build
-          path: ./client
+          path: ./client/dist
 
       - name: List files
         run: |
