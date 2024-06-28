@@ -8,3 +8,5 @@ firebase.json
 *.env.*
 !.env.all.example
 !.env.version.docker
+
+judge0.conf

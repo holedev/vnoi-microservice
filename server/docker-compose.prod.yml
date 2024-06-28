@@ -1,4 +1,21 @@
-name: vnoi-backend
+x-logging: &default-logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 100M
+
+x-depends-on: &default-service-config
+  env_file:
+    - .env.all.docker
+  depends_on:
+    amqp-rabbitmq:
+      condition: service_healthy
+    db-mongo:
+      condition: service_healthy
+  networks:
+    - vnoi-backend
+
+name: vnoi-micro-backend
 services:
   gateway:
     container_name: server-gateway
@@ -8,19 +25,11 @@ services:
     expose:
       - "9000"
     restart: on-failure
-    env_file:
-      - .env.all.docker
     volumes:
       - ./firebase.json:/app/firebase.json
     environment:
       - CLIENT_URL=${CLIENT_URL}
-    depends_on:
-      amqp-rabbitmq:
-        condition: service_healthy
-      db-mongo:
-        condition: service_healthy
-    networks:
-      - vnoi-backend
+    <<: *default-service-config
 
   common:
     container_name: server-common
@@ -28,17 +37,9 @@ services:
     expose:
       - "9001"
     restart: on-failure
-    env_file:
-      - .env.all.docker
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-common
-    depends_on:
-      amqp-rabbitmq:
-        condition: service_healthy
-      db-mongo:
-        condition: service_healthy
-    networks:
-      - vnoi-backend
+    <<: *default-service-config
 
   user:
     container_name: server-user
@@ -46,19 +47,11 @@ services:
     expose:
       - "9002"
     restart: on-failure
-    env_file:
-      - .env.all.docker
     volumes:
       - ./firebase.json:/app/firebase.json
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-user
-    depends_on:
-      amqp-rabbitmq:
-        condition: service_healthy
-      db-mongo:
-        condition: service_healthy
-    networks:
-      - vnoi-backend
+    <<: *default-service-config
 
   exercise:
     container_name: server-exercise
@@ -73,8 +66,8 @@ services:
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-exercise
       - MAX_SUBMISSION=50
-      - COMPILER_HOST=server:2358
-      - COMPILER_X_AUTH_USER=hehehe
+      - COMPILER_HOST=http://server:2358
+      - COMPILER_X_AUTH_USER=${COMPILER_X_AUTH_USER}
       - STRING_SPLIT_CODE=>----------<
       - VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY}
       - VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN}
@@ -91,6 +84,7 @@ services:
         condition: service_healthy
     networks:
       - vnoi-backend
+      - vnoi-judge0
 
   media:
     container_name: server-media
@@ -98,18 +92,10 @@ services:
     expose:
       - "9004"
     restart: on-failure
-    env_file:
-      - .env.all.docker
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-media
       - STATIC_FILE_URL=http://localhost:9004/
-    depends_on:
-      amqp-rabbitmq:
-        condition: service_healthy
-      db-mongo:
-        condition: service_healthy
-    networks:
-      - vnoi-backend
+    <<: *default-service-config
 
   learning:
     container_name: server-learning
@@ -117,17 +103,9 @@ services:
     expose:
       - "9005"
     restart: on-failure
-    env_file:
-      - .env.all.docker
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-learning
-    depends_on:
-      amqp-rabbitmq:
-        condition: service_healthy
-      db-mongo:
-        condition: service_healthy
-    networks:
-      - vnoi-backend
+    <<: *default-service-config
 
   statistics:
     container_name: server-statistics
@@ -135,17 +113,9 @@ services:
     expose:
       - "9006"
     restart: on-failure
-    env_file:
-      - .env.all.docker
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-statistics
-    depends_on:
-      amqp-rabbitmq:
-        condition: service_healthy
-      db-mongo:
-        condition: service_healthy
-    networks:
-      - vnoi-backend
+    <<: *default-service-config
 
   logging:
     container_name: server-logging
@@ -153,17 +123,9 @@ services:
     expose:
       - "9007"
     restart: on-failure
-    env_file:
-      - .env.all.docker
     volumes:
       - log-data:/app/logging/logs
-    depends_on:
-      amqp-rabbitmq:
-        condition: service_healthy
-      db-mongo:
-        condition: service_healthy
-    networks:
-      - vnoi-backend
+    <<: *default-service-config
 
   db-mongo:
     container_name: db-mongo
@@ -228,3 +190,7 @@ networks:
   vnoi-backend:
     name: vnoi-backend
     driver: bridge
+
+  vnoi-judge0:
+    driver: overlay
+    external: true

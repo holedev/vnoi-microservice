@@ -425,3 +425,73 @@ jobs:
         run: |
           EXTERNAL_IP=$(gcloud compute instances describe ${{ env.INSTANCE_NAME }} --zone=${{ env.ZONE }} --project=${{ env.PROJECT_ID }} --format='value(networkInterfaces[0].accessConfigs[0].natIP)')
           echo "external_ip=$EXTERNAL_IP" >> $GITHUB_OUTPUT
+
+  deploy_client:
+    runs-on: ubuntu-22.04
+    needs: preview_client
+    env:
+      VITE_FIREBASE_API_KEY: '${{ secrets.FIREBASE_API_KEY }}'
+      VITE_FIREBASE_AUTH_DOMAIN: '${{ secrets.FIREBASE_AUTH_DOMAIN }}'
+      VITE_FIREBASE_PROJECT_ID: '${{ secrets.FIREBASE_PROJECT_ID }}'
+      VITE_FIREBASE_STORAGE_BUCKET: '${{ secrets.FIREBASE_STORAGE_BUCKET }}'
+      VITE_FIREBASE_MESS_SENDER_ID: '${{ secrets.FIREBASE_MESS_SENDER_ID }}'
+      VITE_FIREBASE_APP_ID: '${{ secrets.FIREBASE_APP_ID }}'
+      VITE_FIREBASE_MEASUREMENT_ID: '${{ secrets.FIREBASE_MEASUREMENT_ID }}'
+      VITE_FIREBASE_DATABASE_URL: '${{ secrets.FIREBASE_DATABASE_URL }}'
+      VITE_PAGE_SIZE: '${{ secrets.PAGE_SIZE }}'
+
+      VITE_MODE: 'production'
+      VITE_API_URL: 'https://vnoiou-server.undefine.tech'
+    defaults:
+      run:
+        working-directory: ./client/
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create serviceAccount.json
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
+
+      - name: Print environment variables
+        run: printenv
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ matrix.node-version }}-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build client
+        run: pnpm build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1.5.0
+        id: deploy_client
+        with:
+          branch: main
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          projectName: vnoi-client
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ./client/
+          directory: ./dist
+          wranglerVersion: '3'

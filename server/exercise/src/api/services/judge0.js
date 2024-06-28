@@ -43,7 +43,7 @@ const judge0Service = {
 
       return tokens.json();
     } catch (err) {
-      console.log(err.message || err);
+      console.log(err);
       throw new BadRequestError("Create Submissions Batch Tokens Fail!");
     }
   },
