@@ -121,9 +121,6 @@ jobs:
 
       VITE_MODE: 'production'
       VITE_API_URL: 'https://vnoiou-server.undefine.tech'
-    defaults:
-      run:
-        working-directory: ./client/
     permissions:
       contents: read
       deployments: write
@@ -134,10 +131,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create serviceAccount.json
-        run: |
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
-
       - name: Print environment variables
         run: printenv
 
@@ -147,6 +140,11 @@ jobs:
           name: artifact-vnoi-client-build
           path: ./client
 
+      - name: List files
+        run: |
+          pwd
+          ls -la
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1.5.0
         id: deploy_client
@@ -155,7 +153,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           projectName: vnoi-client
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          directory: ./dist
+          directory: dist
           wranglerVersion: '3'
 
       - name: Get preview URL
