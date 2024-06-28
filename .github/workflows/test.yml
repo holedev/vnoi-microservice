@@ -140,7 +140,7 @@ jobs:
       - name: List files
         run: |
           pwd
-          ls -la
+          ls -l client
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1.5.0
@@ -150,10 +150,6 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           projectName: vnoi-client
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ./client
           directory: dist
           wranglerVersion: '3'
-
-      - name: Get preview URL
-        id: getPreviewUrl
-        run: |
-          echo "PREVIEW_URL=${{ steps.deploy_client.outputs.url }}" >> $GITHUB_ENV
