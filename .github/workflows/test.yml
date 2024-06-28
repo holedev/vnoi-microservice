@@ -115,12 +115,12 @@ jobs:
 
       VITE_MODE: 'production'
       VITE_API_URL: 'https://vnoiou-server.undefine.tech'
+    defaults:
+      run:
+        working-directory: ./client/
     permissions:
       contents: read
       deployments: write
-    outputs:
-      preview_url: ${{ steps.getPreviewUrl.outputs.PREVIEW_URL }}
-      client_staging_status: ${{ steps.deploy_client.outcome }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
