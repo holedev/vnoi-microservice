@@ -10,8 +10,6 @@ exec < /dev/tty
 
 read -p "- Enter new version (leave blank to keep current): " new_version
 
-new_version=$(echo "$new_version" | tr -d '[:cntrl:]')
-
 if [ -z "$new_version" ]; then
   echo "-> No version entered, keeping current version: $current_version"
 fi
