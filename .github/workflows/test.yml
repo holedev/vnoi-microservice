@@ -161,7 +161,7 @@ jobs:
         uses: cloudflare/pages-action@v1.5.0
         id: deploy_client
         with:
-          branch: staging
+          branch: main
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           projectName: vnoi-client
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
