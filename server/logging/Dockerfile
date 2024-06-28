@@ -15,6 +15,9 @@ WORKDIR /app/logging
 
 COPY --chown=node:node ./logging/ ./
 
+RUN mkdir logs \
+    && chown -R node:node /app/logging
+
 RUN npm install --omit=dev && npm cache clean --force
 
 EXPOSE 9007

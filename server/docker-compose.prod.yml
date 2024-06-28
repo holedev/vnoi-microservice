@@ -166,30 +166,18 @@ services:
 volumes:
   db-mongo-data:
     name: "vnoi-mongo"
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ~/data/mongodb-data
+
   db-rabbitmq-data:
     name: "vnoi-rabbitmq"
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ~/data/rabbitmq-data
+
   log-data:
     name: "vnoi-log"
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ~/data/log-data
 
 networks:
   vnoi-backend:
     name: vnoi-backend
     driver: bridge
+    external: true
 
   vnoi-judge0:
     driver: overlay
