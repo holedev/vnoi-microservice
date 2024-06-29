@@ -24,7 +24,7 @@ services:
       - "80:9000"
     expose:
       - "9000"
-    restart: on-failure
+    restart: always
     volumes:
       - ./firebase.json:/app/firebase.json
     environment:
@@ -36,7 +36,7 @@ services:
     image: lehodev/vnoi-backend-common:${VERSION}
     expose:
       - "9001"
-    restart: on-failure
+    restart: always
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-common
     <<: *default-service-config
@@ -46,7 +46,7 @@ services:
     image: lehodev/vnoi-backend-user:${VERSION}
     expose:
       - "9002"
-    restart: on-failure
+    restart: always
     volumes:
       - ./firebase.json:/app/firebase.json
     environment:
@@ -58,7 +58,7 @@ services:
     image: lehodev/vnoi-backend-exercise:${VERSION}
     expose:
       - "9003"
-    restart: on-failure
+    restart: always
     env_file:
       - .env.all.docker
     volumes:
@@ -91,7 +91,7 @@ services:
     image: lehodev/vnoi-backend-media:${VERSION}
     expose:
       - "9004"
-    restart: on-failure
+    restart: always
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-media
       - STATIC_FILE_URL=http://localhost:9004/
@@ -102,7 +102,7 @@ services:
     image: lehodev/vnoi-backend-learning:${VERSION}
     expose:
       - "9005"
-    restart: on-failure
+    restart: always
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-learning
     <<: *default-service-config
@@ -112,7 +112,7 @@ services:
     image: lehodev/vnoi-backend-statistics:${VERSION}
     expose:
       - "9006"
-    restart: on-failure
+    restart: always
     environment:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-statistics
     <<: *default-service-config
@@ -122,7 +122,7 @@ services:
     image: lehodev/vnoi-backend-logging:${VERSION}
     expose:
       - "9007"
-    restart: on-failure
+    restart: always
     volumes:
       - log-data:/app/logging/logs
     <<: *default-service-config
@@ -130,7 +130,7 @@ services:
   db-mongo:
     container_name: db-mongo
     image: mongo
-    restart: on-failure
+    restart: always
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
@@ -147,7 +147,7 @@ services:
     image: rabbitmq:3.12-management
     ports:
       - "15672:15672"
-    restart: on-failure
+    restart: always
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}

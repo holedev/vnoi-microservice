@@ -330,7 +330,7 @@ jobs:
       CYPRESS_API_URL: https://vnoi-server-staging.undefine.tech
       CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
     outputs:
-      outcome: ${{ steps.run-e2e-test.outcome }}
+      e2e_status: ${{ steps.run-e2e-test.outcome }}
     defaults:
       run:
         working-directory: ./client/
@@ -371,7 +371,7 @@ jobs:
   server_production:
     runs-on: ubuntu-22.04
     needs: [e2e_test, check_version]
-    if: ${{ needs.e2e_test.outputs.outcome == 'success'}}
+    if: ${{ needs.e2e_test.outputs.e2e_status == 'success'}}
     outputs:
       external_ip: ${{ steps.get_external_ip.outputs.external_ip }}
       server_production_status: ${{ steps.compute-ssh.outcome }}
@@ -429,7 +429,7 @@ jobs:
   client_production:
     runs-on: ubuntu-22.04
     needs: [e2e_test]
-    if: ${{ needs.e2e_test.outputs.outcome == 'success'}}
+    if: ${{ needs.e2e_test.outputs.e2e_status == 'success'}}
     env:
       VITE_FIREBASE_API_KEY: '${{ secrets.FIREBASE_API_KEY }}'
       VITE_FIREBASE_AUTH_DOMAIN: '${{ secrets.FIREBASE_AUTH_DOMAIN }}'
