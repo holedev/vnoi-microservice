@@ -14,7 +14,7 @@ const PORT = _PROCESS_ENV.SERVICE_PORT;
 
 await databaseConnection();
 
-gRPCServerCommon();
+await gRPCServerCommon();
 
 app.use(
   cors({

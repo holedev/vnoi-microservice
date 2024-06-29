@@ -4,7 +4,7 @@
 name: Test CICD
 
 on:
-  push:
+  pull_request:
     branches: ['test']
 
 permissions:
@@ -105,6 +105,9 @@ jobs:
   build_and_push_image:
     runs-on: ubuntu-22.04
     needs: [server_test, check_version]
+    env:
+      VERSION: '${{ needs.check_version.outputs.version }}'
+      DOCKERHUB_USERNAME: '${{ secrets.DOCKERHUB_USERNAME }}'
     defaults:
       run:
         working-directory: server
@@ -119,15 +122,13 @@ jobs:
       - name: Build image
         id: build
         run: |
-          VERSION=${{ needs.check_version.outputs.version }} \
-          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
+          export VERSION=${{ env.VERSION }}
           docker compose -f docker-compose.build.yml build
 
       - name: Push image
         id: push
         run: |
-          VERSION=${{ needs.check_version.outputs.version }} \
-          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} \
+          export VERSION=${{ env.VERSION }}
           docker compose -f docker-compose.build.yml push
 
       - name: Save compose file to next job

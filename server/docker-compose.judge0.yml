@@ -16,7 +16,7 @@ services:
     <<: *default-logging
     restart: always
     networks:
-      - vnoi-judge0
+      - vnoi-backend
       - judge0
 
   workers:
@@ -55,6 +55,6 @@ volumes:
 networks:
   judge0:
     driver: bridge
-  vnoi-judge0:
+  vnoi-backend:
     driver: overlay
     external: true
