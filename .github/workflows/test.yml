@@ -179,9 +179,6 @@ jobs:
           ssh_private_key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           command: |
             export VERSION=${{ env.VERSION }}
-            echo "Start pulling images ${{ env.VERSION }}"
-            docker compose -f /vnoi-microservice/docker-compose.prod.yml pull
-            echo "Finish pulling images ${{ env.VERSION }}"
 
             echo "Start deploy compose ${{ env.VERSION }}"
             docker compose -f /vnoi-microservice/docker-compose.prod.yml up -d
@@ -412,9 +409,6 @@ jobs:
           ssh_private_key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           command: |
             export VERSION=${{ env.VERSION }}
-            echo "Start pulling images ${{ env.VERSION }}"
-            docker compose -f /vnoi-microservice/docker-compose.prod.yml pull
-            echo "Finish pulling images ${{ env.VERSION }}"
 
             echo "Start deploy compose ${{ env.VERSION }}"
             docker compose -f /vnoi-microservice/docker-compose.prod.yml up -d
