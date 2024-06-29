@@ -379,8 +379,8 @@ jobs:
       PROJECT_ID: astute-office-426802-m1
       ZONE: asia-southeast1-b
       INSTANCE_NAME: server-2
-      VERSION: ${{ needs.check_version.outputs.version }}
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      VERSION: '${{ needs.check_version.outputs.version }}'
+      DOCKERHUB_USERNAME: '${{ secrets.DOCKERHUB_USERNAME }}'
     permissions:
       contents: read
       id-token: write
