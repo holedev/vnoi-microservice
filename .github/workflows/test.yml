@@ -502,7 +502,8 @@ jobs:
       - name: Create release artifact
         run: |
           mkdir release
-          cp ./ release/
+          cp client/ release/client
+          cp server/ release/server
           zip -r 0.0.1-alpha4.zip release
 
       - name: Create Release
