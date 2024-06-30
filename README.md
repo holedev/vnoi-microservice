@@ -10,6 +10,5 @@
 
 - [Cypress](https://www.cypress.io/)
 - [Codacy](https://www.codacy.com/)
-- [Circle CI](https://circleci.com/)
 
 > Documentation: [Gitbook](https://vnoi-doc.dorara.id.vn/)
