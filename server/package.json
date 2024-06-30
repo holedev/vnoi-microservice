@@ -1,6 +1,6 @@
 {
   "name": "server",
-  "version": "0.0.1-alpha2",
+  "version": "0.0.1-alpha4",
   "scripts": {
     "lint": "eslint --ext .js . --report-unused-disable-directives --max-warnings 3",
     "lint:fix": "eslint --ext .js . --report-unused-disable-directives --max-warnings 3 --fix",

@@ -192,303 +192,303 @@ jobs:
           EXTERNAL_IP=$(gcloud compute instances describe ${{ env.INSTANCE_NAME }} --zone=${{ env.ZONE }} --project=${{ env.PROJECT_ID }} --format='value(networkInterfaces[0].accessConfigs[0].natIP)')
           echo "external_ip=$EXTERNAL_IP" >> $GITHUB_OUTPUT
 
-  # client_test:
-  #   runs-on: ubuntu-22.04
-  #   needs: check_commit_change
-  #   if: ${{ needs.check_commit_change.outputs.client_changed == 'true'}}
-  #   defaults:
-  #     run:
-  #       working-directory: ./client/
-  #   strategy:
-  #     matrix:
-  #       node-version: ['18.18.2']
+  client_test:
+    runs-on: ubuntu-22.04
+    needs: check_commit_change
+    if: ${{ needs.check_commit_change.outputs.client_changed == 'true'}}
+    defaults:
+      run:
+        working-directory: ./client/
+    strategy:
+      matrix:
+        node-version: ['18.18.2']
 
-  #   steps:
-  #     - name: Checkout code from GitHub
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout code from GitHub
+        uses: actions/checkout@v4
 
-  #     - name: Create serviceAccount.json
-  #       run: |
-  #         echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
+      - name: Create serviceAccount.json
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
 
-  #     - name: Install pnpm
-  #       uses: pnpm/action-setup@v3
-  #       with:
-  #         version: 9
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
-  #     - name: Use Node.js ${{ matrix.node-version }}
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: ${{ matrix.node-version }}
-  #         cache: 'pnpm'
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
 
-  #     - name: Cache pnpm dependencies
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ~/.pnpm-store
-  #         key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
-  #         restore-keys: |
-  #           pnpm-store-${{ matrix.node-version }}-
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ matrix.node-version }}-
 
-  #     - name: Install dependencies
-  #       run: pnpm install
+      - name: Install dependencies
+        run: pnpm install
 
-  #     - name: Run test
-  #       run: pnpm test
+      - name: Run test
+        run: pnpm test
 
-  # client_staging:
-  #   needs: client_test
-  #   runs-on: ubuntu-22.04
-  #   env:
-  #     VITE_FIREBASE_API_KEY: '${{ secrets.FIREBASE_API_KEY }}'
-  #     VITE_FIREBASE_AUTH_DOMAIN: '${{ secrets.FIREBASE_AUTH_DOMAIN }}'
-  #     VITE_FIREBASE_PROJECT_ID: '${{ secrets.FIREBASE_PROJECT_ID }}'
-  #     VITE_FIREBASE_STORAGE_BUCKET: '${{ secrets.FIREBASE_STORAGE_BUCKET }}'
-  #     VITE_FIREBASE_MESS_SENDER_ID: '${{ secrets.FIREBASE_MESS_SENDER_ID }}'
-  #     VITE_FIREBASE_APP_ID: '${{ secrets.FIREBASE_APP_ID }}'
-  #     VITE_FIREBASE_MEASUREMENT_ID: '${{ secrets.FIREBASE_MEASUREMENT_ID }}'
-  #     VITE_FIREBASE_DATABASE_URL: '${{ secrets.FIREBASE_DATABASE_URL }}'
-  #     VITE_PAGE_SIZE: '${{ secrets.PAGE_SIZE }}'
+  client_staging:
+    needs: client_test
+    runs-on: ubuntu-22.04
+    env:
+      VITE_FIREBASE_API_KEY: '${{ secrets.FIREBASE_API_KEY }}'
+      VITE_FIREBASE_AUTH_DOMAIN: '${{ secrets.FIREBASE_AUTH_DOMAIN }}'
+      VITE_FIREBASE_PROJECT_ID: '${{ secrets.FIREBASE_PROJECT_ID }}'
+      VITE_FIREBASE_STORAGE_BUCKET: '${{ secrets.FIREBASE_STORAGE_BUCKET }}'
+      VITE_FIREBASE_MESS_SENDER_ID: '${{ secrets.FIREBASE_MESS_SENDER_ID }}'
+      VITE_FIREBASE_APP_ID: '${{ secrets.FIREBASE_APP_ID }}'
+      VITE_FIREBASE_MEASUREMENT_ID: '${{ secrets.FIREBASE_MEASUREMENT_ID }}'
+      VITE_FIREBASE_DATABASE_URL: '${{ secrets.FIREBASE_DATABASE_URL }}'
+      VITE_PAGE_SIZE: '${{ secrets.PAGE_SIZE }}'
 
-  #     VITE_MODE: 'dev'
-  #     VITE_API_URL: 'https://vnoi-server-staging.undefine.tech'
-  #   defaults:
-  #     run:
-  #       working-directory: ./client/
-  #   permissions:
-  #     contents: read
-  #     deployments: write
-  #   outputs:
-  #     preview_url: ${{ steps.getPreviewUrl.outputs.PREVIEW_URL }}
-  #     client_staging_status: ${{ steps.deploy_client.outcome }}
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+      VITE_MODE: 'dev'
+      VITE_API_URL: 'https://vnoi-server-staging.undefine.tech'
+    defaults:
+      run:
+        working-directory: ./client/
+    permissions:
+      contents: read
+      deployments: write
+    outputs:
+      preview_url: ${{ steps.getPreviewUrl.outputs.PREVIEW_URL }}
+      client_staging_status: ${{ steps.deploy_client.outcome }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  #     - name: Create serviceAccount.json
-  #       run: |
-  #         echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
+      - name: Create serviceAccount.json
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
 
-  #     - name: Print environment variables
-  #       run: printenv
+      - name: Print environment variables
+        run: printenv
 
-  #     - name: Install pnpm
-  #       uses: pnpm/action-setup@v3
-  #       with:
-  #         version: 9
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
-  #     - name: Use Node.js ${{ matrix.node-version }}
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: ${{ matrix.node-version }}
-  #         cache: 'pnpm'
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
 
-  #     - name: Cache pnpm dependencies
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ~/.pnpm-store
-  #         key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
-  #         restore-keys: |
-  #           pnpm-store-${{ matrix.node-version }}-
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ matrix.node-version }}-
 
-  #     - name: Install dependencies
-  #       run: pnpm install
+      - name: Install dependencies
+        run: pnpm install
 
-  #     - name: Build client
-  #       run: pnpm build
+      - name: Build client
+        run: pnpm build
 
-  #     - name: Deploy to Cloudflare Pages
-  #       uses: cloudflare/pages-action@v1.5.0
-  #       id: deploy_client
-  #       with:
-  #         branch: staging
-  #         apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  #         projectName: vnoi-client
-  #         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-  #         workingDirectory: ./client/
-  #         directory: ./dist
-  #         wranglerVersion: '3'
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1.5.0
+        id: deploy_client
+        with:
+          branch: staging
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          projectName: vnoi-client
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ./client/
+          directory: ./dist
+          wranglerVersion: '3'
 
-  #     - name: Save build deploy to production
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: artifact-vnoi-client-build
-  #         path: ./client/dist
+      - name: Save build deploy to production
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-vnoi-client-build
+          path: ./client/dist
 
-  #     - name: Get preview URL
-  #       id: getPreviewUrl
-  #       run: |
-  #         echo "PREVIEW_URL=${{ steps.deploy_client.outputs.url }}" >> $GITHUB_ENV
+      - name: Get preview URL
+        id: getPreviewUrl
+        run: |
+          echo "PREVIEW_URL=${{ steps.deploy_client.outputs.url }}" >> $GITHUB_ENV
 
-  # e2e_test:
-  #   runs-on: ubuntu-22.04
-  #   needs: [client_staging, server_staging]
-  #   if: ${{ needs.client_staging.outputs.client_staging_status != 'failure' && needs.server_staging.outputs.server_staging_status != 'failure'}}
-  #   env:
-  #     CYPRESS_BASE_URL: https://staging.vnoi-client.pages.dev
-  #     CYPRESS_API_URL: https://vnoi-server-staging.undefine.tech
-  #     CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-  #   outputs:
-  #     e2e_status: ${{ steps.run-e2e-test.outcome }}
-  #   defaults:
-  #     run:
-  #       working-directory: ./client/
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+  e2e_test:
+    runs-on: ubuntu-22.04
+    needs: [client_staging, server_staging]
+    if: ${{ needs.client_staging.outputs.client_staging_status != 'failure' && needs.server_staging.outputs.server_staging_status != 'failure'}}
+    env:
+      CYPRESS_BASE_URL: https://staging.vnoi-client.pages.dev
+      CYPRESS_API_URL: https://vnoi-server-staging.undefine.tech
+      CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+    outputs:
+      e2e_status: ${{ steps.run-e2e-test.outcome }}
+    defaults:
+      run:
+        working-directory: ./client/
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  #     - name: Create serviceAccount.json
-  #       run: |
-  #         echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
+      - name: Create serviceAccount.json
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
 
-  #     - name: Install pnpm
-  #       uses: pnpm/action-setup@v3
-  #       with:
-  #         version: 9
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
-  #     - name: Use Node.js ${{ matrix.node-version }}
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: ${{ matrix.node-version }}
-  #         cache: 'pnpm'
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
 
-  #     - name: Cache pnpm dependencies
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ~/.pnpm-store
-  #         key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
-  #         restore-keys: |
-  #           pnpm-store-${{ matrix.node-version }}-
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ matrix.node-version }}-
 
-  #     - name: Install dependencies
-  #       run: pnpm install
+      - name: Install dependencies
+        run: pnpm install
 
-  #     - name: Run e2e tests
-  #       id: run-e2e-test
-  #       run: pnpm cypress:e2e:record
+      - name: Run e2e tests
+        id: run-e2e-test
+        run: pnpm cypress:e2e:record
 
-  # server_production:
-  #   runs-on: ubuntu-22.04
-  #   needs: [e2e_test, check_version]
-  #   if: ${{ needs.e2e_test.outputs.e2e_status == 'success'}}
-  #   outputs:
-  #     external_ip: ${{ steps.get_external_ip.outputs.external_ip }}
-  #     server_production_status: ${{ steps.compute-ssh.outcome }}
-  #   env:
-  #     PROJECT_ID: astute-office-426802-m1
-  #     ZONE: asia-southeast1-b
-  #     INSTANCE_NAME: server-2
-  #     VERSION: '${{ needs.check_version.outputs.version }}'
-  #     DOCKERHUB_USERNAME: '${{ secrets.DOCKERHUB_USERNAME }}'
-  #   permissions:
-  #     contents: read
-  #     id-token: write
-  #   steps:
-  #     - name: Login to Google Cloud
-  #       id: auth
-  #       uses: 'google-github-actions/auth@v2'
-  #       with:
-  #         credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+  server_production:
+    runs-on: ubuntu-22.04
+    needs: [e2e_test, check_version]
+    if: ${{ needs.e2e_test.outputs.e2e_status == 'success'}}
+    outputs:
+      external_ip: ${{ steps.get_external_ip.outputs.external_ip }}
+      server_production_status: ${{ steps.compute-ssh.outcome }}
+    env:
+      PROJECT_ID: astute-office-426802-m1
+      ZONE: asia-southeast1-b
+      INSTANCE_NAME: server-2
+      VERSION: '${{ needs.check_version.outputs.version }}'
+      DOCKERHUB_USERNAME: '${{ secrets.DOCKERHUB_USERNAME }}'
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Login to Google Cloud
+        id: auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
 
-  #     - name: Get docker-compose file
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: artifact-vnoi
-  #         path: ./server/
+      - name: Get docker stack file
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact-vnoi
+          path: ./server/
 
-  #     - name: Copy file to GCE instance
-  #       run: |
-  #         gcloud compute scp ./server/docker-compose.prod.yml ${{ env.INSTANCE_NAME }}:/vnoi-microservice/docker-compose.prod.yml --zone=${{ env.ZONE }} --project=${{ env.PROJECT_ID }}
+      - name: Copy file to GCE instance
+        run: |
+          gcloud compute scp ./server/docker-stack-main.yml ${{ env.INSTANCE_NAME }}:/vnoi-microservice/docker-stack-main.yml --zone=${{ env.ZONE }} --project=${{ env.PROJECT_ID }}
 
-  #     - name: SSH to production server
-  #       id: compute-ssh
-  #       uses: google-github-actions/ssh-compute@v1
-  #       with:
-  #         user: ho.pl
-  #         instance_name: ${{ env.INSTANCE_NAME }}
-  #         project_id: ${{ env.PROJECT_ID }}
-  #         zone: ${{ env.ZONE }}
-  #         ssh_private_key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
-  #         command: |
-  #           export VERSION=${{ env.VERSION }}
+      - name: SSH to production server
+        id: compute-ssh
+        uses: google-github-actions/ssh-compute@v1
+        with:
+          user: ho.pl
+          instance_name: ${{ env.INSTANCE_NAME }}
+          project_id: ${{ env.PROJECT_ID }}
+          zone: ${{ env.ZONE }}
+          ssh_private_key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          command: |
+            export VERSION=${{ env.VERSION }}
 
-  #           echo "Start deploy compose ${{ env.VERSION }}"
-  #           docker compose -f /vnoi-microservice/docker-compose.prod.yml up -d
-  #           echo "Finish deploy compose ${{ env.VERSION }}"
+            echo "Start deploy stack ${{ env.VERSION }}"
+            docker stack deploy -f /vnoi-microservice/docker-stack-main.yml vnoi-micro-backend
+            echo "Finish deploy stack ${{ env.VERSION }}"
 
-  #     - name: Get external IP
-  #       id: get_external_ip
-  #       run: |
-  #         EXTERNAL_IP=$(gcloud compute instances describe ${{ env.INSTANCE_NAME }} --zone=${{ env.ZONE }} --project=${{ env.PROJECT_ID }} --format='value(networkInterfaces[0].accessConfigs[0].natIP)')
-  #         echo "external_ip=$EXTERNAL_IP" >> $GITHUB_OUTPUT
+      - name: Get external IP
+        id: get_external_ip
+        run: |
+          EXTERNAL_IP=$(gcloud compute instances describe ${{ env.INSTANCE_NAME }} --zone=${{ env.ZONE }} --project=${{ env.PROJECT_ID }} --format='value(networkInterfaces[0].accessConfigs[0].natIP)')
+          echo "external_ip=$EXTERNAL_IP" >> $GITHUB_OUTPUT
 
-  # client_production:
-  #   runs-on: ubuntu-22.04
-  #   needs: [e2e_test]
-  #   if: ${{ needs.e2e_test.outputs.e2e_status == 'success'}}
-  #   env:
-  #     VITE_FIREBASE_API_KEY: '${{ secrets.FIREBASE_API_KEY }}'
-  #     VITE_FIREBASE_AUTH_DOMAIN: '${{ secrets.FIREBASE_AUTH_DOMAIN }}'
-  #     VITE_FIREBASE_PROJECT_ID: '${{ secrets.FIREBASE_PROJECT_ID }}'
-  #     VITE_FIREBASE_STORAGE_BUCKET: '${{ secrets.FIREBASE_STORAGE_BUCKET }}'
-  #     VITE_FIREBASE_MESS_SENDER_ID: '${{ secrets.FIREBASE_MESS_SENDER_ID }}'
-  #     VITE_FIREBASE_APP_ID: '${{ secrets.FIREBASE_APP_ID }}'
-  #     VITE_FIREBASE_MEASUREMENT_ID: '${{ secrets.FIREBASE_MEASUREMENT_ID }}'
-  #     VITE_FIREBASE_DATABASE_URL: '${{ secrets.FIREBASE_DATABASE_URL }}'
-  #     VITE_PAGE_SIZE: '${{ secrets.PAGE_SIZE }}'
+  client_production:
+    runs-on: ubuntu-22.04
+    needs: [e2e_test]
+    if: ${{ needs.e2e_test.outputs.e2e_status == 'success'}}
+    env:
+      VITE_FIREBASE_API_KEY: '${{ secrets.FIREBASE_API_KEY }}'
+      VITE_FIREBASE_AUTH_DOMAIN: '${{ secrets.FIREBASE_AUTH_DOMAIN }}'
+      VITE_FIREBASE_PROJECT_ID: '${{ secrets.FIREBASE_PROJECT_ID }}'
+      VITE_FIREBASE_STORAGE_BUCKET: '${{ secrets.FIREBASE_STORAGE_BUCKET }}'
+      VITE_FIREBASE_MESS_SENDER_ID: '${{ secrets.FIREBASE_MESS_SENDER_ID }}'
+      VITE_FIREBASE_APP_ID: '${{ secrets.FIREBASE_APP_ID }}'
+      VITE_FIREBASE_MEASUREMENT_ID: '${{ secrets.FIREBASE_MEASUREMENT_ID }}'
+      VITE_FIREBASE_DATABASE_URL: '${{ secrets.FIREBASE_DATABASE_URL }}'
+      VITE_PAGE_SIZE: '${{ secrets.PAGE_SIZE }}'
 
-  #     VITE_MODE: 'production'
-  #     VITE_API_URL: 'https://vnoiou-server.undefine.tech'
-  #   defaults:
-  #     run:
-  #       working-directory: ./client/
-  #   permissions:
-  #     contents: read
-  #     deployments: write
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+      VITE_MODE: 'production'
+      VITE_API_URL: 'https://vnoiou-server.undefine.tech'
+    defaults:
+      run:
+        working-directory: ./client/
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  #     - name: Create serviceAccount.json
-  #       run: |
-  #         echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
+      - name: Create serviceAccount.json
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | base64 -d > serviceAccount.json
 
-  #     - name: Print environment variables
-  #       run: printenv
+      - name: Print environment variables
+        run: printenv
 
-  #     - name: Install pnpm
-  #       uses: pnpm/action-setup@v3
-  #       with:
-  #         version: 9
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
-  #     - name: Use Node.js ${{ matrix.node-version }}
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: ${{ matrix.node-version }}
-  #         cache: 'pnpm'
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
 
-  #     - name: Cache pnpm dependencies
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ~/.pnpm-store
-  #         key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
-  #         restore-keys: |
-  #           pnpm-store-${{ matrix.node-version }}-
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ matrix.node-version }}-
 
-  #     - name: Install dependencies
-  #       run: pnpm install
+      - name: Install dependencies
+        run: pnpm install
 
-  #     - name: Build client
-  #       run: pnpm build
+      - name: Build client
+        run: pnpm build
 
-  #     - name: Deploy to Cloudflare Pages
-  #       uses: cloudflare/pages-action@v1.5.0
-  #       id: deploy_client
-  #       with:
-  #         branch: main
-  #         apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  #         projectName: vnoi-client
-  #         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-  #         workingDirectory: ./client/
-  #         directory: ./dist
-  #         wranglerVersion: '3'
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1.5.0
+        id: deploy_client
+        with:
+          branch: main
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          projectName: vnoi-client
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ./client/
+          directory: ./dist
+          wranglerVersion: '3'

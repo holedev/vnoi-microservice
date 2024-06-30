@@ -17,6 +17,8 @@ fi
 if [ -n "$new_version" ]; then
   jq ".version = \"$new_version\"" "$package_path" > package.json.tmp && mv package.json.tmp "$package_path"
   echo "-> Updated version to: $new_version"
+
+  git add "$package_path"
 fi
 
 pnpm lint-staged
