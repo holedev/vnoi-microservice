@@ -56,5 +56,6 @@ networks:
   judge0:
     driver: bridge
   vnoi-backend:
+    name: vnoi-backend
     driver: overlay
     external: true

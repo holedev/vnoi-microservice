@@ -62,6 +62,7 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
+      replicas: 2
 
   exercise:
     image: lehodev/vnoi-backend-exercise:${VERSION}
@@ -79,8 +80,6 @@ services:
       - MONGODB_URL=mongodb://db-mongo:27017/vnoi-exercise
       - MAX_SUBMISSION=50
       - COMPILER_HOST=http://server:2358
-      - COMPILER_X_AUTH_USER=hehehe
-      - STRING_SPLIT_CODE=>----------<
     depends_on:
       - amqp-rabbitmq
       - db-mongo
@@ -89,6 +88,7 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
+      replicas: 2
 
   media:
     image: lehodev/vnoi-backend-media:${VERSION}
@@ -110,6 +110,7 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
+      replicas: 3
 
   learning:
     image: lehodev/vnoi-backend-learning:${VERSION}
@@ -130,6 +131,7 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
+      replicas: 2
 
   statistics:
     image: lehodev/vnoi-backend-statistics:${VERSION}
@@ -176,4 +178,6 @@ secrets:
 
 networks:
   vnoi-backend:
+    name: vnoi-backend
     driver: overlay
+    external: true
