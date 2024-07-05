@@ -1,37 +1,27 @@
-import { ExpandMoreOutlined } from '@mui/icons-material';
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Chip,
-  Typography,
-} from '@mui/material';
-import { Box } from '@mui/system';
-import styles from './Testcase.module.css';
+import { ExpandMoreOutlined } from "@mui/icons-material";
+import { Accordion, AccordionDetails, AccordionSummary, Chip, Typography } from "@mui/material";
+import { Box } from "@mui/system";
+import styles from "./Testcase.module.css";
 
 function Testcase({ data, idx, resultCheck }) {
   return (
     <Accordion>
-      <AccordionSummary
-        expandIcon={<ExpandMoreOutlined />}
-        aria-controls="panel1a-content"
-        id="panel1a-header"
-      >
+      <AccordionSummary expandIcon={<ExpandMoreOutlined />} aria-controls='panel1a-content' id='panel1a-header'>
         <Typography
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
+            display: "flex",
+            alignItems: "center",
+            gap: "6px"
           }}
         >
-          Testcase {idx + 1}{' '}
+          Testcase {idx + 1}{" "}
           {resultCheck && (
             <Chip
-              component={'span'}
-              label={resultCheck.data[idx].pass ? 'PASS' : 'FAIL'}
-              size="small"
-              variant="outlined"
-              color={resultCheck.data[idx].pass ? 'success' : 'error'}
+              component={"span"}
+              label={resultCheck.data[idx].pass ? "PASS" : "FAIL"}
+              size='small'
+              variant='outlined'
+              color={resultCheck.data[idx].pass ? "success" : "error"}
             />
           )}
         </Typography>
@@ -40,8 +30,8 @@ function Testcase({ data, idx, resultCheck }) {
         <Box className={styles.testcaseBox}>
           <span
             style={{
-              marginLeft: '4px',
-              fontWeight: '500',
+              marginLeft: "4px",
+              fontWeight: "500"
             }}
           >
             Input
@@ -59,8 +49,8 @@ function Testcase({ data, idx, resultCheck }) {
         <Box className={styles.testcaseBox}>
           <span
             style={{
-              marginLeft: '4px',
-              fontWeight: '500',
+              marginLeft: "4px",
+              fontWeight: "500"
             }}
           >
             Expect
@@ -84,8 +74,8 @@ function Testcase({ data, idx, resultCheck }) {
             <Box className={styles.testcaseBox}>
               <span
                 style={{
-                  marginLeft: '4px',
-                  fontWeight: '500',
+                  marginLeft: "4px",
+                  fontWeight: "500"
                 }}
               >
                 Output
@@ -93,9 +83,7 @@ function Testcase({ data, idx, resultCheck }) {
               <ul className={styles.testcaseList}>
                 {resultCheck.data[idx] ? (
                   <li className={styles.testcaseItem} key={idx}>
-                    <pre className={styles.testcaseOutput}>
-                      {resultCheck.data[idx].stdout}
-                    </pre>
+                    <pre className={styles.testcaseOutput}>{resultCheck.data[idx].stdout}</pre>
                   </li>
                 ) : (
                   <li className={styles.testcaseItem}></li>
@@ -105,8 +93,8 @@ function Testcase({ data, idx, resultCheck }) {
             <Box className={styles.testcaseBox}>
               <span
                 style={{
-                  marginLeft: '4px',
-                  fontWeight: '500',
+                  marginLeft: "4px",
+                  fontWeight: "500"
                 }}
               >
                 Status

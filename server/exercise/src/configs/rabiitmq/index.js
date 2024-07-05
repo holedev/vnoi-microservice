@@ -24,6 +24,7 @@ const getChannel = async () => {
     const connection = await getConn();
     if (channel === null) {
       channel = await connection.createChannel();
+      await channel.assertExchange(_EXCHANGE.EXERCISE_EXCHANGE, "fanout", { durable: true });
     }
     channel.on("close", () => {
       console.log("Channel close");
@@ -110,7 +111,7 @@ const requestData = async (QUEUE_NAME, requestPayload, uuid) => {
       correlationId: uuid
     });
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       const timeout = setTimeout(() => {
         channel.close();
         resolve(FormatData.warning("TIMEOUT | API could not fullfil the request!"));
@@ -143,4 +144,13 @@ const requestAsync = async (QUEUE_NAME, requestPayload) => {
   return await requestData(QUEUE_NAME, requestPayload, uuid);
 };
 
-export { subscribeMessage, requestAsync, getChannel, getSubscribeChannel };
+const publishMessage = async (msg) => {
+  try {
+    const channel = await getChannel();
+    channel.publish(_EXCHANGE.EXERCISE_EXCHANGE, "", Buffer.from(JSON.stringify(msg)));
+  } catch (err) {
+    sendLogTelegram("RABBITMQ::PUBLISH\n" + err);
+  }
+};
+
+export { subscribeMessage, requestAsync, getChannel, getSubscribeChannel, publishMessage };

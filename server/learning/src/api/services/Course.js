@@ -6,6 +6,8 @@ import { CourseModel } from "../models/Course.js";
 import { CourseSectionModel } from "../models/CourseSection.js";
 import { CourseLessonModel } from "../models/CourseLesson.js";
 import { QuestionModel } from "../models/Question.js";
+import { sendToQueue } from "../../configs/rabiitmq/index.js";
+import { _ACTION, _SERVICE } from "../../configs/env/index.js";
 
 const CourseService = {
   getCourseByClass: async (req, res) => {
@@ -123,6 +125,7 @@ const CourseService = {
     });
   },
   getCourseById: async (req, res) => {
+    const _id = req.headers["x-user-id"];
     const { id } = req.params;
 
     const course = await CourseModel.findById(id)
@@ -131,7 +134,7 @@ const CourseService = {
         select: "_id title lessons",
         populate: {
           path: "lessons._id",
-          select: "_id title files video"
+          select: "_id title files video userDoneList"
         }
       })
       .lean()
@@ -148,11 +151,15 @@ const CourseService = {
           _id: section._id._id,
           title: section._id.title,
           lessons: section._id.lessons.map((lesson) => {
+            const userDoneList = lesson._id.userDoneList || [];
+            const isDone = userDoneList.find((userId) => userId == _id);
+
             return {
               _id: lesson._id._id,
               title: lesson._id.title,
               files: lesson._id.files,
-              video: lesson._id.video
+              video: lesson._id.video,
+              isDone: isDone ? true : false
             };
           })
         };
@@ -290,7 +297,6 @@ const CourseService = {
     });
   },
   createCourse: async (req, res) => {
-    const requestId = req.headers["x-request-id"];
     const _id = req.headers["x-user-id"];
 
     const { title, desc, coverPath, sections, authors } = req.body;
@@ -464,9 +470,6 @@ const CourseService = {
     });
   },
   saveDraftLesson: async (req, res) => {
-    const requestId = req.headers["x-request-id"];
-    const _id = req.headers["x-user-id"];
-
     const { id } = req.params;
     const { video, files, content } = req.body;
 
@@ -485,6 +488,88 @@ const CourseService = {
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       data: lesson
+    });
+  },
+  updateCourseInfo: async (req, res) => {
+    const { id } = req.params;
+    const { title, desc, coverPath, authors } = req.body;
+
+    const condition = {
+      _id: id,
+      isDeleted: false
+    };
+
+    const course = await CourseModel.findOne(condition);
+
+    if (!course) {
+      throw new ConflictError("Course not found!");
+    }
+
+    const newAuthors =
+      authors?.map((author) => {
+        return { _id: author._id, fullName: author.fullName, email: author.email };
+      }) || [];
+
+    course.title = title;
+    course.desc = desc;
+    course.coverPath = coverPath;
+    course.authors = newAuthors;
+    await course.save();
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: course._id
+    });
+  },
+  updateUserDoneListOfLesson: async (req, res) => {
+    const _id = req.headers["x-user-id"];
+    const requestId = req.headers["x-request-id"];
+    const { id } = req.params;
+    const { courseId, status } = req.body;
+
+    const condition = {
+      _id: id,
+      isDeleted: false
+    };
+
+    const lesson = await CourseLessonModel.findOne(condition);
+
+    if (!lesson) {
+      throw new ConflictError("Lesson not found!");
+    }
+
+    let userDoneList = lesson.userDoneList || [];
+    const isDone = userDoneList.find((userId) => userId == _id);
+
+    if (status && !isDone) {
+      userDoneList.push(_id);
+    }
+
+    if (!status && isDone) {
+      userDoneList = userDoneList.filter((userId) => userId != _id);
+    }
+
+    lesson.userDoneList = userDoneList;
+    await lesson.save();
+
+    const payload = {
+      requestId,
+      action: _ACTION.UPDATE_LESSON_DONE_LIST,
+      data: {
+        courseId,
+        requestId,
+        lessonId: id,
+        userId: _id,
+        status: status
+      }
+    };
+    sendToQueue(_SERVICE.STATISTICS_SERVICE.NAME, payload);
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: {
+        status
+      }
     });
   },
   getCourseByLecturer: async (req, res) => {
@@ -527,7 +612,9 @@ const CourseService = {
   getSectionById: async (req, res) => {
     const { id } = req.params;
 
-    let courseSection = await CourseSectionModel.findById(id)
+    const condition = { _id: id, isDeleted: false };
+
+    let courseSection = await CourseSectionModel.findOne(condition)
       .populate({
         path: "lessons._id",
         select: "_id title"
@@ -552,21 +639,40 @@ const CourseService = {
     });
   },
   getLessonById: async (req, res) => {
+    const _id = req.headers["x-user-id"];
+    const requestId = req.headers["x-request-id"];
     const { id } = req.params;
 
-    let courseLesson = await CourseLessonModel.findById(id).lean().select("-__v -updatedAt -createdAt");
+    const condition = { _id: id, isDeleted: false };
+
+    let courseLesson = await CourseLessonModel.findOne(condition).lean().select("-__v -updatedAt -createdAt");
 
     if (courseLesson.video?._id) {
-      const videoGRPC = await gRPCRequest.getVideoByIdAsync(req.headers["x-request-id"], courseLesson.video._id);
+      const videoGRPC = await gRPCRequest.getVideoByIdAsync(requestId, courseLesson.video._id);
       const data = JSON.parse(videoGRPC.jsonStr);
 
       courseLesson.video = {
         _id: data._id,
         title: data.title,
         path: courseLesson.video?.path,
-        interactives: data.interactives
+        interactives: data.interactives.map((i) => {
+          return {
+            _id: i._id,
+            type: i.type,
+            time: i.time,
+            isAnswered: i.answerList?.find((answer) => answer == _id) ? true : false,
+            slug: i.slug
+          };
+        })
       };
     }
+
+    const formatData = {
+      ...courseLesson,
+      isDone: courseLesson.userDoneList?.find((userId) => userId == _id) ? true : false
+    };
+
+    delete formatData.userDoneList;
 
     if (!courseLesson) {
       throw new ConflictError("Lesson not found!");
@@ -574,7 +680,7 @@ const CourseService = {
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",
-      data: courseLesson
+      data: formatData
     });
   },
   softDelete: async (req, res) => {
@@ -617,9 +723,10 @@ const CourseService = {
     });
   },
   getQuestionById: async (req, res) => {
+    const _id = req.headers["x-user-id"];
     const { id } = req.params;
 
-    const question = await QuestionModel.findById(id).lean().select("_id title answers");
+    const question = await QuestionModel.findById(id).lean().select("_id title answers answersList");
 
     if (!question) {
       throw new ConflictError("Question not found!");
@@ -638,15 +745,27 @@ const CourseService = {
         .sort(() => Math.random() - 0.5)
     };
 
+    const isAnswered = question.answersList.find((answer) => answer._id == _id);
+
+    if (isAnswered) {
+      formatData.isAnswered = {
+        value: formatData.answers.find((answer) => answer._id == isAnswered.value).value,
+        time: isAnswered.time
+      };
+    }
+
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       data: formatData
     });
   },
   checkResultQuestion: async (req, res) => {
-    const { questionId, answerId } = req.body;
+    const _id = req.headers["x-user-id"];
+    const requestId = req.headers["x-request-id"];
 
-    const question = await QuestionModel.findById(questionId).lean().select("_id answers");
+    const { questionId, answerId, videoId } = req.body;
+
+    let question = await QuestionModel.findById(questionId).select("_id answers answersList");
 
     if (!question) {
       throw new ConflictError("Question not found!");
@@ -657,12 +776,84 @@ const CourseService = {
       throw new ConflictError("Answer not found!");
     }
 
+    const answerIsExist = question.answersList.find((answer) => answer._id == _id);
+    if (answerIsExist) {
+      answerIsExist.value = answerId;
+      answerIsExist.time = new Date();
+    } else {
+      question.answersList.push({ _id, value: answerId, time: new Date() });
+    }
+
+    await question.save();
+
+    const payload = {
+      requestId,
+      action: _ACTION.ANSWER_QUESION,
+      data: {
+        videoId,
+        interactiveId: questionId,
+        userId: _id
+      }
+    };
+
+    sendToQueue(_SERVICE.MEDIA_SERVICE.NAME, payload);
+
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       data: {
         result: answer.isCorrect,
         correctAnswer: question.answers.find((answer) => answer.isCorrect)
       }
+    });
+  },
+  deleteSectionOfCourse: async (req, res) => {
+    const { courseId, sectionId } = req.body;
+
+    const section = await CourseSectionModel.findOne({ _id: sectionId, isDeleted: false });
+
+    if (!section) {
+      throw new ConflictError("Section not found!");
+    }
+
+    section.isDeleted = true;
+    await section.save();
+
+    const course = await CourseModel.findOne({ _id: courseId, isDeleted: false });
+
+    if (!course) {
+      throw new ConflictError("Course not found!");
+    }
+
+    course.sections = course.sections.filter((section) => section._id.toString() != sectionId);
+    await course.save();
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success"
+    });
+  },
+  deleteLessonOfSection: async (req, res) => {
+    const { sectionId, lessonId } = req.body;
+
+    const lesson = await CourseLessonModel.findOne({ _id: lessonId, isDeleted: false });
+
+    if (!lesson) {
+      throw new ConflictError("Lesson not found!");
+    }
+
+    lesson.isDeleted = true;
+    await lesson.save();
+
+    const section = await CourseSectionModel.findOne({ _id: sectionId, isDeleted: false });
+
+    if (!section) {
+      throw new ConflictError("Section not found!");
+    }
+
+    section.lessons = section.lessons.filter((lesson) => lesson._id.toString() != lessonId);
+    await section.save();
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success"
     });
   }
 };

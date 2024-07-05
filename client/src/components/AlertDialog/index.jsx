@@ -5,43 +5,38 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 
-function AlertDialog({
-    open,
-    setOpen,
-    handleAction,
-    title = "Notify",
-    content,
-}) {
-    const handleClose = () => {
-        setOpen(false);
-    };
+export const _DEFAULT_TITLE = "Notify";
+export const _DEFAULT_CONTENT = "No content!";
 
-    const handleProcess = () => {
-        handleAction();
-        setOpen(false);
-    };
+function AlertDialog({ open, setOpen, handleAction, title = _DEFAULT_TITLE, content = _DEFAULT_CONTENT }) {
+  const handleClose = () => {
+    setOpen(false);
+  };
 
-    return (
-        <Dialog scroll="paper" open={open} onClose={handleClose}>
-            <DialogTitle
-                sx={{
-                    fontWeight: "bold",
-                }}
-                id="alert-dialog-title"
-            >
-                {title}
-            </DialogTitle>
-            <DialogContent>
-                <DialogContentText>{content}</DialogContentText>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={handleClose}>Cancel</Button>
-                <Button onClick={handleProcess} autoFocus>
-                    Ok
-                </Button>
-            </DialogActions>
-        </Dialog>
-    );
+  const handleProcess = () => {
+    handleAction();
+    setOpen(false);
+  };
+
+  return (
+    <Dialog scroll='paper' open={open} onClose={handleClose}>
+      <DialogTitle
+        sx={{
+          fontWeight: "bold"
+        }}
+        id='alert-dialog-title'
+      >
+        {title}
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText>{content}</DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose}>Cancel</Button>
+        <Button onClick={handleProcess}>Ok</Button>
+      </DialogActions>
+    </Dialog>
+  );
 }
 
 export default AlertDialog;

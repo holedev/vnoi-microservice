@@ -1,21 +1,21 @@
 .wrapper {
-    margin: 4px 0 0;
-    padding: 6px 12px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    background: var(--white-color);
+  margin: 4px 0 0;
+  padding: 6px 12px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  background: var(--white-color);
 }
 
 .timer {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .action {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }

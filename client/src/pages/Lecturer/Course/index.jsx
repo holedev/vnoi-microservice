@@ -1,22 +1,21 @@
-import { useState } from 'react';
-import Box from '@mui/material/Box';
-import Stepper from '@mui/material/Stepper';
-import Step from '@mui/material/Step';
-import StepLabel from '@mui/material/StepLabel';
-import Button from '@mui/material/Button';
-import Step1 from './Step1';
-import Step2 from './Step2';
-import Step3 from './Step3';
-import useUserContext from '~/hook/useUserContext';
-import useAxiosAPI from '~/hook/useAxiosAPI';
-import { useParams } from 'react-router-dom';
-import { useEffect } from 'react';
-import Step4 from './Step4';
-import { useSearchParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { useState, useEffect } from "react";
+import Box from "@mui/material/Box";
+import Stepper from "@mui/material/Stepper";
+import Step from "@mui/material/Step";
+import StepLabel from "@mui/material/StepLabel";
+import Button from "@mui/material/Button";
+import Step1 from "./Step1";
+import Step2 from "./Step2";
+import Step3 from "./Step3";
+import useUserContext from "~/hook/useUserContext";
+import useAxiosAPI from "~/hook/useAxiosAPI";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 
-const steps = ['Course Information', 'Create Content', 'Review', 'Publish'];
+import Step4 from "./Step4";
+
+import { toast } from "react-toastify";
+
+const steps = ["Course Information", "Create Content", "Review", "Publish"];
 
 export default function Course() {
   const [user] = useUserContext();
@@ -27,17 +26,17 @@ export default function Course() {
   const { axiosAPI, endpoints } = useAxiosAPI();
   const [course, setCourse] = useState({
     _id: null,
-    title: '',
-    desc: '',
+    title: "",
+    desc: "",
     authors: [
       {
         _id: user._id,
         fullName: user.fullName,
         email: user.email,
-        isMe: true,
-      },
+        isMe: true
+      }
     ],
-    coverPath: '',
+    coverPath: "",
     sections: [],
     lessons: [],
     activeSection: null,
@@ -45,16 +44,16 @@ export default function Course() {
     lessonData: {
       video: {},
       files: [],
-      content: null,
+      content: null
     },
     publish: {
       classes: [],
-      time: null,
-    },
+      time: null
+    }
   });
   const [activeStep, setActiveStep] = useState(() => {
-    if (searchParams.get('step')) {
-      return parseInt(searchParams.get('step')) - 1;
+    if (searchParams.get("step")) {
+      return parseInt(searchParams.get("step")) - 1;
     }
     return 0;
   });
@@ -62,12 +61,11 @@ export default function Course() {
 
   const getCourse = async (id) => {
     await axiosAPI({
-      method: 'GET',
-      url: endpoints.learning + `/courses/get-course-by-lecturer/${id}`,
+      method: "GET",
+      url: endpoints.learning + `/courses/get-course-by-lecturer/${id}`
     })
       .then((response) => {
-        const { _id, title, desc, coverPath, authors, sections, publish } =
-          response.data.data;
+        const { _id, title, desc, coverPath, authors, sections, publish } = response.data.data;
         setCourse({
           _id,
           title,
@@ -75,7 +73,7 @@ export default function Course() {
           coverPath,
           authors,
           sections,
-          publish,
+          publish
         });
       })
       .catch((err) => console.log(err));
@@ -89,15 +87,19 @@ export default function Course() {
 
     if (activeStep == 0) {
       const isNewCourse = !course._id;
+
       if (isNewCourse) {
         createCourse();
+        return;
       }
+
+      updateCourseInfo();
     }
 
     if (activeStep == 3) {
       await handlePublic(course._id, {
         classes: course.publish.classes,
-        time: new Date(),
+        time: new Date()
       });
     }
   };
@@ -108,26 +110,25 @@ export default function Course() {
 
   const handlePublic = async (_id, publishData) => {
     await axiosAPI({
-      method: 'PATCH',
+      method: "PATCH",
       url: endpoints.learning + `/courses/publish/${_id}`,
-      data: publishData,
+      data: publishData
     })
-      .then((response) => {
-        nav('/lecturer/dashboard/courses');
-        toast.success('Publish course successfully');
+      .then(() => {
+        nav("/lecturer/dashboard/courses");
+        toast.success("Publish course successfully");
       })
       .catch((err) => console.log(err));
   };
 
   const createCourse = async () => {
     await axiosAPI({
-      method: 'POST',
-      url: endpoints.learning + '/courses',
-      data: course,
+      method: "POST",
+      url: endpoints.learning + "/courses",
+      data: course
     })
       .then((response) => {
-        const { _id, title, desc, coverPath, authors, sections } =
-          response.data.data;
+        const { _id, title, desc, coverPath, authors, sections } = response.data.data;
 
         setCourse((prev) => {
           return {
@@ -137,11 +138,19 @@ export default function Course() {
             desc,
             coverPath,
             authors,
-            sections,
+            sections
           };
         });
       })
       .catch((err) => console.log(err));
+  };
+
+  const updateCourseInfo = async () => {
+    await axiosAPI({
+      method: "PATCH",
+      url: endpoints.learning + `/courses/update-info/${course._id}`,
+      data: course
+    }).catch((err) => console.log(err));
   };
 
   const handleSaveDraft = async () => {
@@ -152,15 +161,15 @@ export default function Course() {
     }
 
     await axiosAPI({
-      method: 'PATCH',
+      method: "PATCH",
       url: endpoints.learning + `/courses/save-draft/${lessonId}`,
-      data: course.lessonData,
+      data: course.lessonData
     })
-      .then((response) => {
-        console.log(response.data.data);
+      .then(() => {
+        toast.success("Save draft successfully");
       })
       .catch((err) => {
-        console.log(err);
+        toast.error(err.message);
       });
   };
 
@@ -175,10 +184,10 @@ export default function Course() {
   return (
     <Box
       sx={{
-        padding: '12px',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
+        padding: "12px",
+        display: "flex",
+        flexDirection: "column",
+        height: "100%"
       }}
     >
       <Stepper activeStep={activeStep}>
@@ -196,9 +205,9 @@ export default function Course() {
 
       <Box
         sx={{
-          padding: '24px 0',
-          display: 'flex',
-          justifyContent: 'center',
+          padding: "24px 0",
+          display: "flex",
+          justifyContent: "center"
         }}
       >
         {activeStep === 0 && <Step1 course={course} setCourse={setCourse} />}
@@ -208,30 +217,23 @@ export default function Course() {
       </Box>
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'row',
+          display: "flex",
+          flexDirection: "row",
           pt: 2,
-          marginTop: 'auto',
+          marginTop: "auto"
         }}
       >
-        <Button
-          color="inherit"
-          disabled={activeStep === 0}
-          onClick={handleBack}
-          sx={{ mr: 1 }}
-        >
+        <Button color='inherit' disabled={activeStep === 0} onClick={handleBack} sx={{ mr: 1 }}>
           Back
         </Button>
-        <Box sx={{ flex: '1 1 auto' }} />
+        <Box sx={{ flex: "1 1 auto" }} />
 
         {activeStep === 1 && (
-          <Button onClick={handleSaveDraft} variant="outlined">
+          <Button onClick={handleSaveDraft} variant='outlined'>
             Save a draft
           </Button>
         )}
-        <Button onClick={handleNext}>
-          {activeStep === steps.length - 1 ? 'Publish' : 'Next'}
-        </Button>
+        <Button onClick={handleNext}>{activeStep === steps.length - 1 ? "Publish" : "Next"}</Button>
       </Box>
     </Box>
   );

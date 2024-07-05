@@ -20,6 +20,16 @@ const Question = new Schema(
         }
       ]
     },
+    answersList: {
+      type: [
+        {
+          _id: String,
+          value: String,
+          time: Date
+        }
+      ],
+      default: []
+    },
     isDeleted: {
       type: Boolean,
       default: false

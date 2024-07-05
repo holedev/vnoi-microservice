@@ -1,6 +1,5 @@
 import admin from "firebase-admin";
-import serviceAccount from "../../../firebase.json" assert { type: "json" };
-import { InternalServerError } from "../../api/responses/errors/InternalServerError.js";
+import serviceAccount from "../../../../firebase.json" assert { type: "json" };
 import { _PROCESS_ENV } from "../env/index.js";
 import { sendLogTelegram } from "../../utils/telegram.js";
 

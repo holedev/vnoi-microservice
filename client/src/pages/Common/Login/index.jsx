@@ -12,17 +12,7 @@ const Login = () => {
   const [, dispatch] = useUserContext();
   const { axiosAPI, endpoints } = useAxiosAPI();
 
-  const handleLoginGoogle = async () => {
-    const auth = getAuth();
-    const provider = new GoogleAuthProvider();
-    const res = await signInWithPopup(auth, provider);
-    const data = {
-      uid: res.user.uid,
-      email: res.user.email,
-      avatar: res.user.photoURL,
-      fullName: res.user.displayName,
-    };
-
+  const loginWithGoogle = async (data) => {
     const toastID = loadingToast("Login ...");
     await axiosAPI
       .post(endpoints.users + "/auth", data)
@@ -33,27 +23,35 @@ const Login = () => {
           type: "LOGIN",
           payload: {
             isUpdate,
-            user,
-          },
+            user
+          }
         });
 
-        data.role === "LECTURER"
-          ? nav("/lecturer/dashboard")
-          : nav("/competition");
+        data.role === "LECTURER" ? nav("/lecturer/dashboard") : nav("/competition");
       })
       .catch((err) => {
-        updateToast(
-          toastID,
-          err.response?.data?.message || "Login fail!",
-          "error"
-        );
+        updateToast(toastID, err.response?.data?.message || "Login fail!", "error");
       });
+  };
+
+  const handleLoginGoogle = async () => {
+    const auth = getAuth();
+    const provider = new GoogleAuthProvider();
+    const res = await signInWithPopup(auth, provider);
+    const data = {
+      uid: res.user.uid,
+      email: res.user.email,
+      avatar: res.user.photoURL,
+      fullName: res.user.displayName
+    };
+
+    await loginWithGoogle(data);
   };
 
   return (
     <Box className={styles.wrapper}>
       <Button onClick={handleLoginGoogle} className={styles.btnLogin}>
-        <img className={styles.loginLogo} src={google} alt="LOGO GOOGLE" />
+        <img className={styles.loginLogo} src={google} alt='LOGO GOOGLE' />
         <div className={styles.loginText}>Login with Google</div>
       </Button>
     </Box>

@@ -12,6 +12,7 @@ function decode(bytes) {
 }
 
 function decodeSubmissions(submissions) {
+  if (!submissions) return [];
   return submissions.map((submission) => ({
     ...submission,
     compile_output: decode(submission.compile_output),

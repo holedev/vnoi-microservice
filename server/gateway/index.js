@@ -4,7 +4,6 @@ import proxy from "express-http-proxy";
 import "express-async-errors";
 import compression from "compression";
 import helmet from "helmet";
-import serveStatic from "serve-static";
 import { _PROCESS_ENV } from "./src/configs/env/index.js";
 import { _PROXY_CONFIG } from "./src/configs/proxy/index.js";
 import { VerifyToken } from "./src/api/middlewares/VerifyToken.js";
@@ -13,9 +12,13 @@ import { apiFilter } from "./src/api/middlewares/apiFilter.js";
 import { firebaseInit } from "./src/configs/firebase/index.js";
 import { logInfo } from "./src/configs/rabiitmq/index.js";
 import { RateLimit } from "./src/api/middlewares/RateLimit.js";
+import { monitorMiddleware, metricsEndpoint } from "./src/api/middlewares/Monitor.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
+
+app.use(monitorMiddleware);
+app.get("/metrics", metricsEndpoint);
 
 firebaseInit();
 
@@ -30,7 +33,7 @@ app.use(
   cors(corsOptions),
   helmet(),
   express.json(),
-  express.urlencoded({ extended: false, limit: "20mb" }),
+  express.urlencoded({ extended: false, limit: "50mb" }),
   compression()
 );
 

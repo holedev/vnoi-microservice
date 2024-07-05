@@ -2,10 +2,35 @@
   "devDependencies": {
     "@commitlint/cli": "^19.0.3",
     "@commitlint/config-conventional": "^19.0.3",
-    "husky": "^9.0.11"
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.7"
   },
   "scripts": {
     "prepare": "husky",
-    "commitlint": "commitlint --edit"
+    "commitlint": "commitlint --edit",
+    "client:lint": "cd client && pnpm lint",
+    "client:lint:fix": "cd client && pnpm lint:fix",
+    "client:format": "cd client && pnpm format",
+    "client:test": "cd client && pnpm test",
+    "server:lint": "cd server && pnpm lint",
+    "server:lint:fix": "cd server && pnpm lint:fix",
+    "server:format": "cd server && pnpm format",
+    "server:test": "cd server && pnpm test:all",
+    "lint": "pnpm client:lint && pnpm server:lint",
+    "lint:fix": "pnpm client:lint:fix && pnpm server:lint:fix",
+    "format": "pnpm client:format && pnpm server:format",
+    "test": "pnpm client:test && pnpm server:test",
+    "test:e2e": "cd client && pnpm cypress:e2e"
+  },
+  "lint-staged": {
+    "client/**/*.{js,jsx}": [
+      "pnpm client:lint:fix",
+      "pnpm client:format"
+    ],
+    "server/**/*.js": [
+      "pnpm server:lint:fix",
+      "pnpm server:format"
+    ],
+    ".github/workflows/*.yml": []
   }
 }

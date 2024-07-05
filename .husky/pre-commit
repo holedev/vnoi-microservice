@@ -1,1 +1,24 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
 
+package_path="server/package.json"
+
+current_version=$(jq -r ".version" "$package_path")
+echo "- Current version: $current_version"
+
+exec < /dev/tty
+
+read -p "- Enter new version (leave blank to keep current): " new_version
+
+if [ -z "$new_version" ]; then
+  echo "-> No version entered, keeping current version: $current_version"
+fi
+
+if [ -n "$new_version" ]; then
+  jq ".version = \"$new_version\"" "$package_path" > package.json.tmp && mv package.json.tmp "$package_path"
+  echo "-> Updated version to: $new_version"
+
+  git add "$package_path"
+fi
+
+pnpm lint-staged

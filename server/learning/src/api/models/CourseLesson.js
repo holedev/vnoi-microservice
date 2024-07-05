@@ -28,6 +28,10 @@ const CourseLesson = new Schema(
     content: {
       type: String
     },
+    userDoneList: {
+      type: [String],
+      default: []
+    },
     isDeleted: {
       type: Boolean,
       default: false
