@@ -62,7 +62,6 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-      replicas: 2
 
   exercise:
     image: lehodev/vnoi-backend-exercise:${VERSION}
@@ -88,7 +87,6 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-      replicas: 2
 
   media:
     image: lehodev/vnoi-backend-media:${VERSION}
@@ -113,11 +111,6 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-      replicas: 3
-      resources:
-        limits:
-          cpus: "4"
-          memory: 4G
 
   learning:
     image: lehodev/vnoi-backend-learning:${VERSION}
@@ -138,7 +131,6 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-      replicas: 2
 
   statistics:
     image: lehodev/vnoi-backend-statistics:${VERSION}

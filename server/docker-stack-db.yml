@@ -11,8 +11,6 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-      placement:
-        constraints: [node.role == manager]
 
   amqp-rabbitmq:
     image: rabbitmq:3.12-management
@@ -29,8 +27,6 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-      placement:
-        constraints: [node.role == manager]
 
 volumes:
   db-mongo-data:

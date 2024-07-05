@@ -7,9 +7,6 @@ services:
       - "9100:9100"
     networks:
       - vnoi-backend
-    deploy:
-      placement:
-        constraints: [node.role == manager]
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
@@ -21,9 +18,6 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
       - vnoi-backend
-    deploy:
-      placement:
-        constraints: [node.role == manager]
 
   prometheus:
     image: prom/prometheus:latest
@@ -36,9 +30,6 @@ services:
       - node-exporter
     networks:
       - vnoi-backend
-    deploy:
-      placement:
-        constraints: [node.role == manager]
 
   grafana:
     image: grafana/grafana:latest
@@ -54,9 +45,6 @@ services:
     volumes:
       - grafana-storage:/var/lib/grafana
       - ./grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
-    deploy:
-      placement:
-        constraints: [node.role == manager]
 
 volumes:
   grafana-storage:
