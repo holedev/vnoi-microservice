@@ -98,7 +98,7 @@ function removeSubmissionStatus(uuid) {
 }
 
 function handleUserSubmitProblem(userId, handleDoneProblemOfVideo) {
-  const userSubmitProblem = ref(realtimeDB, `userSubmitList/${userId}`);
+  const userSubmitProblem = ref(realtimeDB, `usersubmitlist/${userId}`);
 
   onChildAdded(userSubmitProblem, (snap) => {
     handleDoneProblemOfVideo({

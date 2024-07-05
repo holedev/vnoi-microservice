@@ -102,6 +102,8 @@ export default function Dashboard() {
       prev.set(type, value);
       return prev;
     });
+
+    getData();
   };
 
   const handleDelete = async (slug) => {
@@ -158,9 +160,9 @@ export default function Dashboard() {
       .finally();
   };
 
-  useEffect(() => {
-    getData();
-  }, [filter.classCurr, filter.status, filter.page, filter.limit]);
+  // useEffect(() => {
+  //   getData();
+  // }, [filter.classCurr, filter.status, filter.page, filter.limit]);
 
   useEffect(() => {
     checkProblemsQueue(handleProblemStatus);

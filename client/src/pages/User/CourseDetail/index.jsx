@@ -36,6 +36,7 @@ function CourseDetail() {
   const [lesson, setLesson] = useState({});
   const [activeLesson, setActiveLesson] = useState(null);
   const [openSidebar, setOpenSidebar] = useState(false);
+  const [problemDoneId, setProblemDoneId] = useState(null);
   const [questionModal, setQuestionModal] = useState(null);
   const [problemQuestion, setProblemQuestion] = useState(null);
 
@@ -150,20 +151,25 @@ function CourseDetail() {
   };
 
   const handleAnswered = (_id) => {
+    const newInteractives = lesson.video.interactives.map((item) => {
+      if (item._id == _id) {
+        return { ...item, isAnswered: true };
+      }
+      return item;
+    });
+
     setLesson((prev) => {
       return {
         ...prev,
         video: {
           ...prev.video,
-          interactives: prev.video.interactives.map((item) => {
-            if (item._id == _id) {
-              return { ...item, isAnswered: true };
-            }
-            return item;
-          })
+          interactives: newInteractives
         }
       };
     });
+
+    handleLoadedMetadata(newInteractives);
+    videoRef.current.play();
   };
 
   const handleLoadedMetadata = (interactives) => {
@@ -196,11 +202,37 @@ function CourseDetail() {
   };
 
   const handleDoneProblemOfVideo = ({ problemId }) => {
-    if (!problemId) return;
+    setProblemDoneId(problemId);
+  };
+
+  useEffect(() => {
+    const sliderTrack = document.querySelector(".plyr__slider__track");
+    if (sliderTrack) {
+      sliderTrack.innerHTML = "";
+    }
+    if (activeLesson) getLesson(activeLesson);
+  }, [activeLesson]);
+
+  useEffect(() => {
+    if (id) getCourse(id);
+  }, [id]);
+
+  useEffect(() => {
+    if (problemQuestion?.slug) {
+      window.open("/problems/" + problemQuestion.slug, "_blank");
+    }
+  }, [problemQuestion]);
+
+  useEffect(() => {
+    handleUserSubmitProblem(user._id, handleDoneProblemOfVideo);
+  }, []);
+
+  useEffect(() => {
+    if (!problemDoneId) return;
     if (!lesson.video?.interactives || lesson.video?.interactives?.length === 0) return;
 
     const newInteractives = lesson.video.interactives.map((item) => {
-      if (item._id == problemId) {
+      if (item._id == problemDoneId) {
         return { ...item, isAnswered: true };
       }
       return item;
@@ -218,29 +250,7 @@ function CourseDetail() {
 
     handleLoadedMetadata(newInteractives);
     videoRef.current.play();
-  };
-
-  useEffect(() => {
-    const sliderTrack = document.querySelector(".plyr__slider__track");
-    if (sliderTrack) {
-      sliderTrack.innerHTML = "";
-    }
-    if (activeLesson) getLesson(activeLesson);
-  }, [activeLesson]);
-
-  useEffect(() => {
-    if (id) getCourse(id);
-  }, [id]);
-
-  useEffect(() => {
-    if (problemQuestion?.slug) {
-      window.open("http://localhost:5173/problems/" + problemQuestion.slug, "_blank");
-    }
-  }, [problemQuestion]);
-
-  useEffect(() => {
-    handleUserSubmitProblem(user._id, handleDoneProblemOfVideo);
-  }, []);
+  }, [problemDoneId]);
 
   return (
     <Box>
