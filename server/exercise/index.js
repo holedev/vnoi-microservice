@@ -10,6 +10,7 @@ import { SubmissionRoute } from "./src/api/routes/Submission.js";
 import { ExerciseService } from "./src/api/services/index.js";
 import { logInfo } from "./src/configs/rabiitmq/log.js";
 import { VerifyRequestFromGateway } from "./src/api/middlewares/VerifyRequestFromGateway.js";
+import { metricsEndpoint, monitorMiddleware } from "./src/api/middlewares/Monitor.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
@@ -17,6 +18,9 @@ const PORT = _PROCESS_ENV.SERVICE_PORT;
 await databaseConnection();
 const channel = await getSubscribeChannel();
 subscribeMessage(channel, ExerciseService);
+
+app.use(monitorMiddleware);
+app.get("/metrics", metricsEndpoint);
 
 app.use(
   cors({

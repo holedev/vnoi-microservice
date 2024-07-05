@@ -4,10 +4,10 @@ const sendLogTelegram = async (text) => {
   const err = `${_PROCESS_ENV.SERVICE_NAME}:${_PROCESS_ENV.SERVICE_PORT}\nTYPE: ${text}`;
 
   // dev
-  // if (_PROCESS_ENV.NODE_ENV === "dev") {
-  //   console.log(err);
-  //   return;
-  // }
+  if (_PROCESS_ENV.NODE_ENV === "dev") {
+    console.log(err);
+    return;
+  }
 
   // production
   const endpoint = `https://api.telegram.org/bot${_PROCESS_ENV.BOT_TELEGRAM_TOKEN}/sendMessage`;

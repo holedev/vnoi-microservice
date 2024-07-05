@@ -1,4 +1,8 @@
-import { grpCClientCommon, grpCClientMedia, grpCClientUser } from "../../configs/grpc/index.js";
+import { grpCClientCommon, grpCClientMedia, grpCClientStatistics, grpCClientUser } from "../../configs/grpc/index.js";
+import { logInfo } from "../../configs/rabiitmq/log.js";
+import { CourseModel } from "../models/Course.js";
+
+const logGRPCHandle = (requestId, method, body) => logInfo(null, { requestId, method, body });
 
 const gRPCRequest = {
   getUserByIdAsync: (requestId, _id) => {
@@ -56,7 +60,34 @@ const gRPCRequest = {
         }
       });
     });
+  },
+  getListLessonIdDoneAsync: (requestId, userId, courseId) => {
+    return new Promise((resolve, reject) => {
+      grpCClientStatistics.getListLessonIdDone({ requestId, userId, courseId }, (err, res) => {
+        if (err) {
+          reject({
+            statusCode: "GRPC",
+            message: err
+          });
+        } else {
+          resolve(res);
+        }
+      });
+    });
   }
 };
 
-export { gRPCRequest };
+const gRPCHandle = {
+  getCourseById: async (call, callback) => {
+    try {
+      logGRPCHandle(call.request.requestId, "GRPC-HANDLE", call.request);
+      const _id = call.request._id;
+      const result = await CourseModel.findById(_id).lean().select("-__v -createdAt");
+      callback(null, { jsonStr: JSON.stringify(result) });
+    } catch (error) {
+      callback(error, null);
+    }
+  }
+};
+
+export { gRPCRequest, gRPCHandle };

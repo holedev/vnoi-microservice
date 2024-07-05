@@ -2,83 +2,97 @@ import {
   Box,
   Breadcrumbs,
   Button,
-  CardMedia,
+  CircularProgress,
   FormControl,
   FormControlLabel,
+  IconButton,
   Modal,
   Radio,
   RadioGroup,
+  Tooltip,
   Typography,
-  styled,
-} from '@mui/material';
-import QuillEditor from '~/components/QuillEditor';
-import GridOrderring from './GridOrdering';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { useState } from 'react';
-import useAxiosAPI from '~/hook/useAxiosAPI';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import { useEffect } from 'react';
-import { useRef } from 'react';
-import ChildModal from './ChildModal';
-import Question from './Question';
-import ImportProblem from './ImportProblem';
+  styled
+} from "@mui/material";
+import QuillEditor from "~/components/QuillEditor";
+import GridOrderring from "./GridOrdering";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { useState, useEffect, useRef } from "react";
+import useAxiosAPI from "~/hook/useAxiosAPI";
 
-const VisuallyHiddenInput = styled('input')({
-  clip: 'rect(0 0 0 0)',
-  clipPath: 'inset(50%)',
+import ChildModal from "./ChildModal";
+import Question from "./Question";
+import ImportProblem from "./ImportProblem";
+import "@vidstack/react/player/styles/base.css";
+import "@vidstack/react/player/styles/plyr/theme.css";
+import { toast } from "react-toastify";
+import { useDebouncedCallback } from "use-debounce";
+import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
+import ClearIcon from "@mui/icons-material/Clear";
+import { file as FileIcon } from "~/assets/images";
+import VideoStack from "~/components/Vidstack";
+
+const VisuallyHiddenInput = styled("input")({
+  clip: "rect(0 0 0 0)",
+  clipPath: "inset(50%)",
   height: 1,
-  overflow: 'hidden',
-  position: 'absolute',
+  overflow: "hidden",
+  position: "absolute",
   bottom: 0,
   left: 0,
-  whiteSpace: 'nowrap',
-  width: 1,
+  whiteSpace: "nowrap",
+  width: 1
 });
 
-function Step2({
-  course: { _id, sections, lessons, activeSection, activeLesson, lessonData },
-  setCourse,
-}) {
+const _DEBOUNCE_TIME = 5000;
+
+function Step2({ course: { _id, sections, lessons, activeSection, activeLesson, lessonData }, setCourse }) {
   const { axiosAPI, endpoints } = useAxiosAPI();
-  const videoRef = useRef(null);
+  const videoRef = useRef({});
 
   const [loadProgress, setLoadProgress] = useState({
-    video: null,
-    files: null,
+    video: false, // cannot get upload processing percentage with axios
+    files: null
   });
   const [videoEdit, setVideoEdit] = useState({
     isOpen: false,
     data: null,
     timeCurr: 0.0,
-    interactives: [],
+    interactives: []
   });
-  const [radio, setRadio] = useState('question');
+  const [radio, setRadio] = useState("question");
   const [childModal, setChildModal] = useState(false);
   const [question, setQuestion] = useState({});
   const [problem, setProblem] = useState({});
 
   const handleUploadVideo = async (event) => {
+    if (event.target.files.length > 1) {
+      toast.error("Please select only one video");
+      return;
+    }
+
+    if (loadProgress.video) {
+      return;
+    }
+
+    setLoadProgress((prev) => {
+      return {
+        ...prev,
+        video: true
+      };
+    });
+
     const file = event.target.files[0];
     if (file) {
       const form = new FormData();
-      form.append('video', file);
+      form.append("video", file);
 
       await axiosAPI({
-        method: 'POST',
-        url: endpoints.media + '/videos',
+        method: "POST",
+        url: endpoints.media + "/videos",
         data: form,
         headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (progressEvent) => {
-          setLoadProgress((prev) => {
-            return {
-              ...prev,
-              video:
-                (progressEvent.loaded / progressEvent.total).toFixed(2) * 100,
-            };
-          });
-        },
+          "Content-Type": "multipart/form-data"
+        }
       })
         .then((response) => {
           const { title, path, _id } = response.data.data;
@@ -88,19 +102,22 @@ function Step2({
               ...prev,
               lessonData: {
                 ...prev.lessonData,
-                video: { title, path, _id },
-              },
+                video: { title, path, _id }
+              }
             };
           });
 
+          toast.success("Video uploaded successfully");
+        })
+        .catch((err) => toast.error(err.message))
+        .finally(() => {
           setLoadProgress((prev) => {
             return {
               ...prev,
-              video: null,
+              video: false
             };
           });
-        })
-        .catch((err) => console.log(err));
+        });
     }
   };
 
@@ -109,16 +126,16 @@ function Step2({
     if (files) {
       const form = new FormData();
       for (let i = 0; i < files.length; i++) {
-        form.append('file', files[i]);
+        form.append("file", files[i]);
       }
 
       axiosAPI({
-        method: 'POST',
-        url: endpoints.media + '/files',
+        method: "POST",
+        url: endpoints.media + "/files",
         data: form,
         headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+          "Content-Type": "multipart/form-data"
+        }
       })
         .then((response) => {
           const files = response.data.data;
@@ -128,8 +145,8 @@ function Step2({
               ...prev,
               lessonData: {
                 ...prev.lessonData,
-                files: files,
-              },
+                files: files
+              }
             };
           });
         })
@@ -137,25 +154,24 @@ function Step2({
     }
   };
 
-  const orderSections = async (sections) => {
+  const orderSections = useDebouncedCallback(async (sections) => {
     const data = sections.map((section) => {
       return {
-        _id: section._id,
+        _id: section._id
       };
     });
 
     await axiosAPI
-      .patch(endpoints.learning + '/courses/order-sections/' + _id, {
-        sections: data,
+      .patch(endpoints.learning + "/courses/order-sections/" + _id, {
+        sections: data
       })
-      .then((res) => console.log(res.data.data))
-      .catch((err) => console.log(err));
-  };
+      .catch((err) => toast.error(err.message));
+  }, _DEBOUNCE_TIME);
 
-  const handleDoubleClickSection = async (id, value) => {
+  const handleRenameSection = async (id, value) => {
     await axiosAPI
-      .patch(endpoints.learning + '/courses/sections/' + id, {
-        title: value,
+      .patch(endpoints.learning + "/courses/sections/" + id, {
+        title: value
       })
       .then((res) => {
         const { _id, title } = res.data.data;
@@ -163,7 +179,7 @@ function Step2({
           if (section._id === _id) {
             return {
               ...section,
-              title,
+              title
             };
           }
           return section;
@@ -172,7 +188,7 @@ function Step2({
         setCourse((prev) => {
           return {
             ...prev,
-            sections: newSections,
+            sections: newSections
           };
         });
       })
@@ -181,8 +197,8 @@ function Step2({
 
   const handleAddSection = async () => {
     await axiosAPI
-      .post(endpoints.learning + '/courses/sections', {
-        courseId: _id,
+      .post(endpoints.learning + "/courses/sections", {
+        courseId: _id
       })
       .then((res) => {
         const { _id, title } = res.data.data;
@@ -190,55 +206,86 @@ function Step2({
         setCourse((prev) => {
           return {
             ...prev,
-            sections: [...prev.sections, { _id, title }],
+            sections: [...prev.sections, { _id, title }]
           };
         });
       })
       .catch((err) => console.log(err));
   };
 
-  const handleOnClickSection = async (id) => {
+  const handleOpenSection = async (id) => {
     setCourse((prev) => {
       return {
         ...prev,
         activeSection: id,
-        activeLesson: null,
+        activeLesson: null
       };
     });
 
     await axiosAPI
-      .get(endpoints.learning + '/courses/sections/' + id)
+      .get(endpoints.learning + "/courses/sections/" + id)
       .then((res) => {
         const { lessons } = res.data.data;
         setCourse((prev) => {
           return {
             ...prev,
-            lessons,
+            lessons
           };
         });
       })
       .catch((err) => console.log(err));
   };
 
-  const orderLessons = async (lessons) => {
-    const data = lessons.map((lesson) => {
+  const handleDeleteSection = async (id) => {
+    setCourse((prev) => {
       return {
-        _id: lesson._id,
+        ...prev,
+        sections: prev.sections.filter((section) => section._id !== id)
       };
     });
 
     await axiosAPI
-      .patch(endpoints.learning + '/courses/order-lessons/' + activeSection, {
-        lessons: data,
+      .patch(endpoints.learning + "/courses/sections/delete-section-of-course", {
+        courseId: _id,
+        sectionId: id
       })
-      .then((res) => console.log(res.data.data))
-      .catch((err) => console.log(err));
+      .catch((err) => toast.error(err.message));
   };
 
-  const handleDoubleClickLesson = async (id, value) => {
+  const handleDeleteLesson = async (id) => {
+    setCourse((prev) => {
+      return {
+        ...prev,
+        lessons: prev.lessons.filter((lesson) => lesson._id !== id)
+      };
+    });
+
     await axiosAPI
-      .patch(endpoints.learning + '/courses/lessons/' + id, {
-        title: value,
+      .patch(endpoints.learning + "/courses/lessons/delete-lesson-of-section", {
+        sectionId: activeSection,
+        lessonId: id
+      })
+      .catch((err) => toast.error(err.message));
+  };
+
+  const orderLessons = useDebouncedCallback(async (lessons) => {
+    const data = lessons.map((lesson) => {
+      return {
+        _id: lesson._id
+      };
+    });
+
+    await axiosAPI
+      .patch(endpoints.learning + "/courses/order-lessons/" + activeSection, {
+        lessons: data
+      })
+      .catch((err) => toast.error(err.message));
+  }, _DEBOUNCE_TIME);
+
+  const handleRenameLesson = async (id, value) => {
+    await axiosAPI
+      .patch(endpoints.learning + "/courses/lessons/" + id, {
+        title: value
       })
       .then((res) => {
         const { _id, title } = res.data.data;
@@ -246,7 +293,7 @@ function Step2({
           if (lesson._id === _id) {
             return {
               ...lesson,
-              title,
+              title
             };
           }
           return lesson;
@@ -255,7 +302,7 @@ function Step2({
         setCourse((prev) => {
           return {
             ...prev,
-            lessons: newLessons,
+            lessons: newLessons
           };
         });
       })
@@ -266,15 +313,15 @@ function Step2({
     setCourse((prev) => {
       return {
         ...prev,
-        activeLesson: id,
+        activeLesson: id
       };
     });
   };
 
   const handleAddLesson = async () => {
     await axiosAPI
-      .post(endpoints.learning + '/courses/lessons', {
-        sectionId: activeSection,
+      .post(endpoints.learning + "/courses/lessons", {
+        sectionId: activeSection
       })
       .then((res) => {
         const { _id, title } = res.data.data;
@@ -282,7 +329,7 @@ function Step2({
         setCourse((prev) => {
           return {
             ...prev,
-            lessons: [...prev.lessons, { _id, title }],
+            lessons: [...prev.lessons, { _id, title }]
           };
         });
       })
@@ -290,7 +337,7 @@ function Step2({
   };
 
   const getVideo = async (id) => {
-    const response = await axiosAPI.get(endpoints.media + '/videos/' + id);
+    const response = await axiosAPI.get(endpoints.media + "/videos/" + id).catch((err) => console.log(err.message));
     return response.data.data;
   };
 
@@ -301,14 +348,14 @@ function Step2({
         ...prev,
         data: video,
         isOpen: true,
-        interactives: video.interactives,
+        interactives: video.interactives
       };
     });
   };
 
   const handleGetCurrentTime = () => {
     setVideoEdit((prev) => {
-      return { ...prev, timeCurr: videoRef.current?.currentTime };
+      return { ...prev, timeCurr: videoRef?.current?.currentTime };
     });
   };
 
@@ -318,9 +365,9 @@ function Step2({
 
   const handleCreateQuestion = async () => {
     await axiosAPI({
-      method: 'POST',
-      url: endpoints.learning + '/courses/questions',
-      data: question,
+      method: "POST",
+      url: endpoints.learning + "/courses/questions",
+      data: question
     })
       .then((res) => {
         const data = res.data.data;
@@ -330,15 +377,16 @@ function Step2({
             interactives: [
               ...prev.interactives,
               {
-                type: 'question',
+                type: "question",
                 time: videoEdit.timeCurr,
-                _id: data._id,
-              },
-            ],
+                _id: data._id
+              }
+            ]
           };
         });
 
         setChildModal(false);
+        setQuestion({});
       })
       .catch((err) => console.log(err));
   };
@@ -352,16 +400,17 @@ function Step2({
         interactives: [
           ...prev.interactives,
           {
-            type: 'problem',
+            type: "problem",
             time: videoEdit.timeCurr,
             _id: problem._id,
-            slug: problem.slug,
-          },
-        ],
+            slug: problem.slug
+          }
+        ]
       };
     });
 
     setChildModal(false);
+    setProblem({});
   };
 
   const handleAddInteractive = () => {
@@ -370,24 +419,55 @@ function Step2({
 
   const handleUpdateVideo = async () => {
     await axiosAPI({
-      method: 'PATCH',
-      url: endpoints.media + '/videos/' + videoEdit.data._id,
+      method: "PATCH",
+      url: endpoints.media + "/videos/update-interactive/" + videoEdit.data._id,
       data: {
-        interactives: videoEdit.interactives,
-      },
+        interactives: videoEdit.interactives
+      }
     })
+      .then(() => {
+        toast.success("Video updated successfully");
+      })
+      .catch((err) => toast.error(err.message));
+  };
+
+  const handleDeleteVideo = async (id) => {
+    await axiosAPI
+      .patch(endpoints.media + "/videos/delete-by-lecturer/" + id)
       .then((res) => {
-        const data = res.data.data;
-        console.log(data);
+        const { isDeleted } = res.data.data;
+
+        if (!isDeleted) return toast.error("Cannot delete video!");
+
+        if (isDeleted) {
+          setCourse((prev) => {
+            return {
+              ...prev,
+              lessonData: {
+                ...prev.lessonData,
+                video: null
+              }
+            };
+          });
+        }
       })
       .catch((err) => console.log(err));
+  };
+
+  const handleDeleteInteractive = (id) => {
+    setVideoEdit((prev) => {
+      return {
+        ...prev,
+        interactives: prev.interactives.filter((item) => item._id !== id)
+      };
+    });
   };
 
   useEffect(() => {
     if (!activeLesson) return;
     const getLessonData = async () =>
       await axiosAPI
-        .get(endpoints.learning + '/courses/lessons/' + activeLesson)
+        .get(endpoints.learning + "/courses/lessons/" + activeLesson)
         .then((res) => {
           const { video, files, content } = res.data.data;
 
@@ -397,8 +477,8 @@ function Step2({
               lessonData: {
                 video,
                 files,
-                content,
-              },
+                content
+              }
             };
           });
         })
@@ -407,41 +487,39 @@ function Step2({
     getLessonData();
   }, [activeLesson]);
 
-  useEffect(() => {
-    setVideoEdit((prev) => {
-      return { ...prev, timeCurr: videoRef.current?.currentTime };
-    });
-  }, [videoRef.current?.currentTime]);
-
   return (
-    <Box sx={{ minWidth: 500, width: '100%' }}>
-      <Typography variant="h5" sx={{ textAlign: 'center', mb: 1 }}>
+    <Box sx={{ minWidth: 500, width: "100%" }}>
+      <Typography variant='h5' sx={{ textAlign: "center", mb: 1 }}>
         Create Content
       </Typography>
 
-      <Box sx={{ display: 'flex', gap: 3 }}>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+      <Box sx={{ display: "flex", gap: 3 }}>
+        <Box sx={{ display: "flex", gap: 1 }}>
           <Box>
             <Box
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "4px 14px"
               }}
             >
-              <Typography variant="h6">Sections</Typography>
-              <Button onClick={handleAddSection} size="small">
-                +
-              </Button>
+              <Typography variant='h6'>Sections</Typography>
+              <Tooltip title='New Section' placement='top'>
+                <IconButton onClick={handleAddSection} size='small'>
+                  <CreateNewFolderIcon />
+                </IconButton>
+              </Tooltip>
             </Box>
             <Box>
               <GridOrderring
-                type="sections"
+                type='sections'
                 data={sections}
                 setCourse={setCourse}
-                itemOnClick={handleOnClickSection}
-                itemOnDoubleClick={handleDoubleClickSection}
+                handleOpenItem={handleOpenSection}
+                handleRenameItem={handleRenameSection}
                 orderUpdate={orderSections}
+                handleDeleteItem={handleDeleteSection}
               />
             </Box>
           </Box>
@@ -449,24 +527,28 @@ function Step2({
           <Box>
             <Box
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "4px 14px"
               }}
             >
-              <Typography variant="h6">Lessons</Typography>
-              <Button onClick={handleAddLesson} size="small">
-                +
-              </Button>
+              <Typography variant='h6'>Lessons</Typography>
+              <Tooltip title='New Lesson' placement='top'>
+                <IconButton onClick={handleAddLesson} size='small'>
+                  <CreateNewFolderIcon />
+                </IconButton>
+              </Tooltip>
             </Box>
             <Box>
               <GridOrderring
-                type="lessons"
+                type='lessons'
                 data={lessons}
                 setCourse={setCourse}
-                itemOnClick={handleOnClickLesson}
-                itemOnDoubleClick={handleDoubleClickLesson}
+                handleOpenItem={handleOnClickLesson}
+                handleRenameItem={handleRenameLesson}
                 orderUpdate={orderLessons}
+                handleDeleteItem={handleDeleteLesson}
               />
             </Box>
           </Box>
@@ -474,55 +556,49 @@ function Step2({
         {activeLesson && (
           <Box sx={{ flex: 1 }}>
             <Box>
-              <Breadcrumbs aria-label="breadcrumb">
-                <Typography color="text">
-                  {sections.find((s) => s._id == activeSection)?.title}
-                </Typography>
-                <Typography color="text.primary">
-                  {lessons.find((s) => s._id == activeLesson)?.title}
-                </Typography>
+              <Breadcrumbs aria-label='breadcrumb'>
+                <Typography color='text'>{sections.find((s) => s._id == activeSection)?.title}</Typography>
+                <Typography color='text.primary'>{lessons.find((s) => s._id == activeLesson)?.title}</Typography>
               </Breadcrumbs>
             </Box>
             <Box
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
               }}
             >
-              <Typography variant="h6">Video</Typography>
+              <Typography variant='h6'>Video</Typography>
               {!lessonData?.video?._id && (
                 <Button
                   sx={{ mt: 1 }}
-                  component="label"
+                  component='label'
                   role={undefined}
-                  variant="contained"
+                  variant='contained'
                   tabIndex={-1}
                   startIcon={<CloudUploadIcon />}
                   disabled={loadProgress.video ? true : false}
                 >
-                  Upload Video{' '}
-                  {loadProgress.video && `(${loadProgress.video}%)`}
-                  <VisuallyHiddenInput
-                    type="file"
-                    accept=".mp4"
-                    onChange={handleUploadVideo}
-                  />
+                  Upload Video {loadProgress.video && <CircularProgress sx={{ ml: 1 }} color='secondary' size={25} />}
+                  <VisuallyHiddenInput type='file' accept='.mp4' onChange={handleUploadVideo} />
                 </Button>
               )}
               {lessonData?.video?._id && (
                 <Box
                   sx={{
-                    display: 'flex',
+                    display: "flex",
                     gap: 1,
-                    alignItems: 'center',
+                    alignItems: "center"
                   }}
                 >
-                  <Typography variant="">{lessonData?.video.title}</Typography>
-                  <Button onClick={() => handleEditVideo(lessonData.video._id)}>
-                    Edit
-                  </Button>
-                  <Button size="small" color="error" variant="outlined">
+                  <Typography variant=''>{lessonData?.video.title}</Typography>
+                  <Button onClick={() => handleEditVideo(lessonData.video._id)}>Edit</Button>
+                  <Button
+                    onClick={() => handleDeleteVideo(lessonData.video._id)}
+                    size='small'
+                    color='error'
+                    variant='outlined'
+                  >
                     Delete
                   </Button>
                 </Box>
@@ -531,41 +607,58 @@ function Step2({
             <Box sx={{ mt: 2 }}>
               <Box
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center"
                 }}
               >
-                <Typography variant="h6">Files</Typography>
+                <Typography variant='h6'>Files</Typography>
                 <Button
                   sx={{ mt: 1 }}
-                  component="label"
+                  component='label'
                   role={undefined}
-                  variant="contained"
+                  variant='contained'
                   tabIndex={-1}
                   startIcon={<CloudUploadIcon />}
                 >
                   Upload Files
-                  <VisuallyHiddenInput
-                    onChange={handleUploadFiles}
-                    multiple
-                    type="file"
-                    accept=".pdf, .doc"
-                  />
+                  <VisuallyHiddenInput onChange={handleUploadFiles} multiple type='file' accept='.pdf, .doc' />
                 </Button>
               </Box>
               {lessonData?.files?.length > 0 && (
-                <Box>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mt: 3 }}>
                   {lessonData.files.map((file) => {
                     return (
                       <Box
-                        sx={{ display: 'flex', alignItems: 'center' }}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          flexDirection: "column",
+                          maxWidth: "200px"
+                        }}
                         key={file._id}
                       >
-                        <InsertDriveFileIcon fontSize="large" />
-                        <a href={file?.path} target="_blank" rel="noreferrer">
-                          {file?.title}
-                        </a>
+                        <Box>
+                          <img
+                            style={{
+                              width: 60,
+                              height: 60
+                            }}
+                            src={FileIcon}
+                            loading='lazy'
+                            alt={file.title}
+                          />
+                        </Box>
+                        <Box>
+                          <a
+                            style={{ display: "block", textAlign: "center" }}
+                            href={file?.path}
+                            target='_blank'
+                            rel='noreferrer'
+                          >
+                            {file?.title}
+                          </a>
+                        </Box>
                       </Box>
                     );
                   })}
@@ -573,7 +666,7 @@ function Step2({
               )}
             </Box>
             <Box sx={{ mt: 2 }}>
-              <Typography variant="h6">Content</Typography>
+              <Typography variant='h6'>Content</Typography>
               <Box sx={{ flex: 1 }}>
                 <QuillEditor
                   value={lessonData?.content}
@@ -583,8 +676,8 @@ function Step2({
                         ...prev,
                         lessonData: {
                           ...prev.lessonData,
-                          content: value,
-                        },
+                          content: value
+                        }
                       };
                     })
                   }
@@ -596,9 +689,9 @@ function Step2({
       </Box>
       <Modal
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
         }}
         open={videoEdit.isOpen}
         onClose={() =>
@@ -607,76 +700,62 @@ function Step2({
           })
         }
       >
-        <Box sx={{ maxWidth: 800, background: '#ccc', borderRadius: 2 }}>
+        <Box
+          sx={{
+            maxWidth: 800,
+            background: "#ddd",
+            borderRadius: 2,
+            display: "flex",
+            flexDirection: "column"
+          }}
+        >
           <Typography
-            component="h4"
+            component='h4'
             sx={{
-              textAlign: 'center',
+              textAlign: "center",
               py: 2,
-              fontWeight: 'bold',
-              borderTopLeftRadius: '4px',
-              borderTopRightRadius: '4px',
+              fontWeight: "bold"
             }}
           >
-            EDIT VIDEO: {videoEdit.data?.title}
+            {videoEdit.data?.title}
           </Typography>
-          <Box sx={{ display: 'flex' }}>
-            <Box sx={{ flex: 1 }}>
-              <CardMedia
-                ref={videoRef}
-                component="video"
-                className=".MuiCardMedia-media"
-                image={videoEdit.data?.path}
-                controls
-                onTimeUpdate={handleGetCurrentTime}
-              />
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Box sx={{ flex: 1, ml: 1, display: "flex" }}>
+              <VideoStack videoRef={videoRef} src={videoEdit.data?.path} onTimeUpdate={handleGetCurrentTime} />
             </Box>
             <Box
               sx={{
-                minWidth: 300,
-                padding: '0 6px',
-                display: 'flex',
-                flexDirection: 'column',
+                minWidth: 280,
+                padding: "0 6px",
+                display: "flex",
+                flexDirection: "column",
+                border: "1px solid #ccc",
+                borderRadius: "6px",
+                mr: 1
               }}
             >
               <FormControl>
                 <RadioGroup
-                  aria-labelledby="interactive"
-                  defaultValue="question"
-                  name="radio-buttons-group"
+                  aria-labelledby='interactive'
+                  defaultValue='question'
+                  name='radio-buttons-group'
                   onChange={handleRadioChange}
                   value={radio}
+                  sx={{ display: "flex" }}
                 >
-                  <FormControlLabel
-                    value="question"
-                    control={<Radio />}
-                    label="Create Question"
-                  />
-                  <FormControlLabel
-                    value="problem"
-                    control={<Radio />}
-                    label="Import Problem"
-                  />
+                  <FormControlLabel value='question' control={<Radio />} label='Create Question' />
+                  <FormControlLabel value='problem' control={<Radio />} label='Import Problem' />
                 </RadioGroup>
-                <Button
-                  sx={{ width: '100%' }}
-                  variant="contained"
-                  color="primary"
-                  onClick={handleAddInteractive}
-                >
-                  Add interactive at {videoEdit.timeCurr?.toFixed(2) || '0.00'}
+                <Button sx={{ width: "100%" }} variant='contained' color='primary' onClick={handleAddInteractive}>
+                  New interactive at {videoEdit?.timeCurr?.toFixed(2) || "0.00"}
                 </Button>
               </FormControl>
               <ChildModal open={childModal} setOpen={setChildModal}>
-                {radio == 'question' && (
-                  <Question
-                    question={question}
-                    setQuestion={setQuestion}
-                    handleCreateQuestion={handleCreateQuestion}
-                  />
+                {radio == "question" && (
+                  <Question question={question} setQuestion={setQuestion} handleCreateQuestion={handleCreateQuestion} />
                 )}
 
-                {radio == 'problem' && (
+                {radio == "problem" && (
                   <ImportProblem
                     problem={problem}
                     setProblem={setProblem}
@@ -684,21 +763,26 @@ function Step2({
                   />
                 )}
               </ChildModal>
-              {videoEdit.interactives.length > 0 && (
-                <Box>
+              {videoEdit.interactives?.length > 0 && (
+                <Box sx={{ mt: 1 }}>
                   <Box>
                     {videoEdit.interactives.map((item) => (
                       <Box
                         sx={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center"
                         }}
                         key={item._id}
                       >
-                        <Typography>
-                          {parseFloat(item.time).toFixed(2)}
+                        <Typography variant='body'>
+                          {parseFloat(item.time).toFixed(2)} - {item.type?.toUpperCase()}
                         </Typography>
-                        <Typography>{item.type}</Typography>
+                        <Tooltip title='Delete' placement='right'>
+                          <IconButton onClick={() => handleDeleteInteractive(item._id)}>
+                            <ClearIcon />
+                          </IconButton>
+                        </Tooltip>
                       </Box>
                     ))}
                   </Box>
@@ -706,7 +790,7 @@ function Step2({
               )}
             </Box>
           </Box>
-          <Button onClick={handleUpdateVideo} sx={{ m: 2 }} variant="outlined">
+          <Button onClick={handleUpdateVideo} variant='outlined' sx={{ flex: 1, m: 2 }}>
             Update Video
           </Button>
         </Box>

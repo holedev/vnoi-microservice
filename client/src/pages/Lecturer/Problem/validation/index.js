@@ -1,64 +1,50 @@
-import Joi from 'joi';
+import Joi from "joi";
 
 export const createSchema = Joi.object({
-  title: Joi.string().required().max(50).trim().strict().label('Title'),
-  level: Joi.number().valid(0, 1, 2).required().label('Level'),
-  alwayOpen: Joi.boolean().required().label('Always open'),
+  title: Joi.string().required().max(50).trim().strict().label("Title"),
+  level: Joi.number().valid(0, 1, 2).required().label("Level"),
+  alwayOpen: Joi.boolean().required().label("Always open"),
   timeStart: Joi.any(),
-  testTime: Joi.when('alwayOpen', {
+  testTime: Joi.when("alwayOpen", {
     is: false,
-    then: Joi.number().required().min(15),
-  }).label('Test time'),
-  desc: Joi.string().required().trim().strict().label('Description'),
+    then: Joi.number().required().min(15)
+  }).label("Test time"),
+  desc: Joi.string().required().trim().strict().label("Description"),
   initCode: Joi.string()
     .required()
     .pattern(/^```[\s\S]+```$/)
     .trim()
     .strict()
-    .label('Init code')
+    .label("Init code")
     .messages({
-      'string.pattern.base': `"Init code" must enclosed between \`\`\` marks.`,
+      "string.pattern.base": `"Init code" must enclosed between \`\`\` marks.`
     }),
-  langIdSolution: Joi.number().required().label('Language solution'),
+  langIdSolution: Joi.number().required().label("Language solution"),
   solution: Joi.string()
     .required()
     .pattern(/^```[\s\S]+```$/)
     .trim()
     .strict()
-    .label('Solution')
+    .label("Solution")
     .messages({
-      'string.pattern.base': `"Solution" must be enclosed between \`\`\` marks.`,
+      "string.pattern.base": `"Solution" must be enclosed between \`\`\` marks.`
     }),
-  classCurr: Joi.string()
-    .hex()
-    .length(24)
-    .required()
-    .trim()
-    .strict()
-    .label('Class'),
+  classCurr: Joi.string().hex().length(24).required().trim().strict().label("Class"),
   script: Joi.object({
     generateCode: Joi.string()
       .pattern(/^```[\s\S]+```$/)
       .strict()
-      .label('Generate code')
+      .label("Generate code")
       .messages({
-        'string.pattern.base': `"Generate code" must enclosed between \`\`\` marks.`,
+        "string.pattern.base": `"Generate code" must enclosed between \`\`\` marks.`
       }),
-    quantity: Joi.number()
-      .required()
-      .min(3)
-      .max(200)
-      .label('Testcase quantity'),
+    quantity: Joi.number().required().min(3).max(200).label("Testcase quantity"),
     data: Joi.array().items(Joi.string()).min(3).max(200),
-    file: Joi.boolean().required().label('File'),
+    file: Joi.boolean().required().label("File")
   }),
-  timeLimit: Joi.number().required().min(0).max(2).label('Time limit'),
-  memoryLimit: Joi.number()
-    .required()
-    .min(1024)
-    .max(128000)
-    .label('Memory limit'),
-  stackLimit: Joi.number().required().min(1024).max(64000).label('Stack limit'),
+  timeLimit: Joi.number().required().min(0).max(2).label("Time limit"),
+  memoryLimit: Joi.number().required().min(1024).max(128000).label("Memory limit"),
+  stackLimit: Joi.number().required().min(1024).max(64000).label("Stack limit"),
   availableLanguages: Joi.array()
     .items(
       Joi.number().valid(
@@ -112,71 +98,57 @@ export const createSchema = Joi.object({
       )
     )
     .required()
-    .label('Available languages'),
+    .label("Available languages")
 });
 
 export const updateSchema = Joi.object({
-  uuid: Joi.string().guid({ version: 'uuidv4' }).required().label('UUID'),
-  title: Joi.string().required().max(50).trim().strict().label('Title'),
-  level: Joi.number().valid(0, 1, 2).required().label('Level'),
-  alwayOpen: Joi.boolean().required().label('Always open'),
+  uuid: Joi.string().guid({ version: "uuidv4" }).required().label("UUID"),
+  title: Joi.string().required().max(50).trim().strict().label("Title"),
+  level: Joi.number().valid(0, 1, 2).required().label("Level"),
+  alwayOpen: Joi.boolean().required().label("Always open"),
   timeStart: Joi.any(),
-  testTime: Joi.when('alwayOpen', {
+  testTime: Joi.when("alwayOpen", {
     is: false,
-    then: Joi.number().required().min(15),
-  }).label('Test time'),
-  desc: Joi.string().required().trim().strict().label('Description'),
+    then: Joi.number().required().min(15)
+  }).label("Test time"),
+  desc: Joi.string().required().trim().strict().label("Description"),
   initCode: Joi.string()
     .required()
     .pattern(/^```[\s\S]+```$/)
     .trim()
     .strict()
-    .label('Init code')
+    .label("Init code")
     .messages({
-      'string.pattern.base': `"Init code" must enclosed between \`\`\` marks.`,
+      "string.pattern.base": `"Init code" must enclosed between \`\`\` marks.`
     }),
-  langIdSolution: Joi.number().required().label('Language solution'),
+  langIdSolution: Joi.number().required().label("Language solution"),
   solution: Joi.string()
     .required()
     .pattern(/^```[\s\S]+```$/)
     .trim()
     .strict()
-    .label('Solution')
+    .label("Solution")
     .messages({
-      'string.pattern.base': `"Solution" must be enclosed between \`\`\` marks.`,
+      "string.pattern.base": `"Solution" must be enclosed between \`\`\` marks.`
     }),
-  classCurr: Joi.string()
-    .hex()
-    .length(24)
-    .required()
-    .trim()
-    .strict()
-    .label('Class'),
+  classCurr: Joi.string().hex().length(24).required().trim().strict().label("Class"),
   script: Joi.object({
     generateCode: Joi.string()
       .pattern(/^```[\s\S]+```$/)
       .trim()
       .strict()
-      .label('Generate code')
+      .label("Generate code")
       .messages({
-        'string.pattern.base': `"Generate code" must enclosed between \`\`\` marks.`,
+        "string.pattern.base": `"Generate code" must enclosed between \`\`\` marks.`
       }),
-    quantity: Joi.number()
-      .required()
-      .min(3)
-      .max(200)
-      .label('Testcase quantity'),
+    quantity: Joi.number().required().min(3).max(200).label("Testcase quantity"),
 
     data: Joi.array().items(Joi.string()).min(3).max(200),
-    file: Joi.boolean().required().label('File'),
+    file: Joi.boolean().required().label("File")
   }),
-  timeLimit: Joi.number().required().min(0).max(2).label('Time limit'),
-  memoryLimit: Joi.number()
-    .required()
-    .min(1024)
-    .max(128000)
-    .label('Memory limit'),
-  stackLimit: Joi.number().required().min(1024).max(64000).label('Stack limit'),
+  timeLimit: Joi.number().required().min(0).max(2).label("Time limit"),
+  memoryLimit: Joi.number().required().min(1024).max(128000).label("Memory limit"),
+  stackLimit: Joi.number().required().min(1024).max(64000).label("Stack limit"),
   availableLanguages: Joi.array()
     .items(
       Joi.number().valid(
@@ -230,14 +202,14 @@ export const updateSchema = Joi.object({
       )
     )
     .required()
-    .label('Available languages'),
-  isRecompile: Joi.boolean().required().label('Recompile'),
+    .label("Available languages"),
+  isRecompile: Joi.boolean().required().label("Recompile")
 });
 
 export const handleValidate = (schema, data) => {
   const { error } = schema.validate(data, { abortEarly: false });
   if (error) {
-    let errors = '';
+    let errors = "";
     error.details.forEach((err, idx) => {
       if (idx < 3) errors += `${err.message}. `;
     });

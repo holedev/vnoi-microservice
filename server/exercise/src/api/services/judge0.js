@@ -28,7 +28,9 @@ const _INTERVAL_TIME_MS = 1000;
 const judge0Service = {
   createSubmissionBatchTokens: async (submissions) => {
     try {
-      const tokens = await fetch(_PROCESS_ENV.COMPILER_HOST + "/submissions/batch?redirect_stderr_to_stdout=true", {
+      const url = _PROCESS_ENV.COMPILER_HOST + "/submissions/batch?redirect_stderr_to_stdout=true";
+
+      const tokens = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -42,15 +44,6 @@ const judge0Service = {
     } catch (err) {
       throw new BadRequestError("Create Submissions Batch Tokens Fail!");
     }
-
-    submissions: [
-      "b5396097-2258-45df-9485-2c0c2e0efa4c",
-      "412cab20-02be-4691-b30b-35c826606e59",
-      "f93ae783-385e-499f-9b36-ca7a1a9c3e29",
-      "f2498cb0-315a-4e44-80c5-a37c8ceb2cdf",
-      "8a9c3de4-b48e-4c3e-9a37-a8ef46281b98"
-    ];
-
   },
   checkTokens: async (tokens) => {
     try {

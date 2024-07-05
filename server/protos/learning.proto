@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package learning;
+
+service Learning {
+    rpc getCourseById(getCourseByIdReq) returns (getCourseByIdRes) {}
+}
+
+message getCourseByIdReq {
+    string requestId = 1;
+    string _id = 2;
+}
+
+message getCourseByIdRes {
+    string jsonStr = 1;
+}

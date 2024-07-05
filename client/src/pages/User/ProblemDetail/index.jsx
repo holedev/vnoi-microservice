@@ -1,34 +1,27 @@
-import styles from './ProblemDetail.module.css';
-import { useEffect, useState } from 'react';
-import CodeMirror from '@uiw/react-codemirror';
-import { okaidia } from '@uiw/codemirror-theme-okaidia';
-import { cpp } from '@codemirror/lang-cpp';
-import Split from 'react-split';
-import {
-  Alert,
-  Button,
-  Chip,
-  CircularProgress,
-  Modal,
-  Tab,
-} from '@mui/material';
-import { TabContext, TabList, TabPanel } from '@mui/lab';
-import { Box } from '@mui/system';
-import clsx from 'clsx';
-import { useParams } from 'react-router-dom';
-import DetailTestCase from '~/components/DetailTestCase';
-import useUserContext from '~/hook/useUserContext';
-import { handleTimeProblem } from '~/utils/datetime';
-import useAxiosAPI from '~/hook/useAxiosAPI';
-import Action from './Action';
-import Testcase from './Testcase';
-import Submission from './Submission';
-import { handleValidate, runSchema, submitSchema } from './validation';
-import { toast } from 'react-toastify';
-import useLoadingContext from '~/hook/useLoadingContext';
-import DropdownLanguage from '~/components/Editor/DropdownLanguage';
-import { checkRunConsolesQueue, checkSubmissionsQueue } from '~/utils/firebase';
-import LinearProgress from '@mui/material/LinearProgress';
+import styles from "./ProblemDetail.module.css";
+import { useEffect, useState } from "react";
+import CodeMirror from "@uiw/react-codemirror";
+import { okaidia } from "@uiw/codemirror-theme-okaidia";
+import { cpp } from "@codemirror/lang-cpp";
+import Split from "react-split";
+import { Alert, Button, Chip, CircularProgress, Modal, Tab } from "@mui/material";
+import { TabContext, TabList, TabPanel } from "@mui/lab";
+import { Box } from "@mui/system";
+import clsx from "clsx";
+import { useParams } from "react-router-dom";
+import DetailTestCase from "~/components/DetailTestCase";
+import useUserContext from "~/hook/useUserContext";
+import { handleTimeProblem } from "~/utils/datetime";
+import useAxiosAPI from "~/hook/useAxiosAPI";
+import Action from "./Action";
+import Testcase from "./Testcase";
+import Submission from "./Submission";
+import { handleValidate, runSchema, submitSchema } from "./validation";
+import { toast } from "react-toastify";
+import useLoadingContext from "~/hook/useLoadingContext";
+import DropdownLanguage from "~/components/Editor/DropdownLanguage";
+import { checkRunConsolesQueue, checkSubmissionsQueue } from "~/utils/firebase";
+import LinearProgress from "@mui/material/LinearProgress";
 
 const ProblemsDetail = () => {
   const { slug } = useParams();
@@ -44,10 +37,10 @@ const ProblemsDetail = () => {
   const [submissions, setSubmissions] = useState([]);
   const [testcases, setTestcases] = useState([]);
   const [code, setCode] = useState({
-    langIdSolution: '',
-    text: '',
+    langIdSolution: "",
+    text: ""
   });
-  const [tab, setTab] = useState('1');
+  const [tab, setTab] = useState("1");
   const [uuid, setUuid] = useState(null);
 
   const getProblem = async (slug) => {
@@ -57,28 +50,23 @@ const ProblemsDetail = () => {
       .get(`${endpoints.problems}/${slug}`)
       .then((res) => {
         const data = res.data?.data;
-        const { end, isValid } = handleTimeProblem(
-          data.problem.timeStart,
-          data.problem.testTime
-        );
+        const { end, isValid } = handleTimeProblem(data.problem.timeStart, data.problem.testTime);
 
         const problem = {
           ...data.problem,
           timeEnd: end,
-          isValid,
+          isValid
         };
 
         setProblem(problem);
         setCode({
           langIdSolution: data.problem?.langIdSolution,
-          text: data.problem?.initCode.slice(3, -3),
+          text: data.problem?.initCode.slice(3, -3)
         });
         setTestcases(data.testcases);
       })
       .catch((err) => {
-        err.response.status === 409
-          ? toast.error(err.response.data.message)
-          : toast.error('Bad Request!');
+        err.response.status === 409 ? toast.error(err.response.data.message) : toast.error("Bad Request!");
       })
       .finally(() => setLoading(false));
   };
@@ -91,7 +79,7 @@ const ProblemsDetail = () => {
     setCode((prev) => {
       return {
         ...prev,
-        langIdSolution: langIdSolution,
+        langIdSolution: langIdSolution
       };
     });
   };
@@ -109,13 +97,13 @@ const ProblemsDetail = () => {
         uuid: problem.uuid,
         timeLimit: problem.timeLimit,
         memoryLimit: problem.memoryLimit,
-        stackLimit: problem.stackLimit,
+        stackLimit: problem.stackLimit
       },
       code: {
         langIdSolution: code.langIdSolution,
-        text: code.text.trim(),
+        text: code.text.trim()
       },
-      testcases,
+      testcases
     };
 
     const error = handleValidate(runSchema, data);
@@ -142,10 +130,9 @@ const ProblemsDetail = () => {
           return { ...prev, run: false };
         });
         err.response.status === 400 && console.log(err?.response?.data.message);
-        (err?.response?.data.message && err.response?.status === 422) ||
-        err.response?.status === 400
+        (err?.response?.data.message && err.response?.status === 422) || err.response?.status === 400
           ? setErrRun(err.response?.data.message)
-          : setErrRun('Bad Request!');
+          : setErrRun("Bad Request!");
       });
   };
 
@@ -162,12 +149,12 @@ const ProblemsDetail = () => {
         uuid: problem.uuid,
         timeLimit: problem.timeLimit,
         memoryLimit: problem.memoryLimit,
-        stackLimit: problem.stackLimit,
+        stackLimit: problem.stackLimit
       },
       code: {
         langIdSolution: code.langIdSolution,
-        text: code.text.trim(),
-      },
+        text: code.text.trim()
+      }
     };
 
     const error = handleValidate(submitSchema, data);
@@ -178,7 +165,7 @@ const ProblemsDetail = () => {
       toast.error(error);
       return;
     }
-    setTab('2');
+    setTab("2");
 
     await axiosAPI
       .post(endpoints.submissions, data)
@@ -188,7 +175,7 @@ const ProblemsDetail = () => {
         setProblem((prev) => {
           return {
             ...prev,
-            submitRemain: submitRemain - 1,
+            submitRemain: submitRemain - 1
           };
         });
         setUuid(uuid);
@@ -197,7 +184,7 @@ const ProblemsDetail = () => {
         setIsLoad((prev) => {
           return { ...prev, submit: false };
         });
-        toast.error(err?.response?.data.message || 'Submit failure!');
+        toast.error(err?.response?.data.message || "Submit failure!");
       });
   };
 
@@ -220,7 +207,7 @@ const ProblemsDetail = () => {
         const message = JSON.parse(data.message);
         const lastSubmission = {
           ...message,
-          pass: `${message.pass}/${message.total}`,
+          pass: `${message.pass}/${message.total}`
         };
         return [lastSubmission, ...prev];
       });
@@ -235,44 +222,40 @@ const ProblemsDetail = () => {
 
   return (
     <Split
-      direction="horizontal"
+      direction='horizontal'
       gutterSize={5}
       sizes={[50, 50]}
       minSize={500}
-      className={clsx('split', styles.wrapper)}
+      className={clsx("split", styles.wrapper)}
     >
       <Box className={styles.testDesc}>
-        <TabContext sx={{ flex: 1, display: 'flex' }} value={tab}>
+        <TabContext sx={{ flex: 1, display: "flex" }} value={tab}>
           <Box
             sx={{
               borderBottom: 1,
-              borderColor: 'divider',
+              borderColor: "divider"
             }}
           >
             <TabList onChange={handleChangeTab}>
-              <Tab label="Description" value="1" />
-              <Tab label="Submissions" value="2" />
+              <Tab label='Description' value='1' />
+              <Tab label='Submissions' value='2' />
             </TabList>
           </Box>
           <TabPanel
             style={{
-              padding: '4px 12px',
+              padding: "4px 12px"
             }}
-            value="1"
+            value='1'
           >
-            {loading ? (
-              <CircularProgress size={20} />
-            ) : (
-              problem && <DetailTestCase problem={problem} />
-            )}
+            {loading ? <CircularProgress size={20} /> : problem && <DetailTestCase problem={problem} />}
           </TabPanel>
           <TabPanel
             sx={{
               flex: 1,
-              display: 'flex',
-              overflowY: 'hidden',
+              display: "flex",
+              overflowY: "hidden"
             }}
-            value="2"
+            value='2'
           >
             <Submission
               setCode={setCode}
@@ -295,17 +278,17 @@ const ProblemsDetail = () => {
           <CodeMirror
             value={code?.text}
             style={{
-              flex: 1,
+              flex: 1
             }}
-            height="100%"
-            lang=""
+            height='100%'
+            lang=''
             theme={okaidia}
             extensions={[cpp()]}
             onChange={(editor) => {
               setCode((prev) => {
                 return {
                   ...prev,
-                  text: editor,
+                  text: editor
                 };
               });
             }}
@@ -324,36 +307,36 @@ const ProblemsDetail = () => {
 
       <Modal
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
         }}
         open={consoleP}
         onClose={() => setConsoleP(false)}
       >
         <Box className={styles.modalBody}>
-          <TabContext value="3">
-            <Box sx={{ borderBottom: 1, borderColor: '' }}>
+          <TabContext value='3'>
+            <Box sx={{ borderBottom: 1, borderColor: "" }}>
               <TabList>
-                <Tab label="Testcase" value="3" />
+                <Tab label='Testcase' value='3' />
               </TabList>
             </Box>
             <TabPanel
               sx={{
-                padding: '4px 12px',
-                maxHeight: 'calc(100vh - 160px)',
-                overflowY: 'auto',
-                '&::-webkit-scrollbar': {
-                  display: 'none',
-                },
+                padding: "4px 12px",
+                maxHeight: "calc(100vh - 160px)",
+                overflowY: "auto",
+                "&::-webkit-scrollbar": {
+                  display: "none"
+                }
               }}
-              value="3"
+              value='3'
             >
               {isLoad.run && (
                 <Box
                   sx={{
-                    marginTop: '6px',
-                    p: 1,
+                    marginTop: "6px",
+                    p: 1
                   }}
                 >
                   <LinearProgress />
@@ -361,33 +344,34 @@ const ProblemsDetail = () => {
               )}
               {resultCheck && !isLoad.run && (
                 <Box
+                  id='result-check'
                   sx={{
-                    marginTop: '6px',
+                    marginTop: "6px"
                   }}
                 >
-                  <Alert severity="info">
+                  <Alert severity='info'>
                     Pass: {resultCheck.pass}
                     <Chip
                       style={{
-                        marginLeft: '4px',
+                        marginLeft: "4px"
                       }}
-                      component={'span'}
+                      component={"span"}
                       label={`${resultCheck.timeAvg}s`}
-                      size="small"
-                      variant="outlined"
-                      color="info"
-                      title="Time average"
+                      size='small'
+                      variant='outlined'
+                      color='info'
+                      title='Time average'
                     />
                     <Chip
                       style={{
-                        marginLeft: '4px',
+                        marginLeft: "4px"
                       }}
-                      component={'span'}
+                      component={"span"}
                       label={`${resultCheck.memoryAvg}KB`}
-                      size="small"
-                      variant="outlined"
-                      color="info"
-                      title="Memory average"
+                      size='small'
+                      variant='outlined'
+                      color='info'
+                      title='Memory average'
                     />
                   </Alert>
                 </Box>
@@ -395,10 +379,10 @@ const ProblemsDetail = () => {
               {errRun && (
                 <Box
                   sx={{
-                    marginTop: '6px',
+                    marginTop: "6px"
                   }}
                 >
-                  <Alert severity="error">
+                  <Alert severity='error'>
                     <pre>{errRun}</pre>
                   </Alert>
                 </Box>
@@ -407,14 +391,7 @@ const ProblemsDetail = () => {
                 <Box className={styles.exampleList}>
                   {testcases?.length > 0 &&
                     testcases.map((tc, index) => {
-                      return (
-                        <Testcase
-                          key={index}
-                          data={tc}
-                          resultCheck={resultCheck}
-                          idx={index}
-                        />
-                      );
+                      return <Testcase key={index} data={tc} resultCheck={resultCheck} idx={index} />;
                     })}
                 </Box>
               </Box>
@@ -422,14 +399,10 @@ const ProblemsDetail = () => {
           </TabContext>
           <Box
             sx={{
-              padding: '4px 12px',
+              padding: "4px 12px"
             }}
           >
-            <Button
-              onClick={handleRun}
-              sx={{ width: '100%' }}
-              variant="outlined"
-            >
+            <Button id='btn-run' onClick={handleRun} sx={{ width: "100%" }} variant='outlined'>
               Run
             </Button>
           </Box>

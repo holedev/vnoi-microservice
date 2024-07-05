@@ -1,4 +1,6 @@
 import { _PROCESS_ENV } from "../../configs/env/index.js";
+import { encodeHLSWithMultipleVideoStreams } from "../../utils/ffmpeg.js";
+import { deleteFile } from "../../utils/file.js";
 import { VideoModel } from "../models/Video.js";
 import { ConflictError } from "../responses/errors/ConflictError.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
@@ -11,13 +13,21 @@ const VideoService = {
     const requestId = req.headers["x-request-id"];
     const _id = req.headers["x-user-id"];
 
-    const { originalname, mimetype, size, filename } = req.file;
+    const { originalname, mimetype, size, filename, path } = req.file;
 
     const userGRPC = await gRPCRequest.getUserByIdAsync(requestId, _id);
 
+    const uuid = filename.split(".")[0];
+
+    const isCreateHLS = await encodeHLSWithMultipleVideoStreams(path, uuid);
+
+    if (!isCreateHLS) {
+      throw new ConflictError("Failed to create HLS video!");
+    }
+
     const data = {
       author: userGRPC,
-      uuid: filename.split(".")[0],
+      uuid,
       title: originalname,
       source: `${filename}`,
       mimetype,
@@ -26,12 +36,42 @@ const VideoService = {
 
     const video = await VideoModel.create(data);
 
+    deleteFile(path);
+
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       data: {
         _id: video._id,
         title: video.title,
-        path: _VIDEO_PATH + video.source
+        path: _VIDEO_PATH + uuid + "/v0/prog_index.m3u8"
+      }
+    });
+  },
+  updateVideoInteractive: async (req, res) => {
+    const { id } = req.params;
+    const { interactives } = req.body;
+
+    const condition = {
+      _id: id,
+      isDeleted: false
+    };
+
+    const video = await VideoModel.findOne(condition);
+
+    if (!video) {
+      throw new ConflictError("Video not found!");
+    }
+
+    video.interactives = interactives;
+    await video.save();
+
+    return res.status(httpStatusCodes.OK).json({
+      status: "success",
+      data: {
+        _id: video._id,
+        title: video.title,
+        interactives: video.interactives,
+        answerList: []
       }
     });
   },
@@ -48,31 +88,33 @@ const VideoService = {
       status: "success",
       data: {
         ...video,
-        path: _VIDEO_PATH + video.source
+        interactives: video.interactives || [],
+        path: _VIDEO_PATH + video.uuid + "/v0/prog_index.m3u8"
       }
     });
   },
-  updateVideo: async (req, res) => {
+  softDeleteVideoByLecturer: async (req, res) => {
     const { id } = req.params;
-    const { interactives } = req.body;
 
-    console.log(interactives);
+    const condition = {
+      _id: id,
+      isDeleted: false
+    };
 
-    const video = await VideoModel.findById(id);
+    const video = await VideoModel.findOne(condition);
 
     if (!video) {
       throw new ConflictError("Video not found!");
     }
 
-    video.interactives = interactives;
+    video.isDeleted = true;
     await video.save();
 
     return res.status(httpStatusCodes.OK).json({
       status: "success",
       data: {
         _id: video._id,
-        title: video.title,
-        interactives: video.interactives
+        isDeleted: video.isDeleted
       }
     });
   }

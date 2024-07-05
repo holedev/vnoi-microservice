@@ -1,82 +1,82 @@
 .wrapper {
-    flex: 1;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .form {
-    --max-width: 400px;
-    max-width: var(--max-width);
-    padding: 12px;
-    background: var(--white-color);
-    border-radius: 6px;
+  --max-width: 400px;
+  max-width: var(--max-width);
+  padding: 12px;
+  background: var(--white-color);
+  border-radius: 6px;
 }
 
 .heading {
-    text-align: center;
-    font-weight: 500;
+  text-align: center;
+  font-weight: 500;
 }
 
 .more {
-    margin-top: 12px;
-    text-align: center;
+  margin-top: 12px;
+  text-align: center;
 }
 
 .btnLogin {
-    display: flex;
-    align-items: center;
-    padding: 4px 20px;
-    border-radius: 8px;
-    gap: 8px;
-    position: relative;
-    background-color: #e5e5e5;
+  display: flex;
+  align-items: center;
+  padding: 4px 20px;
+  border-radius: 8px;
+  gap: 8px;
+  position: relative;
+  background-color: #e5e5e5;
 }
 
 .loginLogo {
-    width: 36px;
-    height: 36px;
-    animation: logo 1.2s linear forwards;
-    z-index: 2;
+  width: 36px;
+  height: 36px;
+  animation: logo 1.2s linear forwards;
+  z-index: 2;
 }
 
 @keyframes logo {
-    0% {
-        transform: translateX(0px);
-    }
-    50% {
-        transform: translateX(130px);
-    }
-    100% {
-        transform: translateX(0px);
-    }
+  0% {
+    transform: translateX(0px);
+  }
+  50% {
+    transform: translateX(130px);
+  }
+  100% {
+    transform: translateX(0px);
+  }
 }
 
 .loginText {
-    font-weight: 500;
-    transform-origin: left;
-    color: #000;
+  font-weight: 500;
+  transform-origin: left;
+  color: #000;
 }
 
 .loginText::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    left: 52px;
-    background: #e5e5e5;
-    border-radius: 0 8px 8px 0;
-    animation: text 0.6s linear forwards;
-    animation-delay: 0.6s;
-    transform-origin: left;
+  content: "";
+  position: absolute;
+  inset: 0;
+  left: 52px;
+  background: #e5e5e5;
+  border-radius: 0 8px 8px 0;
+  animation: text 0.6s linear forwards;
+  animation-delay: 0.6s;
+  transform-origin: left;
 }
 
 @keyframes text {
-    from {
-        transform: scaleX(1);
-    }
-    to {
-        transform: scaleX(0);
-    }
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
 }

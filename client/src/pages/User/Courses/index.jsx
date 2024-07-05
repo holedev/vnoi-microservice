@@ -1,9 +1,10 @@
-import { Box, Divider, Typography } from '@mui/material';
-import { useEffect } from 'react';
-import { useState } from 'react';
-import CourseCard from '~/components/CourseCard';
-import useAxiosAPI from '~/hook/useAxiosAPI';
-import useUserContext from '~/hook/useUserContext';
+import { Box, Divider, Typography, Alert } from "@mui/material";
+import { useEffect, useState } from "react";
+
+import { toast } from "react-toastify";
+import CourseCard from "~/components/CourseCard";
+import useAxiosAPI from "~/hook/useAxiosAPI";
+import useUserContext from "~/hook/useUserContext";
 
 function Courses() {
   const [user] = useUserContext();
@@ -13,12 +14,12 @@ function Courses() {
 
   const getCourses = async () => {
     await axiosAPI
-      .get(endpoints.learning + '/courses/get-course-by-class/' + user.classCurr._id)
+      .get(endpoints.learning + "/courses/get-course-by-class/" + user.classCurr._id)
       .then((res) => {
         const data = res.data.data;
         setCourses(data);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => toast.error(err.message));
   };
 
   useEffect(() => {
@@ -28,24 +29,25 @@ function Courses() {
   return (
     <Box
       sx={{
-        padding: '12px 12px 12px 20px',
+        padding: "12px 12px 12px 20px"
       }}
     >
       <Divider>
-        <Typography variant="h5">Course Available</Typography>
+        <Typography variant='h5'>Course Available</Typography>
       </Divider>
       <Box
         sx={{
           mt: 2,
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '12px',
-          justifyContent: 'center',
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "12px",
+          justifyContent: "center"
         }}
       >
         {courses.map((course) => (
           <CourseCard key={course._id} course={course} />
         ))}
+        {!courses.length && <Alert severity='info'>No course available!</Alert>}
       </Box>
     </Box>
   );

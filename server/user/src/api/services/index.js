@@ -11,7 +11,7 @@ import { publishMessage } from "../../configs/rabiitmq/index.js";
 const _EMAIL_WHITE_LIST = ["phanleho002@gmail.com"];
 const _DEFAULT_PASSWORD = "Admin@123";
 
-function isAllowed(email) {
+export function isAllowed(email) {
   if (_PROCESS_ENV.NODE_ENV === "dev") return true;
   const emailPattern = /^[a-zA-Z0-9._%+-]+@ou\.edu\.vn$/;
   return _EMAIL_WHITE_LIST.includes(email) || emailPattern.test(email);

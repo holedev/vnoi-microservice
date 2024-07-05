@@ -87,4 +87,13 @@ const subscribeMessage = async (channel, service) => {
   }
 };
 
-export { getSubscribeChannel, subscribeMessage, publishMessage, getChannel };
+const sendToQueue = async (queue, msg) => {
+  try {
+    const channel = await getChannel();
+    channel.sendToQueue(queue, Buffer.from(JSON.stringify(msg)));
+  } catch (err) {
+    sendLogTelegram("RABBITMQ::SEND_TO_QUEUE\n" + err);
+  }
+};
+
+export { getSubscribeChannel, subscribeMessage, publishMessage, getChannel, sendToQueue };

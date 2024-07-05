@@ -5,23 +5,27 @@ import { _SERVICE } from "../env/index.js";
 const _PROXY_CONFIG = [
   {
     path: _SERVICE.COMMON_SERVICE.PATH,
-    target: "http://localhost:" + _SERVICE.COMMON_SERVICE.PORT
+    target: _SERVICE.COMMON_SERVICE.PROXY_HOST + ":" + _SERVICE.COMMON_SERVICE.PORT
   },
   {
     path: _SERVICE.USER_SERVICE.PATH,
-    target: "http://localhost:" + _SERVICE.USER_SERVICE.PORT
+    target: _SERVICE.USER_SERVICE.PROXY_HOST + ":" + _SERVICE.USER_SERVICE.PORT
   },
   {
     path: _SERVICE.EXERCISE_SERVICE.PATH,
-    target: "http://localhost:" + _SERVICE.EXERCISE_SERVICE.PORT
+    target: _SERVICE.EXERCISE_SERVICE.PROXY_HOST + ":" + _SERVICE.EXERCISE_SERVICE.PORT
   },
   {
     path: _SERVICE.MEDIA_SERVICE.PATH,
-    target: "http://localhost:" + _SERVICE.MEDIA_SERVICE.PORT
+    target: _SERVICE.MEDIA_SERVICE.PROXY_HOST + ":" + _SERVICE.MEDIA_SERVICE.PORT
   },
   {
     path: _SERVICE.LEARNING_SERVICE.PATH,
-    target: "http://localhost:" + _SERVICE.LEARNING_SERVICE.PORT
+    target: _SERVICE.LEARNING_SERVICE.PROXY_HOST + ":" + _SERVICE.LEARNING_SERVICE.PORT
+  },
+  {
+    path: _SERVICE.STATISTICS_SERVICE.PATH,
+    target: _SERVICE.STATISTICS_SERVICE.PROXY_HOST + ":" + _SERVICE.STATISTICS_SERVICE.PORT
   }
 ];
 

@@ -1,13 +1,15 @@
 import { ProblemModel } from "../models/Problem.js";
 import { SubmissionModel } from "../models/Submission.js";
 import uuidv4 from "uuid4";
-import { _PROCESS_ENV } from "../../configs/env/index.js";
+import { _ACTION, _PROCESS_ENV } from "../../configs/env/index.js";
 import { httpStatusCodes } from "../responses/httpStatusCodes/index.js";
 import { NotFoundError } from "../responses/errors/NotFoundError.js";
 import { ConflictError } from "../responses/errors/ConflictError.js";
 import { BadRequestError } from "../responses/errors/BadRequestError.js";
 import { gRPCRequest } from "./gRPC.js";
 import { judge0Service } from "./judge0.js";
+import { publishMessage } from "../../configs/rabiitmq/index.js";
+import { setUserSubmitProblem } from "../../utils/firebase.js";
 
 const SubmissionHandle = {
   updateSubmissionByUUID: async ({ result, tokens, requestId, _id, requestReceivedAt, uuid, problemId, code }) => {
@@ -46,13 +48,13 @@ const SubmissionHandle = {
       }
     }
 
-    const userSubmission = problemDoc.submitList.find((s) => s.userId?.toString() === _id);
+    const userSubmissionExist = problemDoc.submitList.find((s) => s.userId?.toString() === _id);
 
-    if (userSubmission) {
-      userSubmission.submissionTotal += 1;
-      if (result.score > userSubmission.maxScore) {
-        userSubmission.maxScore = result.score;
-        userSubmission.submissionId = submission._id;
+    if (userSubmissionExist) {
+      userSubmissionExist.submissionTotal += 1;
+      if (result.score > userSubmissionExist.maxScore) {
+        userSubmissionExist.maxScore = result.score;
+        userSubmissionExist.submissionId = submission._id;
       }
     } else {
       const obj = {
@@ -65,6 +67,24 @@ const SubmissionHandle = {
     }
 
     await problemDoc.save();
+
+    // if (userSubmissionExist) {
+    const payload = {
+      requestId,
+      action: _ACTION.SUBMISSION_CREATE,
+      data: {
+        requestId,
+        userId: _id,
+        submissionId: submission._id,
+        problem: {
+          _id: problemId,
+          title: problemDoc.title
+        }
+      }
+    };
+    publishMessage(payload);
+    setUserSubmitProblem(_id, problemId);
+    // }
   },
   getBestSubmission: async (userId, problemId, withoutSubmissionId) => {
     const submissions = await SubmissionModel.find({
@@ -129,8 +149,8 @@ const SubmissionHandle = {
 
 const SubmissionService = {
   create: async (req, res) => {
-    const requestId = req.headers["x-request-id"];
     const _id = req.headers["x-user-id"];
+    const requestId = req.headers["x-request-id"];
     const { problem, code } = req.body;
 
     const requestReceivedAt = new Date();

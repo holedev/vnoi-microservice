@@ -3,13 +3,7 @@ import { useEffect, useState } from "react";
 import axiosAPI, { endpoints } from "~/configs/axiosAPI";
 import useUserContext from "~/hook/useUserContext";
 
-function DropdownClass({
-  withoutOlympic = true,
-  withoutAll = false,
-  classCurr,
-  handleFilter,
-  ...props
-}) {
+function DropdownClass({ withoutOlympic = true, withoutAll = false, classCurr, handleFilter, ...props }) {
   const [user] = useUserContext();
 
   const [classList, setClassList] = useState([]);
@@ -19,9 +13,7 @@ function DropdownClass({
     if (withoutOlympic) endpoint += "/get-classes-without-olympic";
     await axiosAPI.get(endpoint).then((res) => {
       const classList = res.data?.data;
-      withoutAll
-        ? setClassList(classList)
-        : setClassList([{ _id: "all", name: "ALL" }, ...classList]);
+      withoutAll ? setClassList(classList) : setClassList([{ _id: "all", name: "ALL" }, ...classList]);
     });
   };
 
@@ -34,7 +26,7 @@ function DropdownClass({
       {classList.length > 0 && (
         <Select
           {...props}
-          size="small"
+          size='small'
           value={classCurr || user.classCurr?._id || "all"}
           onChange={(e) => handleFilter(e.target.value, "classCurr")}
         >

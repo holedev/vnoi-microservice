@@ -1,5 +1,5 @@
-import styles from './Problem.module.css';
-import { useEffect, useRef, useState } from 'react';
+import styles from "./Problem.module.css";
+import { useEffect, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -10,23 +10,23 @@ import {
   Tab,
   Tabs,
   TextField,
-  Typography,
-} from '@mui/material';
-import clsx from 'clsx';
-import { CopyAll, UploadFile } from '@mui/icons-material';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import dayjs from 'dayjs';
-import { toast } from 'react-toastify';
-import Editor from '~/components/Editor';
-import useUserContext from '~/hook/useUserContext';
-import { useNavigate, useParams } from 'react-router-dom';
-import DropdownClass from '~/components/DropdownClass';
-import useAxiosAPI from '~/hook/useAxiosAPI';
-import Tutorial from '~/components/Tutorial';
-import { createSchema, handleValidate, updateSchema } from './validation';
-import { steps } from './tutorial';
-import AutocompleteLanguage from '~/components/Editor/AutocompleteLanguage';
-import DropdownLanguage from '~/components/Editor/DropdownLanguage';
+  Typography
+} from "@mui/material";
+import clsx from "clsx";
+import { CopyAll, UploadFile } from "@mui/icons-material";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import dayjs from "dayjs";
+import { toast } from "react-toastify";
+import Editor from "~/components/Editor";
+import useUserContext from "~/hook/useUserContext";
+import { useNavigate, useParams } from "react-router-dom";
+import DropdownClass from "~/components/DropdownClass";
+import useAxiosAPI from "~/hook/useAxiosAPI";
+import Tutorial from "~/components/Tutorial";
+import { createSchema, handleValidate, updateSchema } from "./validation";
+import { steps } from "./tutorial";
+import AutocompleteLanguage from "~/components/Editor/AutocompleteLanguage";
+import DropdownLanguage from "~/components/Editor/DropdownLanguage";
 
 function AdminProblem() {
   const nav = useNavigate();
@@ -41,18 +41,18 @@ function AdminProblem() {
   const [useFileTC, setUseFileTC] = useState(false);
   const [dataTC, setDataTC] = useState(null);
   const [data, setData] = useState({
-    title: '',
+    title: "",
     level: 0,
     timeStart: dayjs(),
     testTime: 60,
-    desc: '',
+    desc: "",
     script: {
-      generateCode: '```\nfunction generateScript() {\n\n}\n```',
+      generateCode: "```\nfunction generateScript() {\n\n}\n```",
       quantity: 50,
       data: [],
-      file: false,
+      file: false
     },
-    initCode: '```\nint main() {\n\t\n}\n```',
+    initCode: "```\nint main() {\n\t\n}\n```",
     langIdSolution: 54,
     solution: "```\nint main() {\n\tcout('Hello World');\n\treturn 0;\n}\n```",
     classCurr: user.classCurr?._id,
@@ -60,7 +60,7 @@ function AdminProblem() {
     timeLimit: 1, // second
     memoryLimit: 2048, // kilobyte
     stackLimit: 2048, // kilobyte
-    availableLanguages: new Set([54, 62, 63, 71]), // utils/compiler/data.js
+    availableLanguages: new Set([54, 62, 63, 71]) // utils/compiler/data.js
   });
   const [isRecompile, setIsReCompile] = useState(false);
 
@@ -77,7 +77,7 @@ function AdminProblem() {
         script: {
           quantity: parseInt(data.testcases.quantity) || 50,
           generateCode: data.testcases.generateCode || undefined,
-          file: data.testcases.file,
+          file: data.testcases.file
         },
         initCode: data.initCode,
         langIdSolution: data.langIdSolution,
@@ -88,7 +88,7 @@ function AdminProblem() {
         timeLimit: data.timeLimit || 1,
         memoryLimit: data.memoryLimit || 2048,
         stackLimit: data.stackLimit || 2048,
-        availableLanguages: data.availableLanguages || new Set([54]),
+        availableLanguages: data.availableLanguages || new Set([54])
       };
 
       setData(problem);
@@ -97,13 +97,7 @@ function AdminProblem() {
   };
 
   const handleData = (value, field) => {
-    const recompileFields = [
-      'script',
-      'solution',
-      'timeLimit',
-      'memoryLimit',
-      'stackLimit',
-    ];
+    const recompileFields = ["script", "solution", "timeLimit", "memoryLimit", "stackLimit"];
 
     if (recompileFields.includes(field)) {
       setIsReCompile(true);
@@ -112,7 +106,7 @@ function AdminProblem() {
     setData((prev) => {
       prev = {
         ...prev,
-        [field]: value,
+        [field]: value
       };
       return prev;
     });
@@ -126,8 +120,8 @@ function AdminProblem() {
         ...prev,
         script: {
           ...prev.script,
-          file: !useFileTC,
-        },
+          file: !useFileTC
+        }
       };
     });
   };
@@ -135,21 +129,19 @@ function AdminProblem() {
   const handleUploadTCFile = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const fileExtension = file.name.split('.').pop().toLowerCase();
-      if (['txt'].includes(fileExtension)) {
+      const fileExtension = file.name.split(".").pop().toLowerCase();
+      if (["txt"].includes(fileExtension)) {
         const reader = new FileReader();
         reader.onload = (e) => {
           const fileContent = e.target.result;
-          const lines = fileContent.split('\n');
-          const firstLine = lines[0].split(' ');
+          const lines = fileContent.split("\n");
+          const firstLine = lines[0].split(" ");
 
           const quantity = Number(firstLine[0]);
           const linePerTestcase = Number(firstLine[1]);
 
           if (firstLine.length !== 2 || !quantity || !linePerTestcase) {
-            toast.error(
-              'First line must only have number of quantity testcase and line per testcase!'
-            );
+            toast.error("First line must only have number of quantity testcase and line per testcase!");
             return;
           }
 
@@ -157,14 +149,12 @@ function AdminProblem() {
           const tcLength = quantity * linePerTestcase;
 
           if (data.length === tcLength) {
-            toast.error('You must have a empty line at the end of file!');
+            toast.error("You must have a empty line at the end of file!");
             return;
           }
 
           if (data.length - tcLength !== 1) {
-            toast.error(
-              'Data testcase not match with quantity and line per testcase!'
-            );
+            toast.error("Data testcase not match with quantity and line per testcase!");
             return;
           }
 
@@ -172,7 +162,7 @@ function AdminProblem() {
           for (let i = 0; i < quantity; i++) {
             const start = i * linePerTestcase;
             const end = start + linePerTestcase;
-            requestData.push(data.slice(start, end).join('\n') + '\n');
+            requestData.push(data.slice(start, end).join("\n") + "\n");
           }
 
           setData((prev) => {
@@ -182,21 +172,21 @@ function AdminProblem() {
                 generateCode: undefined,
                 file: true,
                 quantity: quantity,
-                data: requestData,
-              },
+                data: requestData
+              }
             };
           });
 
           setIsReCompile(true);
 
-          toast.success('Upload success!');
+          toast.success("Upload success!");
         };
         reader.onerror = (error) => {
-          toast.error('Error reading file:', error);
+          toast.error("Error reading file:", error);
         };
         reader.readAsText(file);
       } else {
-        toast.error('Unsupported file type. Please select a .txt file.');
+        toast.error("Unsupported file type. Please select a .txt file.");
       }
       e.target.value = null;
     }
@@ -216,7 +206,7 @@ function AdminProblem() {
 
       return res;
     } catch (err) {
-      toast.error('Error generate testcase!');
+      toast.error("Error generate testcase!");
       return;
     }
   };
@@ -233,27 +223,25 @@ function AdminProblem() {
   const handleUploadSolution = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const fileExtension = file.name.split('.').pop().toLowerCase();
-      if (['cpp', 'c', 'txt'].includes(fileExtension)) {
+      const fileExtension = file.name.split(".").pop().toLowerCase();
+      if (["cpp", "c", "txt"].includes(fileExtension)) {
         const reader = new FileReader();
         reader.onload = (e) => {
           const fileContent = e.target.result;
           setData((prev) => {
             return {
               ...prev,
-              solution: '```\n' + fileContent.trim() + '\n```',
+              solution: "```\n" + fileContent.trim() + "\n```"
             };
           });
         };
         reader.onerror = (error) => {
-          toast.error('Error reading file:', error);
+          toast.error("Error reading file:", error);
         };
         reader.readAsText(file);
         setIsReCompile(true);
       } else {
-        toast.error(
-          'Unsupported file type. Please select a .cpp, .c, or .txt file.'
-        );
+        toast.error("Unsupported file type. Please select a .cpp, .c, or .txt file.");
       }
       e.target.value = null;
     }
@@ -265,8 +253,8 @@ function AdminProblem() {
         ...prev,
         script: {
           ...prev.script,
-          [field]: val,
-        },
+          [field]: val
+        }
       };
       return prev;
     });
@@ -274,13 +262,13 @@ function AdminProblem() {
 
   const submitF = async (data) => {
     let endpoint = endpoints.problems;
-    let mode = 'Create';
-    let method = 'post';
-    const isUpdateMode = slug && slug !== '__new';
+    let mode = "Create";
+    let method = "post";
+    const isUpdateMode = slug && slug !== "__new";
     if (isUpdateMode) {
-      endpoint = endpoints.problems + '/edit/' + slug;
-      mode = 'Update';
-      method = 'patch';
+      endpoint = endpoints.problems + "/edit/" + slug;
+      mode = "Update";
+      method = "patch";
       data.isRecompile = isRecompile;
     }
 
@@ -291,7 +279,7 @@ function AdminProblem() {
 
     data.availableLanguages = Array.from(data.availableLanguages).sort();
 
-    const schema = mode === 'Create' ? createSchema : updateSchema;
+    const schema = mode === "Create" ? createSchema : updateSchema;
 
     const isPrevDate = dayjs(data.timeStart).isBefore(dayjs());
     if (isPrevDate) return toast.error(`"Time start" must be after now!`);
@@ -303,21 +291,19 @@ function AdminProblem() {
     await axiosAPI[method](endpoint, data)
       .then((res) => {
         const { uuid } = res.data.data;
-        nav('/lecturer/dashboard/problems', {
-          state: { problemUuidLoadingStatus: uuid },
+        nav("/lecturer/dashboard/problems", {
+          state: { problemUuidLoadingStatus: uuid }
         });
       })
       .catch((err) => {
-        import.meta.env.VITE_MODE === 'development' &&
-          console.log(err?.response?.data?.message || err);
-        toast.error(err.response.data.message || 'Something went wrong!');
+        import.meta.env.VITE_MODE === "development" && console.log(err?.response?.data?.message || err);
+        toast.error(err.response.data.message || "Something went wrong!");
       });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // eslint-disable-next-line no-unused-vars
     const { scriptGTestcase, ...rest } = data;
 
     let problem = null;
@@ -329,8 +315,8 @@ function AdminProblem() {
           generateCode: undefined,
           quantity: parseInt(data.script.quantity),
           data: data.script.data,
-          file: true,
-        },
+          file: true
+        }
       };
     } else {
       const dataTC = generateRandomTestcase();
@@ -341,8 +327,8 @@ function AdminProblem() {
           generateCode: data.script.generateCode,
           quantity: parseInt(data.script.quantity),
           data: dataTC,
-          file: false,
-        },
+          file: false
+        }
       };
     }
     submitF(problem);
@@ -352,19 +338,19 @@ function AdminProblem() {
     setData((prev) => {
       prev = {
         ...prev,
-        classCurr: value,
+        classCurr: value
       };
       return prev;
     });
   };
 
   const handleCopyTC = () => {
-    navigator.clipboard.writeText(dataTC.join(''));
-    toast.success('Copied!');
+    navigator.clipboard.writeText(dataTC.join(""));
+    toast.success("Copied!");
   };
 
   useEffect(() => {
-    if (slug && slug !== '__new') {
+    if (slug && slug !== "__new") {
       getProblem(slug);
     }
   }, [slug]);
@@ -377,85 +363,84 @@ function AdminProblem() {
           <Box className={styles.headingBody}>
             <Box className={styles.headingLeft}>
               <TextField
-                data-tour="problem-title"
+                data-tour='problem-title'
                 value={data.title}
-                onChange={(e) => handleData(e.target.value, 'title')}
+                onChange={(e) => handleData(e.target.value, "title")}
                 className={styles.problemTitleInp}
-                size="small"
-                label="Title"
-                id="title"
-                variant="outlined"
-                margin="normal"
-                autoComplete="off"
-                placeholder="Two Of Sum"
+                size='small'
+                label='Title'
+                id='title'
+                variant='outlined'
+                margin='normal'
+                autoComplete='off'
+                placeholder='Two Of Sum'
               />
             </Box>
             <Box className={styles.headingRight}>
               <Tabs
-                data-tour="problem-level"
+                data-tour='problem-level'
                 value={data.level}
-                onChange={(_, value) => handleData(value, 'level')}
+                onChange={(_, value) => handleData(value, "level")}
                 centered
               >
-                <Tab label="Easy" />
-                <Tab label="Medium" />
-                <Tab label="Hard" />
+                <Tab label='Easy' />
+                <Tab label='Medium' />
+                <Tab label='Hard' />
               </Tabs>
               <Box
                 sx={{
-                  display: 'flex',
-                  gap: '12px',
+                  display: "flex",
+                  gap: "12px"
                 }}
-                data-tour="problem-time"
+                data-tour='problem-time'
               >
                 <DateTimePicker
                   disabled={data.alwayOpen}
                   value={data.timeStart}
-                  onChange={(e) => handleData(e, 'timeStart')}
-                  label="Time start"
-                  size="small"
+                  onChange={(e) => handleData(e, "timeStart")}
+                  label='Time start'
+                  size='small'
                 />
                 <TextField
                   disabled={data.alwayOpen}
                   value={data.testTime}
-                  onChange={(e) => handleData(e.target.value, 'testTime')}
+                  onChange={(e) => handleData(e.target.value, "testTime")}
                   className={styles.problemTimeInp}
-                  size="small"
-                  label="Time (minutes)"
-                  id="title"
-                  variant="outlined"
-                  margin="normal"
-                  autoComplete="off"
-                  placeholder="60"
+                  size='small'
+                  label='Time (minutes)'
+                  id='testTime'
+                  variant='outlined'
+                  margin='normal'
+                  autoComplete='off'
+                  placeholder='60'
                 />
               </Box>
             </Box>
           </Box>
         </Box>
-        <Box data-tour="problem-desc" className={styles.group}>
+        <Box data-tour='problem-desc' className={styles.group}>
           <h5 className={styles.heading}>Problem Description</h5>
-          <Editor
-            state={data.desc}
-            setState={(value) => handleData(value, 'desc')}
-          />
+          <Editor state={data.desc} setState={(value) => handleData(value, "desc")} />
         </Box>
-        <Box data-tour="problem-solution" className={styles.group}>
+        <Box data-tour='problem-solution' className={styles.group}>
           <input
+            id='upload-btn-hidden'
             ref={fileRef}
             hidden
-            type="file"
-            accept=".cpp, .c, .txt"
+            type='file'
+            accept='.cpp, .c, .txt'
             onChange={handleUploadSolution}
           />
           <h5 className={styles.heading}>
             Solution
             <IconButton
-              data-tour="upload-btn"
+              id='upload-btn'
+              data-tour='upload-btn'
               onClick={() => fileRef.current.click()}
-              aria-label="fingerprint"
-              color="primary"
+              aria-label='fingerprint'
+              color='primary'
               sx={{
-                ml: 1,
+                ml: 1
               }}
             >
               <UploadFile />
@@ -468,21 +453,18 @@ function AdminProblem() {
                 setData((prev) => {
                   return {
                     ...prev,
-                    langIdSolution: langId,
+                    langIdSolution: langId
                   };
                 });
               }}
             />
           </h5>
-          <Editor
-            state={data.solution}
-            setState={(value) => handleData(value, 'solution')}
-          />
+          <Editor state={data.solution} setState={(value) => handleData(value, "solution")} />
         </Box>
         <Box
           sx={{
-            paddingTop: '12px',
-            paddingBottom: '12px',
+            paddingTop: "12px",
+            paddingBottom: "12px"
           }}
           className={styles.group}
         >
@@ -494,23 +476,18 @@ function AdminProblem() {
               availableLangList={Array.from(data.availableLanguages).sort()}
               updateLangList={({ type, value }) => {
                 setData((prev) => {
-                  if (type === 'REMOVE_ID') {
+                  if (type === "REMOVE_ID") {
                     return {
                       ...prev,
                       availableLanguages: new Set(
-                        Array.from(prev.availableLanguages).filter(
-                          (langId) => langId !== value
-                        )
-                      ),
+                        Array.from(prev.availableLanguages).filter((langId) => langId !== value)
+                      )
                     };
                   }
 
                   return {
                     ...prev,
-                    availableLanguages: new Set([
-                      ...prev.availableLanguages,
-                      value,
-                    ]),
+                    availableLanguages: new Set([...prev.availableLanguages, value])
                   };
                 });
               }}
@@ -519,135 +496,121 @@ function AdminProblem() {
         </Box>
         <Box
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            paddingTop: '12px',
-            paddingBottom: '12px',
+            display: "flex",
+            alignItems: "center",
+            paddingTop: "12px",
+            paddingBottom: "12px"
           }}
           className={styles.group}
         >
           <h5 className={styles.heading}>Limit (per testcase)</h5>
           <Box
             sx={{
-              display: 'flex',
-              gap: '6px',
-              marginLeft: 'auto',
+              display: "flex",
+              gap: "6px",
+              marginLeft: "auto"
             }}
           >
             <Box>
               <TextField
-                title="Time limit (max 2 second)"
+                title='Time limit (max 2 second)'
                 value={data.timeLimit}
-                size="small"
-                id="outlined-basic"
-                label="Time limit (second)"
-                variant="outlined"
-                type="number"
-                onChange={(e) => handleData(e.target.value, 'timeLimit')}
+                size='small'
+                id='outlined-basic'
+                label='Time limit (second)'
+                variant='outlined'
+                type='number'
+                onChange={(e) => handleData(e.target.value, "timeLimit")}
               />
             </Box>
             <Box>
               <TextField
-                title="Memory limit (max 128000 kb)"
+                title='Memory limit (max 128000 kb)'
                 value={data.memoryLimit}
-                size="small"
-                id="outlined-basic"
-                label="Memory limit (kilobyte)"
-                variant="outlined"
-                type="number"
-                onChange={(e) => handleData(e.target.value, 'memoryLimit')}
+                size='small'
+                id='outlined-basic'
+                label='Memory limit (kilobyte)'
+                variant='outlined'
+                type='number'
+                onChange={(e) => handleData(e.target.value, "memoryLimit")}
               />
             </Box>
             <Box>
               <TextField
-                title="Stack limit (max 64000 kb)"
+                title='Stack limit (max 64000 kb)'
                 value={data.stackLimit}
-                size="small"
-                id="outlined-basic"
-                label="Stack limit (kilobyte)"
-                variant="outlined"
-                type="number"
-                onChange={(e) => handleData(e.target.value, 'stackLimit')}
+                size='small'
+                id='outlined-basic'
+                label='Stack limit (kilobyte)'
+                variant='outlined'
+                type='number'
+                onChange={(e) => handleData(e.target.value, "stackLimit")}
               />
             </Box>
           </Box>
         </Box>
-        <Box data-tour="problem-testcase" className={styles.group}>
+        <Box data-tour='problem-testcase' className={styles.group}>
           <Box
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
+              display: "flex",
+              alignItems: "center",
+              gap: "12px"
             }}
           >
-            <h5 className={styles.heading}>
-              Testcase with {!useFileTC ? 'Script' : 'File'}
-            </h5>
+            <h5 className={styles.heading}>Testcase with {!useFileTC ? "Script" : "File"}</h5>
             {!useFileTC && (
               <TextField
                 disabled={useFileTC}
                 value={data.script.quantity}
-                onChange={(e) => handleScriptG(e.target.value, 'quantity')}
-                size="small"
-                id="outlined-basic"
-                label="Quantity"
-                variant="outlined"
+                onChange={(e) => handleScriptG(e.target.value, "quantity")}
+                size='small'
+                id='outlined-basic'
+                label='Quantity'
+                variant='outlined'
               />
             )}
-            <Button
-              data-tour="testcase-btn"
-              onClick={handleScriptGenerateTestcase}
-            >
+            <Button data-tour='testcase-btn' onClick={handleScriptGenerateTestcase}>
               Test
             </Button>
             <input
+              id='testcase-with-file-hidden'
               ref={fileTCRef}
               hidden
-              type="file"
-              accept=".txt"
+              type='file'
+              accept='.txt'
               onChange={handleUploadTCFile}
             />
             <FormControlLabel
               sx={{
-                ml: 'auto',
+                ml: "auto"
               }}
-              data-tour="testcase-with-file"
-              control={
-                <Switch
-                  checked={useFileTC || false}
-                  onChange={handleChangeStateTC}
-                />
-              }
-              label="USE FILE .TXT"
+              id='testcase-with-file'
+              data-tour='testcase-with-file'
+              control={<Switch checked={useFileTC || false} onChange={handleChangeStateTC} />}
+              label='USE FILE .TXT'
             />
           </Box>
           {!useFileTC && (
             <Editor
               state={data.script?.generateCode}
               setState={(value) => {
-                if (!useFileTC) handleScriptG(value, 'generateCode');
+                if (!useFileTC) handleScriptG(value, "generateCode");
               }}
             />
           )}
         </Box>
-        <Box data-tour="problem-init" className={styles.group}>
+        <Box data-tour='problem-init' className={styles.group}>
           <h5 className={styles.heading}>Init Solution</h5>
-          <Editor
-            state={data.initCode}
-            setState={(value) => handleData(value, 'initCode')}
-          />
+          <Editor state={data.initCode} setState={(value) => handleData(value, "initCode")} />
         </Box>
-        <Box
-          data-tour="problem-action"
-          className={clsx(styles.group, styles.groupSubmit)}
-        >
+        <Box data-tour='problem-action' className={clsx(styles.group, styles.groupSubmit)}>
           <Button
             sx={{
-              marginRight: 'auto',
+              marginRight: "auto"
             }}
-            data-tour="action-tutorial"
-            variant="text"
-            color="info"
+            data-tour='action-tutorial'
+            variant='text'
+            color='info'
             onClick={() => {
               setTutorial(true);
             }}
@@ -655,69 +618,63 @@ function AdminProblem() {
             Tutorial
           </Button>
           <FormControlLabel
-            data-tour="action-alway-open"
+            id='action-alway-open'
+            data-tour='action-alway-open'
             control={
               <Switch
                 checked={data.alwayOpen || false}
-                onChange={(event) =>
-                  handleData(event.target.checked, 'alwayOpen')
-                }
+                onChange={(event) => handleData(event.target.checked, "alwayOpen")}
               />
             }
-            label="ALWAY OPEN"
+            label='ALWAY OPEN'
           />
           <DropdownClass
             withoutOlympic={false}
             withoutAll={true}
-            data-tour="action-class"
+            data-tour='action-class'
             classCurr={data.classCurr}
             handleFilter={handleFilter}
           />
-          <Button
-            data-tour="action-submit"
-            type="submit"
-            variant="contained"
-            color="success"
-          >
-            {slug && slug !== '__new' ? 'UPDATE' : 'SUBMIT'}
+          <Button data-tour='action-submit' type='submit' variant='contained' color='success'>
+            {slug && slug !== "__new" ? "UPDATE" : "SUBMIT"}
           </Button>
         </Box>
       </form>
       <Tutorial setRun={setTutorial} run={tutorial} steps={steps} />
       <Modal
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
         }}
         open={dataTC !== null}
         onClose={() => setDataTC(null)}
       >
         <Box
           sx={{
-            minWidth: '600px',
-            maxWidth: '80vw',
-            maxHeight: '90vh',
-            backgroundColor: '#fff',
-            borderRadius: '4px',
-            display: 'flex',
-            flexDirection: 'column',
+            minWidth: "600px",
+            maxWidth: "80vw",
+            maxHeight: "90vh",
+            backgroundColor: "#fff",
+            borderRadius: "4px",
+            display: "flex",
+            flexDirection: "column"
           }}
         >
           <Typography
-            bgcolor="#fff"
-            component="h4"
+            bgcolor='#fff'
+            component='h4'
             sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              padding: '16px',
-              alignItems: 'center',
-              textAlign: 'center',
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "16px",
+              alignItems: "center",
+              textAlign: "center",
               py: 2,
-              fontWeight: 'bold',
-              borderTopLeftRadius: '4px',
-              borderTopRightRadius: '4px',
-              bgcolor: '#ccc',
+              fontWeight: "bold",
+              borderTopLeftRadius: "4px",
+              borderTopRightRadius: "4px",
+              bgcolor: "#ccc"
             }}
           >
             DATA TEST CASE DEMO ({dataTC?.length})
@@ -727,15 +684,12 @@ function AdminProblem() {
           </Typography>
           <Box
             sx={{
-              padding: '0 16px',
+              padding: "0 16px",
               flex: 1,
-              overflowY: 'auto',
+              overflowY: "auto"
             }}
           >
-            <pre>
-              {dataTC?.join('') ||
-                'Data Empty Or Array Return All Empty String'}
-            </pre>
+            <pre>{dataTC?.join("") || "Data Empty Or Array Return All Empty String"}</pre>
           </Box>
         </Box>
       </Modal>
