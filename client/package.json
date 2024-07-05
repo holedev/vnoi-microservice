@@ -60,6 +60,7 @@
     "remark-gfm": "^3.0.1",
     "universal-cookie": "^6.1.1",
     "use-debounce": "^10.0.0",
+    "use-query-params": "^2.2.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

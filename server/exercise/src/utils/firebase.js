@@ -50,7 +50,7 @@ function removeSubmissionStatus(uuid, status) {
 }
 
 function setUserSubmitProblem(userId, problemId) {
-  const submitProblemRef = ref(realtimeDB, `userSubmitList/${userId}`);
+  const submitProblemRef = ref(realtimeDB, `usersubmitlist/${userId}`);
 
   set(submitProblemRef, {
     problemId: problemId.toString()
