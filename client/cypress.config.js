@@ -11,7 +11,7 @@ const __dirname = dirname(__filename);
 
 export default defineConfig({
   projectId: "zwvgke",
-  defaultCommandTimeout: 5000,
+  defaultCommandTimeout: 15000,
   component: {
     devServer: {
       framework: "react",
@@ -19,7 +19,6 @@ export default defineConfig({
     }
   },
   e2e: {
-    baseUrl: "http://localhost:5173",
     setupNodeEvents(on, config) {
       const options = {
         webpackOptions: {
@@ -31,6 +30,9 @@ export default defineConfig({
         }
       };
       on("file:preprocessor", webpackPreprocessor(options));
+
+      config.env.CYPRESS_BASE_URL = process.env.CYPRESS_BASE_URL;
+      config.env.CYPRESS_API_URL = process.env.CYPRESS_API_URL;
 
       return cypressFirebasePlugin(on, config, admin, {
         credential: admin.credential.cert(serviceAccount)

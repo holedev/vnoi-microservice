@@ -12,9 +12,13 @@ import { apiFilter } from "./src/api/middlewares/apiFilter.js";
 import { firebaseInit } from "./src/configs/firebase/index.js";
 import { logInfo } from "./src/configs/rabiitmq/index.js";
 import { RateLimit } from "./src/api/middlewares/RateLimit.js";
+import { monitorMiddleware, metricsEndpoint } from "./src/api/middlewares/Monitor.js";
 
 const app = express();
 const PORT = _PROCESS_ENV.SERVICE_PORT;
+
+app.use(monitorMiddleware);
+app.get("/metrics", metricsEndpoint);
 
 firebaseInit();
 

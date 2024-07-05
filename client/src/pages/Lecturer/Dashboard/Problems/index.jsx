@@ -256,10 +256,16 @@ export default function Dashboard() {
                     <TableCell align='center'>{row.testTime ? `${row.testTime} min` : "---"}</TableCell>
                     <TableCell align='center'>{row.done}</TableCell>
                     <TableCell align='center'>
-                      <Button onClick={() => nav("/lecturer/problems/" + row.slug)} size='small' variant='contained'>
+                      <Button
+                        aria-label='btn-edit'
+                        onClick={() => nav("/lecturer/problems/" + row.slug)}
+                        size='small'
+                        variant='contained'
+                      >
                         Edit
                       </Button>
                       <Button
+                        aria-label='btn-result'
                         onClick={() => handleResult(row._id, row.title, row.class?.name)}
                         variant='outlined'
                         size='small'
@@ -270,6 +276,7 @@ export default function Dashboard() {
                         Result
                       </Button>
                       <Button
+                        aria-label='btn-delete'
                         sx={{
                           marginLeft: "6px"
                         }}
@@ -282,13 +289,21 @@ export default function Dashboard() {
                       </Button>
                     </TableCell>
 
-                    <TableCell align='center'>
+                    <TableCell aria-label='status-problem' align='center'>
                       {row.status === _PROBLEM_STATUS.PROCESSING && <LinearProgress />}
                       {row.status === _PROBLEM_STATUS.SUCCESS && (
-                        <DoneIcon onClick={() => getSubmissionsDetail(row._id)} color='success' />
+                        <DoneIcon
+                          aria-label='done-icon'
+                          onClick={() => getSubmissionsDetail(row._id)}
+                          color='success'
+                        />
                       )}
                       {row.status === _PROBLEM_STATUS.ERROR && (
-                        <ErrorIcon onClick={() => getSubmissionsDetail(row._id)} color='error' />
+                        <ErrorIcon
+                          aria-label='error-icon'
+                          onClick={() => getSubmissionsDetail(row._id)}
+                          color='error'
+                        />
                       )}
                     </TableCell>
                   </TableRow>

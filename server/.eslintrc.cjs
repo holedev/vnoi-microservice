@@ -1,5 +1,5 @@
 module.exports = {
-  env: { es2020: true, node: true },
+  env: { es2020: true, node: true, "jest/globals": true },
   extends: ["eslint:recommended", "prettier"],
   parserOptions: {
     ecmaVersion: "latest",
@@ -10,7 +10,7 @@ module.exports = {
     },
     allowImportExportEverywhere: true
   },
-  plugins: ["prettier"],
+  plugins: ["prettier", "jest"],
   rules: {
     "no-extra-boolean-cast": 0,
     "no-lonely-if": 1,

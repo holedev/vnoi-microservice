@@ -82,16 +82,16 @@ function Submission({ problem, user, submissions, setSubmissions, setCode, isLoa
             </TableCell>
           </TableRow>
         </TableHead>
-        <TableBody>
+        <TableBody id='table-body'>
           {isLoad.submit && (
-            <TableRow bgcolor=''>
+            <TableRow aria-label='row-loading' bgcolor=''>
               <TableCell sx={{ p: 3 }} align='center' colSpan={5}>
                 <LinearProgress />
               </TableCell>
             </TableRow>
           )}
           {loading ? (
-            <TableRow>
+            <TableRow aria-label='row-loading'>
               <TableCell align='center' colSpan={5}>
                 <CircularProgress size={20} />
               </TableCell>
@@ -99,6 +99,7 @@ function Submission({ problem, user, submissions, setSubmissions, setCode, isLoa
           ) : submissions.length > 0 ? (
             submissions.map((row) => (
               <TableRow
+                aria-label='row-data'
                 bgcolor={getBgSubmitByScore(row.score)}
                 onClick={() =>
                   setCode({

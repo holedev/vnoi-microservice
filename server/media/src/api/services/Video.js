@@ -43,7 +43,7 @@ const VideoService = {
       data: {
         _id: video._id,
         title: video.title,
-        path: _VIDEO_PATH + uuid + "/master.m3u8"
+        path: _VIDEO_PATH + uuid + "/v0/prog_index.m3u8"
       }
     });
   },
@@ -89,7 +89,7 @@ const VideoService = {
       data: {
         ...video,
         interactives: video.interactives || [],
-        path: _VIDEO_PATH + video.uuid + "/master.m3u8"
+        path: _VIDEO_PATH + video.uuid + "/v0/prog_index.m3u8"
       }
     });
   },

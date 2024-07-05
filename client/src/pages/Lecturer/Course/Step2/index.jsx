@@ -24,13 +24,12 @@ import Question from "./Question";
 import ImportProblem from "./ImportProblem";
 import "@vidstack/react/player/styles/base.css";
 import "@vidstack/react/player/styles/plyr/theme.css";
-import { MediaPlayer, MediaProvider } from "@vidstack/react";
-import { PlyrLayout, plyrLayoutIcons } from "@vidstack/react/player/layouts/plyr";
 import { toast } from "react-toastify";
 import { useDebouncedCallback } from "use-debounce";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import ClearIcon from "@mui/icons-material/Clear";
 import { file as FileIcon } from "~/assets/images";
+import VideoStack from "~/components/Vidstack";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -627,14 +626,15 @@ function Step2({ course: { _id, sections, lessons, activeSection, activeLesson, 
                 </Button>
               </Box>
               {lessonData?.files?.length > 0 && (
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mt: 3 }}>
                   {lessonData.files.map((file) => {
                     return (
                       <Box
                         sx={{
                           display: "flex",
                           alignItems: "center",
-                          flexDirection: "column"
+                          flexDirection: "column",
+                          maxWidth: "200px"
                         }}
                         key={file._id}
                       >
@@ -650,7 +650,12 @@ function Step2({ course: { _id, sections, lessons, activeSection, activeLesson, 
                           />
                         </Box>
                         <Box>
-                          <a style={{ display: "block" }} href={file?.path} target='_blank' rel='noreferrer'>
+                          <a
+                            style={{ display: "block", textAlign: "center" }}
+                            href={file?.path}
+                            target='_blank'
+                            rel='noreferrer'
+                          >
                             {file?.title}
                           </a>
                         </Box>
@@ -715,11 +720,8 @@ function Step2({ course: { _id, sections, lessons, activeSection, activeLesson, 
             {videoEdit.data?.title}
           </Typography>
           <Box sx={{ display: "flex", gap: 1 }}>
-            <Box sx={{ flex: 1, ml: 1 }}>
-              <MediaPlayer ref={videoRef} title='Video' src={videoEdit.data?.path} onTimeUpdate={handleGetCurrentTime}>
-                <MediaProvider />
-                <PlyrLayout icons={plyrLayoutIcons} />
-              </MediaPlayer>
+            <Box sx={{ flex: 1, ml: 1, display: "flex" }}>
+              <VideoStack videoRef={videoRef} src={videoEdit.data?.path} onTimeUpdate={handleGetCurrentTime} />
             </Box>
             <Box
               sx={{

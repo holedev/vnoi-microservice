@@ -1,13 +1,15 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Continuous Integration With PNPM
+name: UNITTEST
 
 on:
-  push:
-    branches: ['test']
   pull_request:
-    branches: ['dev']
+    types: [opened, synchronize, reopened]
+    branches: ['main']
+
+permissions:
+  checks: write
+  contents: write
+  pull-requests: write
+  deployments: write
 
 env:
   REDIS_PORT: demo
@@ -18,7 +20,7 @@ env:
   MONGODB_URL: demo
 
 jobs:
-  check_changes:
+  check_commit_change:
     runs-on: ubuntu-22.04
     outputs:
       client_changed: ${{ steps.client_changed.outputs.client }}
@@ -43,10 +45,65 @@ jobs:
             server:
               - 'server/**'
 
+  check_version:
+    runs-on: ubuntu-22.04
+    needs: check_commit_change
+    if: ${{ needs.check_commit_change.outputs.server_changed == 'true'}}
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version
+        id: get-version
+        run: |
+          VERSION=$(jq -r ".version" ./server/package.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+  server_test:
+    runs-on: ubuntu-22.04
+    needs: check_version
+    defaults:
+      run:
+        working-directory: ./server/
+
+    strategy:
+      matrix:
+        node-version: ['18.18.2']
+
+    steps:
+      - name: Checkout code from GitHub
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ matrix.node-version }}-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run test
+        run: pnpm test:all
+
   client_test:
     runs-on: ubuntu-22.04
-    needs: check_changes
-    if: ${{ needs.check_changes.outputs.client_changed == 'true'}}
+    needs: check_commit_change
+    if: ${{ needs.check_commit_change.outputs.client_changed == 'true'}}
     defaults:
       run:
         working-directory: ./client/
@@ -86,44 +143,3 @@ jobs:
 
       - name: Run test
         run: pnpm test
-
-  server_test:
-    runs-on: ubuntu-22.04
-    needs: check_changes
-    if: ${{ needs.check_changes.outputs.client_changed == 'true'}}
-    defaults:
-      run:
-        working-directory: ./server/
-
-    strategy:
-      matrix:
-        node-version: ['18.18.2']
-
-    steps:
-      - name: Checkout code from GitHub
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
-
-      - name: Cache pnpm dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            pnpm-store-${{ matrix.node-version }}-
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Run test
-        run: pnpm test:all

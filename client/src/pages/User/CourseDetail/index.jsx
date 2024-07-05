@@ -19,11 +19,10 @@ import { useParams } from "react-router-dom";
 
 import useAxiosAPI from "~/hook/useAxiosAPI";
 import Question from "./Question";
-import { MediaPlayer, MediaProvider } from "@vidstack/react";
-import { PlyrLayout, plyrLayoutIcons } from "@vidstack/react/player/layouts/plyr";
 import { toast } from "react-toastify";
 import { handleUserSubmitProblem } from "~/utils/firebase";
 import useUserContext from "~/hook/useUserContext";
+import VideoStack from "~/components/Vidstack";
 
 const _LESSON_PROGRESS_DONE = 90;
 
@@ -266,16 +265,12 @@ function CourseDetail() {
           >
             {lesson.video && (
               <Box>
-                <MediaPlayer
-                  ref={videoRef}
-                  title='video'
-                  src={lesson.video.path}
+                <VideoStack
+                  videoRef={videoRef}
+                  src={lesson.video?.path}
                   onTimeUpdate={handleTimeUpdate}
                   onLoadedMetadata={() => handleLoadedMetadata(lesson.video?.interactives)}
-                >
-                  <MediaProvider />
-                  <PlyrLayout icons={plyrLayoutIcons} />
-                </MediaPlayer>
+                />
               </Box>
             )}
             <Box sx={{ p: 1 }}>
@@ -290,8 +285,8 @@ function CourseDetail() {
               )}
 
               {lesson.files && (
-                <Box>
-                  <Box sx={{ display: "flex", gap: 1 }}>
+                <Box sx={{ mt: 1 }}>
+                  <Box sx={{ display: "flex", gap: 1, flexDirection: "column" }}>
                     {lesson.files.map((file) => (
                       <Link key={file._id} href={file.path} download>
                         {file.title}
@@ -316,11 +311,21 @@ function CourseDetail() {
             sx={{
               height: "100%",
               overflow: "auto",
-              flex: 1
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center"
             }}
           >
-            <CardMedia component='img' image={course.coverPath} />
-            <Typography sx={{ p: 1 }} variant='body2'>
+            <CardMedia
+              sx={{
+                width: "500px"
+              }}
+              component='img'
+              image={course.coverPath}
+            />
+            <Typography sx={{ p: 1, mt: 2, textAlign: "justify" }} variant='body2'>
               {course.desc}
             </Typography>
           </Box>

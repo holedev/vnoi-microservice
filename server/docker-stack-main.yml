@@ -1,0 +1,199 @@
+version: "3.8"
+services:
+  gateway:
+    image: lehodev/vnoi-backend-gateway:${VERSION}
+    ports:
+      - "9000:9000"
+    secrets:
+      - source: firebase_secret
+        target: /app/firebase.json
+        mode: 0444
+      - source: env_secret
+        target: /app/gateway/.env
+        mode: 0444
+    depends_on:
+      - amqp-rabbitmq
+      - db-mongo
+    networks:
+      - vnoi-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  common:
+    image: lehodev/vnoi-backend-common:${VERSION}
+    ports:
+      - 9001:9001
+      - 50001:50001
+    environment:
+      - MONGODB_URL=mongodb://db-mongo:27017/vnoi-common
+    secrets:
+      - source: env_secret
+        target: /app/common/.env
+        mode: 0444
+    depends_on:
+      - amqp-rabbitmq
+      - db-mongo
+    networks:
+      - vnoi-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  user:
+    image: lehodev/vnoi-backend-user:${VERSION}
+    ports:
+      - 9002:9002
+      - 50002:50002
+    secrets:
+      - source: firebase_secret
+        target: /app/firebase.json
+        mode: 0444
+      - source: env_secret
+        target: /app/user/.env
+        mode: 0444
+    environment:
+      - MONGODB_URL=mongodb://db-mongo:27017/vnoi-user
+    depends_on:
+      - amqp-rabbitmq
+      - db-mongo
+    networks:
+      - vnoi-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  exercise:
+    image: lehodev/vnoi-backend-exercise:${VERSION}
+    ports:
+      - 9003:9003
+      - 50003:50003
+    secrets:
+      - source: firebase_secret
+        target: /app/firebase.json
+        mode: 0444
+      - source: env_secret
+        target: /app/exercise/.env
+        mode: 0444
+    environment:
+      - MONGODB_URL=mongodb://db-mongo:27017/vnoi-exercise
+      - MAX_SUBMISSION=50
+      - COMPILER_HOST=http://server:2358
+    depends_on:
+      - amqp-rabbitmq
+      - db-mongo
+    networks:
+      - vnoi-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  media:
+    image: lehodev/vnoi-backend-media:${VERSION}
+    ports:
+      - 9004:9004
+      - 50004:50004
+    environment:
+      - MONGODB_URL=mongodb://db-mongo:27017/vnoi-media
+    secrets:
+      - source: env_secret
+        target: /app/media/.env
+        mode: 0444
+    depends_on:
+      - amqp-rabbitmq
+      - db-mongo
+    volumes:
+      - upload-data-files:/app/media/uploads/files
+      - upload-data-videos:/app/media/uploads/videos
+      - upload-data-images:/app/media/uploads/images
+    networks:
+      - vnoi-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  learning:
+    image: lehodev/vnoi-backend-learning:${VERSION}
+    ports:
+      - 9005:9005
+      - 50005:50005
+    environment:
+      - MONGODB_URL=mongodb://db-mongo:27017/vnoi-learning
+    secrets:
+      - source: env_secret
+        target: /app/learning/.env
+        mode: 0444
+    depends_on:
+      - amqp-rabbitmq
+      - db-mongo
+    networks:
+      - vnoi-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  statistics:
+    image: lehodev/vnoi-backend-statistics:${VERSION}
+    ports:
+      - 9006:9006
+      - 50006:50006
+    environment:
+      - MONGODB_URL=mongodb://db-mongo:27017/vnoi-statistics
+    secrets:
+      - source: env_secret
+        target: /app/statistics/.env
+        mode: 0444
+    depends_on:
+      - amqp-rabbitmq
+      - db-mongo
+    networks:
+      - vnoi-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  logging:
+    image: lehodev/vnoi-backend-logging:${VERSION}
+    ports:
+      - 9007:9007
+    secrets:
+      - source: env_secret
+        target: /app/logging/.env
+        mode: 0444
+    depends_on:
+      - amqp-rabbitmq
+      - db-mongo
+    volumes:
+      - log-data:/app/logging/logs
+    networks:
+      - vnoi-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+volumes:
+  log-data:
+    name: "vnoi-logs"
+    driver: local
+
+  upload-data-images:
+    name: "vnoi-uploads-images"
+    driver: local
+  upload-data-videos:
+    name: "vnoi-uploads-videos"
+    driver: local
+  upload-data-files:
+    name: "vnoi-uploads-files"
+    driver: local
+
+secrets:
+  firebase_secret:
+    file: ./firebase.json
+  env_secret:
+    file: ./.env
+
+networks:
+  vnoi-backend:
+    name: vnoi-backend
+    driver: overlay
+    external: true

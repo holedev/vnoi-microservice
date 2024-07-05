@@ -144,7 +144,7 @@ export default function Sidebar() {
             <Collapse in={lecturerDashboardOpen} timeout='auto' unmountOnExit>
               <List component='div' disablePadding>
                 <ListItemButton onClick={() => nav("/lecturer/dashboard/courses")} sx={{ paddingLeft: "72px" }}>
-                  <ListItemText primary='Courses' />
+                  <ListItemText primary='Courses (Beta)' />
                 </ListItemButton>
               </List>
               <List component='div' disablePadding>
@@ -159,7 +159,7 @@ export default function Sidebar() {
           <ListItemIcon>
             <Book />
           </ListItemIcon>
-          <ListItemText primary='Courses' />
+          <ListItemText primary='Courses (Beta)' />
         </ListItemButton>
         {import.meta.env.VITE_MODE === "dev" && (
           <ListItemButton onClick={() => nav("/problems")}>
@@ -211,7 +211,7 @@ export default function Sidebar() {
         }}
         onClick={handleOpenSidebar}
         color='primary'
-        aria-label='add'
+        aria-label='toggle-sidebar'
       ></Fab>
     </List>
   );

@@ -1,0 +1,180 @@
+x-depends-on: &default-service-config
+  env_file:
+    - .env.all.docker
+  depends_on:
+    amqp-rabbitmq:
+      condition: service_healthy
+    db-mongo:
+      condition: service_healthy
+  networks:
+    - vnoi-backend
+
+name: vnoi-micro-backend
+services:
+  gateway:
+    container_name: server-gateway
+    image: lehodev/vnoi-backend-gateway:${VERSION}
+    ports:
+      - "9000:9000"
+    expose:
+      - "9000"
+    restart: always
+    volumes:
+      - ./firebase.json:/app/firebase.json
+    environment:
+      - CLIENT_URL=${CLIENT_URL}
+    <<: *default-service-config
+
+  common:
+    container_name: server-common
+    image: lehodev/vnoi-backend-common:${VERSION}
+    expose:
+      - "9001"
+    restart: always
+    environment:
+      - MONGODB_URL=mongodb://db-mongo:27017/vnoi-common
+    <<: *default-service-config
+
+  user:
+    container_name: server-user
+    image: lehodev/vnoi-backend-user:${VERSION}
+    expose:
+      - "9002"
+    restart: always
+    volumes:
+      - ./firebase.json:/app/firebase.json
+    environment:
+      - MONGODB_URL=mongodb://db-mongo:27017/vnoi-user
+    <<: *default-service-config
+
+  exercise:
+    container_name: server-exercise
+    image: lehodev/vnoi-backend-exercise:${VERSION}
+    expose:
+      - "9003"
+    restart: always
+    env_file:
+      - .env.all.docker
+    volumes:
+      - ./firebase.json:/app/firebase.json
+    environment:
+      - MONGODB_URL=mongodb://db-mongo:27017/vnoi-exercise
+      - MAX_SUBMISSION=50
+      - COMPILER_HOST=http://server:2358
+      - COMPILER_X_AUTH_USER=${COMPILER_X_AUTH_USER}
+      - STRING_SPLIT_CODE=>----------<
+      - VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY}
+      - VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN}
+      - VITE_FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID}
+      - VITE_FIREBASE_STORAGE_BUCKET=${VITE_FIREBASE_STORAGE_BUCKET}
+      - VITE_FIREBASE_MESS_SENDER_ID=${VITE_FIREBASE_MESS_SENDER_ID}
+      - VITE_FIREBASE_APP_ID=${VITE_FIREBASE_APP_ID}
+      - VITE_FIREBASE_MEASUREMENT_ID=${VITE_FIREBASE_MEASUREMENT_ID}
+      - VITE_FIREBASE_DATABASE_URL=${VITE_FIREBASE_DATABASE_URL}
+    depends_on:
+      amqp-rabbitmq:
+        condition: service_healthy
+      db-mongo:
+        condition: service_healthy
+    networks:
+      - vnoi-backend
+      - vnoi-judge0
+
+  media:
+    container_name: server-media
+    image: lehodev/vnoi-backend-media:${VERSION}
+    ports:
+      - "9004:9004"
+    expose:
+      - "9004"
+    restart: always
+    environment:
+      - MONGODB_URL=mongodb://db-mongo:27017/vnoi-media
+      - STATIC_FILE_URL=http://localhost:9004/
+    <<: *default-service-config
+
+  learning:
+    container_name: server-learning
+    image: lehodev/vnoi-backend-learning:${VERSION}
+    expose:
+      - "9005"
+    restart: always
+    environment:
+      - MONGODB_URL=mongodb://db-mongo:27017/vnoi-learning
+    <<: *default-service-config
+
+  statistics:
+    container_name: server-statistics
+    image: lehodev/vnoi-backend-statistics:${VERSION}
+    expose:
+      - "9006"
+    restart: always
+    environment:
+      - MONGODB_URL=mongodb://db-mongo:27017/vnoi-statistics
+    <<: *default-service-config
+
+  logging:
+    container_name: server-logging
+    image: lehodev/vnoi-backend-logging:${VERSION}
+    expose:
+      - "9007"
+    restart: always
+    volumes:
+      - log-data:/app/logging/logs
+    <<: *default-service-config
+
+  db-mongo:
+    container_name: db-mongo
+    image: mongo
+    restart: always
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    volumes:
+      - db-mongo-data:/data/db
+    networks:
+      - vnoi-backend
+
+  amqp-rabbitmq:
+    container_name: amqp-rabbitmq
+    image: rabbitmq:3.12-management
+    ports:
+      - "15672:15672"
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST}
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    volumes:
+      - db-rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - vnoi-backend
+
+volumes:
+  db-mongo-data:
+    name: "vnoi-mongo"
+
+  db-rabbitmq-data:
+    name: "vnoi-rabbitmq"
+
+  log-data:
+    name: "vnoi-log"
+
+networks:
+  vnoi-backend:
+    name: vnoi-backend
+    driver: bridge
+    external: true
+
+  vnoi-judge0:
+    driver: overlay
+    external: true

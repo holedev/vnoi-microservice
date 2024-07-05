@@ -280,11 +280,12 @@ function Profile() {
               <Stack direction='row' spacing={2}>
                 <FormControl>
                   <FormLabel>Role</FormLabel>
-                  <Input size='sm' defaultValue={user.role} disabled />
+                  <Input aria-label='user-role' size='sm' defaultValue={user.role} disabled />
                 </FormControl>
                 <FormControl sx={{ flexGrow: 1 }}>
                   <FormLabel>Email</FormLabel>
                   <Input
+                    aria-label='user-email'
                     size='sm'
                     type='email'
                     startDecorator={<EmailRoundedIcon />}

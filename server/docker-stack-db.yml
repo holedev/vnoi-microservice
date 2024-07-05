@@ -1,0 +1,44 @@
+version: "3.8"
+services:
+  db-mongo:
+    image: mongo:7.0.8
+    ports:
+      - "27017:27017"
+    volumes:
+      - db-mongo-data:/data/db
+    networks:
+      - vnoi-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  amqp-rabbitmq:
+    image: rabbitmq:3.12-management
+    ports:
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=hole
+      - RABBITMQ_DEFAULT_PASS=Admin@123
+      - RABBITMQ_DEFAULT_VHOST=vhost
+    volumes:
+      - db-rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - vnoi-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+volumes:
+  db-mongo-data:
+    name: "vnoi-mongo"
+    driver: local
+
+  db-rabbitmq-data:
+    name: "vnoi-rabbitmq"
+    driver: local
+
+networks:
+  vnoi-backend:
+    name: vnoi-backend
+    driver: overlay
+    external: true

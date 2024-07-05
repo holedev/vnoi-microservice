@@ -27,7 +27,7 @@ LinearProgressWithLabel.propTypes = {
 export default function LinearWithValueLabel({ progress }) {
   return (
     <Box sx={{ width: "100%" }}>
-      <LinearProgressWithLabel value={progress} />
+      <LinearProgressWithLabel value={progress >= 0 ? progress : 0} />
     </Box>
   );
 }
