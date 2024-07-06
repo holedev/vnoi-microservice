@@ -138,6 +138,14 @@ jobs:
           restore-keys: |
             pnpm-store-${{ matrix.node-version }}-
 
+      - name: Cache Cypress binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ matrix.node-version }}-${{ hashFiles('cypress.json') }}
+          restore-keys: |
+            cypress-${{ matrix.node-version }}-
+
       - name: Install dependencies
         run: pnpm install
 
