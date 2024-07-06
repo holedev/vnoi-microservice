@@ -1,0 +1,20 @@
+name: test
+
+on:
+  push:
+    branches: ['test']
+
+jobs:
+  load_test:
+    runs-on: ubuntu-22.04
+    env:
+      K6_API_TOKEN: ${{ secrets.K6_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run k6 cloud test
+        uses: grafana/k6-action@v0.3.1
+        with:
+          filename: ./client/k6/loadTest.js
+          cloud: true
+          token: ${{ env.K6_API_TOKEN }}
