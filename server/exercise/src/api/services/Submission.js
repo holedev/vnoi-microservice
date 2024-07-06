@@ -181,7 +181,7 @@ const SubmissionService = {
 
     const submitRemain = userSubmission
       ? _PROCESS_ENV.MAX_SUBMISSION - userSubmission?.submissionTotal
-      : _PROCESS_ENV.MAX_SUBMISSION - 1;
+      : _PROCESS_ENV.MAX_SUBMISSION;
 
     const inputs = problemDoc.testcases.input.split(_PROCESS_ENV.STRING_SPLIT_CODE);
     const outputs = problemDoc.testcases.output.split(_PROCESS_ENV.STRING_SPLIT_CODE);

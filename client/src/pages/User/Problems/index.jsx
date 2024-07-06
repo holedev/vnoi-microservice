@@ -15,7 +15,7 @@ import {
   TableRow
 } from "@mui/material";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { handleDatetime } from "~/utils/datetime";
 import SearchDebounce from "~/components/SearchDebounce";
 import useLoadingContext from "~/hook/useLoadingContext";
@@ -57,7 +57,6 @@ export default function ProblemsPage() {
         setProblems(problemList);
         setFiliter((prev) => {
           const currentPage = res.data.currentPage > res.data.totalPage ? 1 : res.data.currentPage;
-
           return {
             ...prev,
             page: currentPage,
@@ -75,16 +74,21 @@ export default function ProblemsPage() {
         [type]: value
       };
     });
-
     setSearchParams((prev) => {
       prev.set(type, value);
       return prev;
     });
+    getProblems();
   };
 
-  useEffect(() => {
-    getProblems();
-  }, [filter.classCurr, filter.status, filter.page, filter.time]);
+  // search not working in refresh page
+
+  // useEffect(() => {
+  //   if (shouldFetch) {
+  //     getProblems();
+  //     setShouldFetch(false);
+  //   }
+  // }, [filter.classCurr, filter.status, filter.page, filter.time]);
 
   return (
     <Box

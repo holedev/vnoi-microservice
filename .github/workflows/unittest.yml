@@ -128,18 +128,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
-
-      - name: Cache pnpm dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            pnpm-store-${{ matrix.node-version }}-
 
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          pnpm install
 
       - name: Run test
-        run: pnpm test
+        run: |
+          pnpm test

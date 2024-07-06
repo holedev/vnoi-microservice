@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { handleDatetime } from "~/utils/datetime";
 import DropdownClass from "~/components/DropdownClass";
 import SearchDebounce from "~/components/SearchDebounce";
@@ -87,6 +87,7 @@ export default function Dashboard() {
       prev.set(type, value);
       return prev;
     });
+    getData();
   };
 
   const handleDelete = async (_id) => {
@@ -111,9 +112,9 @@ export default function Dashboard() {
     nav("/lecturer/courses");
   };
 
-  useEffect(() => {
-    getData();
-  }, [filter.classCurr, filter.status, filter.page, filter.limit]);
+  // useEffect(() => {
+  //   getData();
+  // }, [filter.classCurr, filter.status, filter.page, filter.limit]);
 
   return (
     <>

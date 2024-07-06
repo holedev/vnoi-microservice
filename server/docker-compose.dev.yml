@@ -91,7 +91,6 @@ services:
         condition: service_healthy
     networks:
       - vnoi-backend
-      - vnoi-judge0
 
   media:
     container_name: server-media
@@ -204,9 +203,5 @@ volumes:
 networks:
   vnoi-backend:
     name: vnoi-backend
-    driver: bridge
-    external: true
-
-  vnoi-judge0:
     driver: overlay
     external: true
