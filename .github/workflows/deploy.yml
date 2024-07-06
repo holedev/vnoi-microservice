@@ -156,9 +156,15 @@ jobs:
           command: |
             export VERSION=${{ env.VERSION }}
 
+            echo "Start pull image ${{ env.VERSION }}"
+            docker compose -f /vnoi-microservice/docker-compose.build.yml pull
+            echo "Finish pull image ${{ env.VERSION }}"
+            sleep 10
+
             echo "Start deploy swarm ${{ env.VERSION }}"
             docker stack deploy -c /vnoi-microservice/docker-stack-main.yml vnoi-micro-main
             echo "Finish deploy swarm ${{ env.VERSION }}"
+            sleep 10
 
       - name: Get external IP
         id: get_external_ip
@@ -168,6 +174,8 @@ jobs:
 
   client_staging:
     runs-on: ubuntu-22.04
+    needs: [check_commit_change]
+    if: ${{ needs.check_commit_change.outputs.client_changed == 'true'}}
     env:
       VITE_FIREBASE_API_KEY: '${{ secrets.FIREBASE_API_KEY }}'
       VITE_FIREBASE_AUTH_DOMAIN: '${{ secrets.FIREBASE_AUTH_DOMAIN }}'
@@ -252,7 +260,7 @@ jobs:
   e2e_test:
     runs-on: ubuntu-22.04
     needs: [client_staging, server_staging]
-    if: ${{ needs.client_staging.outputs.client_staging_status != 'failure' && needs.server_staging.outputs.server_staging_status != 'failure'}}
+    if: ${{ (needs.client_staging.result == 'success' && needs.client_staging.result == 'skipped') || (needs.server_staging.result == 'success' && needs.server_staging.result == 'skipped') || (needs.client_staging.result == 'success' && needs.server_staging.result == 'success')}}
     env:
       CYPRESS_BASE_URL: https://staging.vnoi-client.pages.dev
       CYPRESS_API_URL: https://vnoi-server-staging.undefine.tech
@@ -347,9 +355,15 @@ jobs:
           command: |
             export VERSION=${{ env.VERSION }}
 
+            echo "Start pull image ${{ env.VERSION }}"
+            docker compose -f /vnoi-microservice/docker-compose.build.yml pull
+            echo "Finish pull image ${{ env.VERSION }}"
+            sleep 10
+
             echo "Start deploy stack ${{ env.VERSION }}"
             docker stack deploy -c /vnoi-microservice/docker-stack-main.yml vnoi-micro-main
             echo "Finish deploy stack ${{ env.VERSION }}"
+            sleep 10
 
       - name: Get external IP
         id: get_external_ip
