@@ -138,14 +138,16 @@ jobs:
           restore-keys: |
             pnpm-store-${{ matrix.node-version }}-
 
+      - name: Install dependencies
+        run: pnpm install
+
       - name: Cypress Component Tests
         uses: cypress-io/github-action@v6
         with:
           install: true
+          working-directory: ./client/
+          start: pnpm cypress:component:chrome
           cache-key: cypress-binary-${{ matrix.node-version }}-
-
-      - name: Install dependencies
-        run: pnpm install
 
       - name: Run test
         run: pnpm test
