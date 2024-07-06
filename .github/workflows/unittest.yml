@@ -110,6 +110,8 @@ jobs:
     strategy:
       matrix:
         node-version: ['18.18.2']
+    env:
+      CYPRESS_CACHE_FOLDER: '/root/cache/Cypress'
 
     steps:
       - name: Checkout code from GitHub
