@@ -141,7 +141,7 @@ jobs:
       - name: Cache Cypress binary
         uses: actions/cache@v4
         with:
-          path: ~/.cache/Cypress
+          path: /root/.cache/Cypress
           key: cypress-${{ matrix.node-version }}-${{ hashFiles('cypress.json') }}
           restore-keys: |
             cypress-${{ matrix.node-version }}-
