@@ -148,10 +148,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          export CYPRESS_CACHE_FOLDER=../../cache/Cypress'
+          export CYPRESS_CACHE_FOLDER=../../cache/Cypress
           pnpm install
 
       - name: Run test
         run: |
-          export CYPRESS_CACHE_FOLDER=cache/Cypress'
+          export CYPRESS_CACHE_FOLDER=cache/Cypress
           pnpm test
