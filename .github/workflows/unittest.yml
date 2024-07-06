@@ -130,13 +130,19 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
-      # - name: Cache pnpm dependencies
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: ~/.pnpm-store
-      #     key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
-      #     restore-keys: |
-      #       pnpm-store-${{ matrix.node-version }}-
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ matrix.node-version }}-
+
+      - name: Cypress Component Tests
+        uses: cypress-io/github-action@v6
+        with:
+          install: true
+          cache-key: cypress-binary-${{ matrix.node-version }}-
 
       - name: Install dependencies
         run: pnpm install
