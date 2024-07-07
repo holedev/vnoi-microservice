@@ -260,7 +260,7 @@ jobs:
   e2e_test:
     runs-on: ubuntu-22.04
     needs: [client_staging, server_staging]
-    if: ${{ needs.client_staging.outputs.client_staging_status != 'failure' && needs.server_staging.outputs.server_staging_status != 'failure'}}
+    if: ${{ (needs.client_staging.outputs.client_staging_status != 'failure' || needs.client_staging.result == 'skipped') && (needs.server_staging.outputs.server_staging_status != 'failure' || needs.server_staging.result == 'skipped') }}
     env:
       CYPRESS_BASE_URL: https://staging.vnoi-client.pages.dev
       CYPRESS_API_URL: https://vnoi-server-staging.undefine.tech
