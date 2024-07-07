@@ -79,7 +79,7 @@ const encodeMax720 = async ({ bitrate, inputPath, isHasAudio, outputPath, output
     "-i",
     slash(inputPath),
     "-preset",
-    "veryslow",
+    "veryfast",
     "-g",
     "48",
     "-crf",
@@ -130,7 +130,7 @@ const encodeMax1080 = async ({ bitrate, inputPath, isHasAudio, outputPath, outpu
   const { $ } = await import("zx");
   const slash = (await import("slash")).default;
 
-  const args = ["-y", "-i", slash(inputPath), "-preset", "veryslow", "-g", "48", "-crf", "17", "-sc_threshold", "0"];
+  const args = ["-y", "-i", slash(inputPath), "-preset", "veryfast", "-g", "48", "-crf", "17", "-sc_threshold", "0"];
   if (isHasAudio) {
     args.push("-map", "0:0", "-map", "0:1", "-map", "0:0", "-map", "0:1");
   } else {
@@ -180,7 +180,7 @@ const encodeMax1440 = async ({ bitrate, inputPath, isHasAudio, outputPath, outpu
   const { $ } = await import("zx");
   const slash = (await import("slash")).default;
 
-  const args = ["-y", "-i", slash(inputPath), "-preset", "veryslow", "-g", "48", "-crf", "17", "-sc_threshold", "0"];
+  const args = ["-y", "-i", slash(inputPath), "-preset", "veryfast", "-g", "48", "-crf", "17", "-sc_threshold", "0"];
   if (isHasAudio) {
     args.push("-map", "0:0", "-map", "0:1", "-map", "0:0", "-map", "0:1", "-map", "0:0", "-map", "0:1");
   } else {
@@ -236,7 +236,7 @@ const encodeMaxOriginal = async ({ bitrate, inputPath, isHasAudio, outputPath, o
   const { $ } = await import("zx");
   const slash = (await import("slash")).default;
 
-  const args = ["-y", "-i", slash(inputPath), "-preset", "veryslow", "-g", "48", "-crf", "17", "-sc_threshold", "0"];
+  const args = ["-y", "-i", slash(inputPath), "-preset", "veryfast", "-g", "48", "-crf", "17", "-sc_threshold", "0"];
   if (isHasAudio) {
     args.push("-map", "0:0", "-map", "0:1", "-map", "0:0", "-map", "0:1", "-map", "0:0", "-map", "0:1");
   } else {
