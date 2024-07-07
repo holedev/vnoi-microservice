@@ -112,10 +112,6 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-      resources:
-        limits:
-          cpus: "2"
-          memory: 2G
       replicas: 2
 
   learning:
