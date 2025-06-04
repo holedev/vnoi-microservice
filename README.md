@@ -5,6 +5,7 @@ A modern, distributed online judge system designed to support programming educat
 ## 📖 Documentation
 
 For detailed documentation, please visit our [Gitbook](https://vnoi-doc.dorara.id.vn/)
+Additional project details can be found in [docs/overview.md](docs/overview.md).
 
 ## 🏗️ Architecture Overview
 
