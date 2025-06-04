@@ -12,3 +12,5 @@
 - [Codacy](https://www.codacy.com/)
 
 > Documentation: [Gitbook](https://vnoi-doc.dorara.id.vn/)
+
+Additional project details can be found in [docs/overview.md](docs/overview.md).
